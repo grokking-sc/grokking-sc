@@ -1,0 +1,75 @@
+cabal-version:      3.0
+name:               sequent-calculus
+version:            0.1.0.0
+synopsis:           Compiling to the sequent calculus
+-- description:
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             Anonymous
+maintainer:         anonymous
+-- copyright:
+category:           Development
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+                    README.md
+
+common warnings
+    ghc-options: -Wall -Wno-orphans
+
+library
+    import:           warnings
+    exposed-modules:  Duality.Syntax
+                      Duality.Types
+                      Duality.Parser
+                      Core.Syntax
+                      Core.Eval
+                      Core.Focusing
+                      Core.Pretty
+                      Core.Substitution
+                      Core.Simplify
+                      Compiler
+    build-depends:    base,
+                      containers,
+                      megaparsec,
+                      text,
+                      mtl,
+                      prettyprinter
+    hs-source-dirs:   src
+    default-language: GHC2021
+
+executable sequent-calculus
+    import:           warnings
+    main-is:          Main.hs
+    build-depends:
+        base,
+        text,
+        sequent-calculus
+
+    hs-source-dirs:   app
+    default-language: GHC2021
+
+executable web-demo
+    import:           warnings
+    main-is:          Main.hs
+    build-depends:
+        base,
+        text,
+        sequent-calculus
+    hs-source-dirs:   web-app
+    other-modules:    JSBits
+    default-language: GHC2021
+
+test-suite sequent-calculus-tests
+    import:           warnings
+    main-is:          Main.hs
+    type:             exitcode-stdio-1.0
+    other-modules:    Parser
+                      Substitution
+    build-depends:
+        prettyprinter,
+        base,
+        sequent-calculus,
+        tasty,
+        tasty-hunit
+    hs-source-dirs:   test
+    default-language: GHC2021

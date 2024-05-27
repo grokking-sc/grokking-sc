@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html data-theme="light">
+
+<head>
+  <title>Grokking the Sequent Calculus</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+  <script src="examples.js"></script>
+  <script language="JavaScript">
+    function inputChange() {
+      var inputContent = document.getElementById('input').value;
+      globalCompiler(inputContent); // globalCompiler is defined and set in the Haskell code
+    }
+    function exampleSelect(input) {
+      input_area = document.getElementById('input');
+      input_area.value = all_examples[input].trim();
+      inputChange();
+    }
+
+    function load_options(){
+      select_elem = document.getElementById('example_select');
+      console.log(select_elem);
+
+      for(const [name,value] of Object.entries(all_examples)){
+
+        new_option = document.createElement('option');
+        new_option.value=name;
+        new_option.text=name;
+        select_elem.appendChild(new_option);
+      }
+
+    }
+  </script>
+
+</head>
+
+<body onLoad="load_options()">
+  <main class="container" >
+    <section>
+      <h1>Grokking the Sequent Calculus</h1>
+      <nav>
+        <select id="example_select" onChange="exampleSelect(this.options[this.selectedIndex].value)" aria-label="Select example...">
+          <option value="" selected disabled>Select example...</option>
+        </select>
+        <select onChange="document.documentElement.setAttribute('data-theme', this.options[this.selectedIndex].value)">
+          <option value="light" selected>Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </nav>
+    </section>
+
+
+    <h3>Input</h3>
+    <textarea id="input" rows=10 oninput="inputChange()" aria-invalid="false" spellcheck="false"></textarea>
+    <textarea id="errorpane" rows=5 readonly spellcheck="false"></textarea>
+
+    <h3>Core Representation</h3>
+
+    <details>
+      <summary role="button" class="outline secondary">Compiled</summary>
+      <p>
+        <textarea id="compiled" rows=10 readonly spellcheck="false"></textarea>
+      </p>
+    </details>
+
+    <details>
+      <summary role="button" class="outline secondary">Focused</summary>
+      <textarea id="focused" rows=10 readonly spellcheck="false"></textarea>
+    </details>
+
+    <details>
+      <summary role="button" class="outline secondary">Simplified</summary>
+      <textarea id="simplified" rows=10 readonly spellcheck="false"></textarea>
+    </details>
+
+    <h3>Evaluation</h3>
+
+    <textarea id="evaluation" rows=10 readonly spellcheck="false"></textarea>
+
+  </main>
+</body>
+<script language="javascript" src="all.js" defer></script>
+
+</html>

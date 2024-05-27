@@ -1,0 +1,2 @@
+packages: sequent-calculus.cabal
+allow-newer: all
