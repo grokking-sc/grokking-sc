@@ -2,7 +2,7 @@
 module Core.Pretty (render) where
 
 import Core.Syntax
-import Duality.Syntax (BinOp(..), Ctor(..), Dtor(..))
+import Fun.Syntax (BinOp(..), Ctor(..), Dtor(..))
 import Data.List (intersperse)
 import Prettyprinter
 import Prettyprinter.Render.String

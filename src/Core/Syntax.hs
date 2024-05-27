@@ -1,6 +1,6 @@
 module Core.Syntax where
 import Data.Text (Text)
-import Duality.Syntax (BinOp, Ctor, Dtor)
+import Fun.Syntax (BinOp, Ctor, Dtor)
 
 
 -- type definitions for variables, covariables and names
@@ -11,15 +11,15 @@ type Covar = Text
 type Name = Text
 
 -- definition 2.5
--- constructor and destructor names are parametrized by the type variable a 
+-- constructor and destructor names are parametrized by the type variable a
 -- xtor(patv;patcv) => patst
 data Pattern a = MkPattern
     -- a pattern contains:
     -- an xtor (either constructor or destructor name)
     { xtor :: a
-    -- bound varibles 
+    -- bound varibles
     , patv :: [Var]
-    -- bound covariables 
+    -- bound covariables
     , patcv :: [Covar]
     -- a bound statement
     , patst :: Statement
@@ -29,12 +29,12 @@ data Pattern a = MkPattern
 
 data Producer
     -- definition 2.1
-    -- a producer is one of 
-    -- a variable 
+    -- a producer is one of
+    -- a variable
     = Var Var
-    -- an integer literal 
+    -- an integer literal
     | Lit Int
-    -- a mu abstraction binding a covariable and a statement 
+    -- a mu abstraction binding a covariable and a statement
     -- mu cv. st
     | Mu Covar Statement
 
@@ -42,14 +42,14 @@ data Producer
     -- a constructor term with producer and consumer arguments
     -- ctor(prods,cons)
     | Constructor Ctor [Producer] [Consumer]
-    -- a cocase containing a number of destructor patterns 
+    -- a cocase containing a number of destructor patterns
     -- cocase { pts }
     | Cocase [Pattern Dtor]
     deriving (Show, Eq)
 
 data Consumer
     -- definition 2.1
-    -- a consumer is one of 
+    -- a consumer is one of
     -- a covairable
     = Covar Covar
 
@@ -69,17 +69,17 @@ data Consumer
 data Statement
 
     -- definition 2.1
-    -- a statement is one of 
+    -- a statement is one of
     -- a cut between a prodcuer and consumer (of the same type)
     -- <prd | cns>
     = Cut Producer Consumer
-    -- a binary operation with 
+    -- a binary operation with
     -- two producer arguments (of type int), that are the arguments to the operation
-    -- a binary operation (+.-....) to be performed 
+    -- a binary operation (+.-....) to be performed
     -- a consumer argument serving as the continuation of the statement
     -- *(p1,p2;c)
     | Op Producer BinOp Producer Consumer
-    -- a zero test contains a producer to be tested and two branch statements 
+    -- a zero test contains a producer to be tested and two branch statements
     -- ifz(n,st1,st2)
     | IfZ Producer Statement Statement
 
@@ -99,13 +99,13 @@ data Statement
 data Def a = Def {
   -- a definition contains
   -- a name, used to call the definition
-  name :: Name, 
-  -- a number of producer arguments, represented by variables 
+  name :: Name,
+  -- a number of producer arguments, represented by variables
   -- the additional argument a contains the type of that argument
-  pargs :: [(Var, a)], 
+  pargs :: [(Var, a)],
   -- a number of consumer arguments, represnted by covariables
   -- the additional argument a contains the type of that argument
-  cargs :: [(Covar, a)], 
+  cargs :: [(Covar, a)],
   -- a body, which is a statement
   -- this statement will be substituted for the name during evaluation
   -- within the statement all variables and covariables defined in pargs and cargs can be used

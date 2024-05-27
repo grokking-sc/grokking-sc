@@ -1,7 +1,7 @@
 module Parser (parserTests) where
 
-import Duality.Parser
-import Duality.Syntax
+import Fun.Parser
+import Fun.Syntax
 import Test.Tasty
 import Test.Tasty.HUnit
 

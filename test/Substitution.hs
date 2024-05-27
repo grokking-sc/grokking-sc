@@ -5,7 +5,7 @@ import Test.Tasty.HUnit
 import Core.Syntax
 import Core.Substitution
 import Core.Pretty
-import Duality.Syntax (Ctor(..))
+import Fun.Syntax (Ctor(..))
 import Prettyprinter
 
 substitutionTests :: TestTree

@@ -1,9 +1,9 @@
 module Main (main) where
 
 import Compiler qualified as C
-import Duality.Syntax
-import Duality.Parser
-import Duality.Types
+import Fun.Syntax
+import Fun.Parser
+import Fun.Types
 import Core.Focusing
 import Core.Syntax qualified as Core
 import Core.Eval

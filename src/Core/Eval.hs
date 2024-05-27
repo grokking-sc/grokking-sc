@@ -4,7 +4,7 @@ import Core.Substitution
 import Core.Syntax
 import Data.List (find)
 import Data.Text qualified as T
-import Duality.Syntax (BinOp (..))
+import Fun.Syntax (BinOp (..))
 
 eval :: Statement -> Prog a -> [Statement]
 eval start prg = eval' start [start]

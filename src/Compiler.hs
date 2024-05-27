@@ -2,7 +2,7 @@ module Compiler (compile, compileProg) where
 
 import Core.Substitution (freshCovar)
 import Core.Syntax qualified as Core
-import Duality.Syntax qualified as DL
+import Fun.Syntax qualified as DL
 
 
 -- duality terms are compiled to core producers 
