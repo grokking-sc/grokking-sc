@@ -1,3 +1,10 @@
+{-|
+Module      : Core.Simplify
+Description : Simplify expressions by reducing redexes.
+
+This module contains a very primitive simplification algorithm
+which reduces statically known redexes.
+-}
 module Core.Simplify where
 
 import Core.Syntax
@@ -6,7 +13,6 @@ import Data.List
 import Fun.Syntax (BinOp (..))
 
 
---performs eta reductions on a program
 class Simplify a where
   simplify :: a -> a
 

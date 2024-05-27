@@ -1,13 +1,21 @@
+{-|
+Module      : Core.Syntax
+Description : Syntax of intermediate language Core
+
+This module contains the definition of the abstract syntax of the
+intermediate language Core.
+-}
 module Core.Syntax where
 import Data.Text (Text)
 import Fun.Syntax (BinOp, Ctor, Dtor)
 
-
--- type definitions for variables, covariables and names
+-- | Variables
 type Var = Text
 
+-- | Covariables
 type Covar = Text
 
+-- | Names of toplevel functions
 type Name = Text
 
 -- definition 2.5

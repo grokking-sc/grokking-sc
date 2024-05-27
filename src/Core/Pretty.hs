@@ -1,4 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-|
+Module      : Core.Pretty
+Description : Prettyprint expressions of the core language.
+
+This module implements a simple Wadler-Leijen-style prettyprinter for
+expressions of the intermediate language Core.
+-}
 module Core.Pretty (render) where
 
 import Core.Syntax
