@@ -1,3 +1,11 @@
+{-|
+Module      : Fun.Types
+Description : Type inference for the surface language Fun
+
+This module implements a simple type inference algorithm for the surface
+language Fun. The type inference algorithm follows the standard Hindley-Milner
+approach, but we do not implement let-generalization.
+-}
 module Fun.Types (inferTypes) where
 
 import Control.Monad
@@ -10,42 +18,33 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Fun.Syntax
 
--- type variables
+-- | Type variables
 type TyVar = Text
 
 -- Types
 -- section 4.1, Appendix A
 data Ty
-    -- a type is one of
-    -- a type variable
+    -- | Type variables
     = TyVar TyVar
-    -- the integer type
+    -- | The type of primitive integers
     | IntTy
-    -- a list type
-    -- with an argument indicating the list contents
+    -- | The list type
     | ListTy Ty
-    -- a pair type
-    -- with two arguments, indicating the contents
-    | PairTy Ty Ty
-    -- a stream type
-    -- with a type argument indicating the contents
+    -- | The stream type
     | StreamTy Ty
-    -- a lazy pair type
-    -- with two type arguments indicating the contetns
+    -- | The strict pair type
+    | PairTy Ty Ty
+    -- | The lazy pair type
     | LPairTy Ty Ty
-    -- a function type
-    -- with type arguments indicating the argument and return type
+    -- | The function type
     | FunTy Ty Ty
     deriving (Show, Eq)
 
--- | Compute the free type variables of a type.
--- there are no ways to bind a type variable so any type variable that appears is always free
+-- | Compute the set of free type variables of a type.
+-- There are no ways to bind a type variable so any type variable that appears is always free
 freeTyVars :: Ty -> S.Set TyVar
--- a type variable on its own is free
 freeTyVars (TyVar v) = S.singleton v
--- the integer type has no type variables
 freeTyVars IntTy = S.empty
--- for all other types the free type variables are the ones of their arguments
 freeTyVars (ListTy t) = freeTyVars t
 freeTyVars (PairTy t1 t2) = S.union (freeTyVars t1) (freeTyVars t2)
 freeTyVars (StreamTy t) = freeTyVars t

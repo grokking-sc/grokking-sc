@@ -1,5 +1,11 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-|
+Module      : Fun.Parser
+Description : Parser for the surface language Fun
 
+This module implements the parser for the surface language Fun.
+The parser is implemented using the parser combinator library "Megaparsec".
+-}
+{-# LANGUAGE OverloadedStrings #-}
 module Fun.Parser (parseTerm, parseProg) where
 
 import Data.Text (Text)

@@ -1,24 +1,33 @@
+{-|
+Module      : Fun.Syntax
+Description : Syntax of surface language Fun
+
+This module contains the definition of the abstract syntax of the
+surface language Fun.
+-}
 module Fun.Syntax where
 
-import Data.Text
+import Data.Text (Text)
 
-
--- Variables, covariables and function names
+-- | Variables
 type Var = Text
 
+-- | Covariables
 type Covar = Text
 
+-- | Names of toplevel functions
 type Name = Text
 
--- Constructors and destructors
+-- | Constructors
 data Ctor = Nil | Cons | Tup deriving (Show, Eq)
 
+-- | Destructors
 data Dtor = Hd | Tl | Fst | Snd | Ap deriving (Show, Eq)
 
--- Binary arithmetic operators
+-- | Binary arithmetic operators
 data BinOp = Prod | Sum | Sub deriving (Show, Eq)
 
--- Clause in a pattern or copattern match
+-- | Clause in a pattern or copattern match
 -- the type parameter a is used to abstract over constructors and destructors
 -- patterns are Clause Ctor and copatterns Clause Dtor
 -- a clause contains
@@ -28,59 +37,58 @@ data BinOp = Prod | Sum | Sub deriving (Show, Eq)
 --  xtor(args) => t
 data Clause a = MkClause a [Var] Term deriving (Show, Eq)
 
--- Terms
+-- | Terms
+--
+-- Terms are introduced in definitions 2.1 to 2.7 in the paper.
 data Term
-    -- a term is one of
-    -- definition 2.1
-    -- a variable
+    -- Introduced in definition 2.1:
+
+    -- | Variables
     = VarT Var
-    -- an integer literal
+    -- | Integer literals
     | Lit Int
-    -- a binary operation between two terms
+    -- | Binary arithmetic operations
     | Op Term BinOp Term
-    -- a zero test
-    -- the first term is tested to be 0
-    -- the other terms are the two branches
+    -- | If-zero which tests whether the first argument is equal to zero
     | IfZ Term Term Term
 
-    -- definition 2.3
-    -- a let-in term
-    -- the variable is the bound variable
-    -- the first term is the value of the variable
-    -- the second term is the scope of the variable
+    -- Introduced in definition 2.3:
+
+    -- | Let-in
     | Let Var Term Term
 
-    -- definition 2.4
-    -- a toplevel function call
-    -- the name determines which definition is called
-    -- the list of terms are the arguments
-    -- and the optional covariable is the label to be propagated (if the definition uses jump/label)
+    -- Introduced in definition 2.4:
+
+    -- | Toplevel function call applied to arguments
+    -- The optional covariable is the label to be propagated (if the definition uses jump/label)
     | Fun Name [Term] (Maybe Covar)
 
-    -- definition 2.5
-    -- a constructor term with constructor name and a list of arguments
+    -- Introduced in definition 2.5:
+
+    -- | Constructor applied to arguments
     | ConT Ctor [Term]
-    -- a destructor term
+    -- | Destructor applied to a scrutinee
     -- the first term is the scrutinee
     -- the dtor defines the destructor and the list of terms are the destructor arguments
     -- for all dtors except ap this list is always empty
     | DesT Term Dtor [Term]
-    -- a case expression containing the scrutinee term and a list of patterns
+    -- | Case expression containing the scrutinee term and a list of patterns
     | Case Term [Clause Ctor]
-    -- a cocase expression containing only a list of copatterns
+    -- | Cocase expression containing only a list of copatterns
     | Cocase [Clause Dtor]
-    -- a lambda abstraction with bound variable and body
 
-    -- definition 2.6
+    -- Introduced in definition 2.6:
+
+    -- | Lambda abstraction
     | Lam Var Term
-    -- a function application
-    -- the fist term is the function and the second the argument
+    -- | Function application
     | App Term Term
 
-    -- definition 2.7
-    -- a jump term with a covariable indicating where to jump to
+    -- Introduced in definition 2.7:
+
+    -- | Jump term with a covariable indicating where to jump to
     | Jump Term Covar
-    -- a label term introducing a label (covariable) and a term in which the label is scoped
+    -- | Label term introducing a label (covariable) and a term in which the label is scoped
     | Label Covar Term
     deriving (Show, Eq)
 
