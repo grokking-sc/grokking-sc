@@ -1,4 +1,4 @@
-{-|
+{- |
 Module      : Core.Substitution
 Description : Substitution  for (co)variables.
 
@@ -10,8 +10,8 @@ module Core.Substitution where
 
 import Core.Syntax
 import Data.List (find)
-import Data.Text qualified as T
 import Data.Set qualified as S
+import Data.Text qualified as T
 
 -- fresh variables and covariables
 -- freshv variables are all variables with names xi
@@ -151,11 +151,12 @@ instance (Subst (Pattern a)) where
         -- producers to substitute for the variables (snd<$>ps)
         -- covariables to be substituted (fst<$>cs)
         -- consumers to substitute for the covariables (snd<$>cs)
-        let foo :: [Free] = MkFree st :
-                (MkFree . Var . snd <$> ps)
-                    <> (MkFree . fst <$> ps)
-                    <> (MkFree . Covar . snd <$> cs)
-                    <> (MkFree . fst <$> cs)
+        let foo :: [Free] =
+                MkFree st
+                    : (MkFree . Var . snd <$> ps)
+                        <> (MkFree . fst <$> ps)
+                        <> (MkFree . Covar . snd <$> cs)
+                        <> (MkFree . fst <$> cs)
         -- generate fresh variables and covariables for the pattern
         -- these replace the ones bound in the pattern
         -- the number of vars and covars will be the same
@@ -189,7 +190,9 @@ instance Subst Producer where
         -- all covariables to be substituted (snd <$> cs)
         -- all consumers to be substituted (fst <$> cs)
         -- all producers to be substituted (fst <$> ps)
-        let cv' = freshCovar (MkFree st : (MkFree . Covar . snd <$> cs) ++ (MkFree . fst <$> cs) ++ (MkFree . fst <$> ps))
+        let cv' =
+                freshCovar
+                    (MkFree st : (MkFree . Covar . snd <$> cs) ++ (MkFree . fst <$> cs) ++ (MkFree . fst <$> ps))
         -- we then need to substitute cv by cv', so the new variable is correctly bound by mu
         let st' = substCovar (Covar cv') cv st
         -- lastly, substitute ps and cs in the new statement no longer containing cv
@@ -211,7 +214,8 @@ instance Subst Consumer where
     substSim ps cs (MuTilde v st) = do
         -- generate a fresh variable not contained in the bound statement, any of the producers and consumers to be substituted,
         -- not equal to any variable that needs to be substituted and not equal to the originally bound variable
-        let v' = freshVar (MkFree st : (MkFree . Var . snd <$> ps) ++ (MkFree . fst <$> ps) ++ (MkFree . fst <$> cs))
+        let v' =
+                freshVar (MkFree st : (MkFree . Var . snd <$> ps) ++ (MkFree . fst <$> ps) ++ (MkFree . fst <$> cs))
         -- replace the bound variable by the new one
         let st' = substVar (Var v') v st
         -- perform the substitution on the new statement
