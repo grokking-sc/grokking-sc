@@ -1,7 +1,32 @@
-# Sequent Calculus
+# Functional Pearl: Grokking the Sequent Calculus
 
-This is an artifact for the functional perl "Grokking the Sequent Calculus" implementing the introduced programming languages.
+This is the artifact for the functional perl "Grokking the Sequent Calculus".
+The paper introduces sequent-calculus based intermediate languages by compiling the functional surface language `Fun` to the sequent calculus based intermediate language `Core`.
+This artifact implements a parser and typechecker for the surface language `Fun`, the compilation of `Fun` to `Core`, the focusing algorithm described in the paper and a simplifier and evaluator for `Core`.
+The artifact can be used in two different ways: There is a small binary with a command line interface which allows to compile and run a program on the command line, and there is a web-based demo which provides a website which allows to run small examples without having to install anything on your device.
+ 
+## Directory structure
 
+```text
+├── app                     CLI application
+├── examples                Examples of `Fun` programs
+├── src
+│   ├── Compiler.hs         Compilation from Fun to Core
+│   ├── Core
+│   │   ├── Eval.hs         Substitution based evaluation.
+│   │   ├── Focusing.hs     Implementation of the focusing algorithm
+│   │   ├── Pretty.hs       Prettyprinting of Core programs
+│   │   ├── Simplify.hs     Term simplification
+│   │   ├── Substitution.hs Capture-avoiding Substitution
+│   │   └── Syntax.hs       Syntax of the intermediate language Core
+│   └── Fun
+│       ├── Parser.hs       Parser for Fun using parser combinators
+│       ├── Syntax.hs       Syntax of Fun
+│       └── Types.hs        Hindley-Milner style type inference for Fun
+├── test                    Testsuite
+└── web-app                 Web demo application
+
+```
 
 ## Requirements
 
@@ -46,7 +71,3 @@ This will then show a web interface, that given an input in the `Fun` language, 
 In order to run the compiled binary either use `cabal run sequent-calculus FILENAME` or the build target `make run -filepath=FILENAME` where `FILENAME` is the path to the source file to be run.
 The file will then be parsed, type checked, compiled, focused and evaluated, outputting the resulting `Core` program, before and after focusing, along with the trace of evaluating the `main` function. 
 
-## Packing 
-
-All the source code found in this directory can be packed into a zip folder using the `pack.sh` script or the `make pack` target.
-This will also include the compiled `all.js` script, created by the `build-webdemo.sh`. When that build script is run a second time, the `all.js` file will be overwriten by the new version.
