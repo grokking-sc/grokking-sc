@@ -36,7 +36,7 @@ If only using the binary, additionally, GHC>=9.4 is also required.
 ### Web Demo
 
 The web demo uses the GHC-JS cross compiler.
-This is still a bit experimental, but you can use the instructions here: https://www.haskell.org/ghcup/guide/#cross-support
+This is still a bit experimental, but you can use the instructions here: https://www.haskell.org/ghcup/guide/#cross-support  
 Be sure to first install an emscripten toolchain.
 
 Verify that you can run the cross compiler, for example by checking its version:
