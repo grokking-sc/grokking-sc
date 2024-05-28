@@ -1,24 +1,26 @@
-{-|
+{- |
 Module      : Core.Focusing
-Description : Focus expressions in the core language 
+Description : Focus expressions in the core language
 
 This module implements focusing for expressions in the core language.
 -}
-module Core.Focusing ( 
-  -- * Focussing
-  -- Section 3
-  Focus,
-  isValue
+module Core.Focusing (
+    -- * Focussing
+
+    -- Section 3
+    Focus,
+    isValue,
 ) where
 
 import Core.Substitution
 import Core.Syntax
 import Data.List (find)
 
--- | Tests if a producer is a value
--- literals, variables and cocase are always values
--- Constructors are values if all their arguments are values 
--- Mu-abstractions are no values
+{- | Tests if a producer is a value
+literals, variables and cocase are always values
+Constructors are values if all their arguments are values
+Mu-abstractions are no values
+-}
 isValue :: Producer -> Bool
 isValue (Lit _) = True
 isValue (Var _) = True
@@ -26,21 +28,23 @@ isValue (Cocase _) = True
 isValue (Constructor _ prds _) = all isValue prds
 isValue (Mu _ _) = False
 
-
--- | Type class for focusing different expressions (producers, consumers, etc)
--- Definition 3.2
+{- | Type class for focusing different expressions (producers, consumers, etc)
+Definition 3.2
+-}
 class Focus a where
     -- | Focus an expression
     focus :: a -> a
 
--- | Focusing instance for patterns 
--- Focuses the statement bound in the pattern
+{- | Focusing instance for patterns
+Focuses the statement bound in the pattern
+-}
 instance Focus (Pattern a) where
     focus :: Pattern a -> Pattern a
     focus (MkPattern nm v cv s) = MkPattern nm v cv (focus s)
 
--- | Focusing instance for producers 
--- Except for constructor terms, this only recursively focuses subexpressions
+{- | Focusing instance for producers
+Except for constructor terms, this only recursively focuses subexpressions
+-}
 instance Focus Producer where
     focus :: Producer -> Producer
     focus (Var x) = Var x
@@ -73,8 +77,9 @@ instance Focus Producer where
                 -- this covariable acts as a continuatiion, allowing all to be evaluated in the correct order
                 Mu cv (Cut (focus p1') (MuTilde v (Cut (focus (Constructor ct newArgs cargs)) (Covar cv))))
 
--- | Focusing instance for consumers 
--- As with producers, except for destructor terms, this only recursively focuses subexpressions 
+{- | Focusing instance for consumers
+As with producers, except for destructor terms, this only recursively focuses subexpressions
+-}
 instance Focus Consumer where
     focus :: Consumer -> Consumer
     focus (Covar x) = Covar x
@@ -99,8 +104,9 @@ instance Focus Consumer where
                 -- the cut of this abstraction then contains p1' focused and the destructor with replaced aruments
                 MuTilde v (Cut (focus p1') (Destructor dt newArgs cargs))
 
--- | Focusing instance for statements 
--- Ifz and binary operations are focused analogously to destructors and constructors
+{- | Focusing instance for statements
+Ifz and binary operations are focused analogously to destructors and constructors
+-}
 instance Focus Statement where
     focus :: Statement -> Statement
     focus (Cut p c) = Cut (focus p) (focus c)
@@ -139,12 +145,14 @@ instance Focus Statement where
                 Cut (focus p1) (MuTilde v (Fun nm newArgs cargs))
     focus Done = Done
 
--- | Focusing instance for toplevel definitions 
--- Focuses the defined body of the definition
+{- | Focusing instance for toplevel definitions
+Focuses the defined body of the definition
+-}
 instance Focus (Def a) where
     focus Def{name = nm, pargs = prods, cargs = cons, body = bd} = Def{name = nm, pargs = prods, cargs = cons, body = focus bd}
 
--- | Focusing instance for program
--- This focuses all definitions found in the program
+{- | Focusing instance for program
+This focuses all definitions found in the program
+-}
 instance Focus (Prog a) where
     focus (MkProg dfs) = MkProg (focus <$> dfs)

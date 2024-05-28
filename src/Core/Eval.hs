@@ -1,8 +1,8 @@
-{-|
+{- |
 Module      : Core.Eval
-Description : Evaluate statements in the core language 
+Description : Evaluate statements in the core language
 
-This module implements an evaluator for the core language 
+This module implements an evaluator for the core language
 -}
 module Core.Eval (
     -- ** Evaluators
