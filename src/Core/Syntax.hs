@@ -5,7 +5,16 @@ Description : Syntax of intermediate language Core
 This module contains the definition of the abstract syntax of the
 intermediate language Core.
 -}
-module Core.Syntax where
+module Core.Syntax (
+    Producer (..),
+    Var,
+    Consumer (..),
+    Covar,
+    Statement (..),
+    Pattern (..),
+    Def (..),
+    Prog (..),
+) where
 
 import Data.Text (Text)
 import Fun.Syntax (BinOp, Ctor, Dtor)
@@ -19,102 +28,103 @@ type Covar = Text
 -- | Names of toplevel functions
 type Name = Text
 
--- definition 2.5
--- constructor and destructor names are parametrized by the type variable a
--- xtor(patv;patcv) => patst
+{- | Pattern
+Definition 2.5
+constructor and destructor names are parametrized by the type variable a
+-}
 data Pattern a = MkPattern
-    -- a pattern contains:
-    -- an xtor (either constructor or destructor name)
     { xtor :: a
-    , -- bound varibles
-      patv :: [Var]
-    , -- bound covariables
-      patcv :: [Covar]
-    , -- a bound statement
-      patst :: Statement
+    -- ^ the constcutor or destructor of the pattern
+    , patv :: [Var]
+    -- ^ the bound variables of the pattern
+    , patcv :: [Covar]
+    -- ^ the bound covariables of the pattern
+    , patst :: Statement
+    -- ^ the bound statnement (right hand side) of the pattern
     }
     deriving (Show, Eq)
 
+{- | Producers
+Definitions 2.1 and 2.5
+-}
 data Producer
-    = -- definition 2.1
-      -- a producer is one of
-      -- a variable
+    = -- | Variables
+      -- Definition 2.1
       Var Var
-    | -- an integer literal
+    | -- | Integer literals
+      -- Definition 2.1
       Lit Int
-    | -- a mu abstraction binding a covariable and a statement
-      -- mu cv. st
+    | -- | Mu abstractions binding a covariable and a statement
+      -- Definition 2.1
       Mu Covar Statement
-    | -- definition 2.5
-      -- a constructor term with producer and consumer arguments
-      -- ctor(prods,cons)
+    | -- | Constructor terms with producer and consumer arguments
+      -- Definition 2.5
       Constructor Ctor [Producer] [Consumer]
-    | -- a cocase containing a number of destructor patterns
-      -- cocase { pts }
+    | -- | Cocases containing a number of destructor patterns
+      -- Definition 2.5
       Cocase [Pattern Dtor]
     deriving (Show, Eq)
 
+{- | Consumers
+Definitions 2.1,2.3 and 2.5
+-}
 data Consumer
-    = -- definition 2.1
-      -- a consumer is one of
-      -- a covairable
+    = -- | Covairables
+      -- Definition 2.1
       Covar Covar
-    | -- definition 2.3
-      -- a mu-tilde abstraction binding a variable and statement
-      -- mu~ v.st
+    | -- | MuTilde abstractions binding a variable and statement
+      -- Definition 2.3
       MuTilde Var Statement
-    | -- definition 2.5
-      -- a case expression containing a number of constructor patterns
+    | -- | Case expressions containing a number of constructor patterns
+      -- Definition 2.5
       Case [Pattern Ctor]
-    | -- a destructor with producer and consumer arguments
-      -- dtor(prods;cons)
+    | -- | Destructors with producer and consumer arguments
+      -- Definition 2.5
       Destructor Dtor [Producer] [Consumer]
     deriving (Show, Eq)
 
+-- | Statements
 data Statement
-    = -- definition 2.1
-      -- a statement is one of
-      -- a cut between a prodcuer and consumer (of the same type)
-      -- <prd | cns>
+    = -- | Cuts containing a producer and consumer (of the same type)
+      -- Definition 2.1
       Cut Producer Consumer
-    | -- a binary operation with
-      -- two producer arguments (of type int), that are the arguments to the operation
-      -- a binary operation (+.-....) to be performed
-      -- a consumer argument serving as the continuation of the statement
-      -- \*(p1,p2;c)
-      Op Producer BinOp Producer Consumer
-    | -- a zero test contains a producer to be tested and two branch statements
-      -- ifz(n,st1,st2)
+    | -- | Binary opration with two producers, the operation and one consumer
+      -- Definition 2.1
+      -- The two producers are the integers on which the operation is performed
+      -- the consumer is the continuation
+      Op Producer BinOp Producer Consumers
+    | -- | If Zero statement containing a producer and two statements
+      -- Definition 2.1
+      -- the producer is the integer to be tested for 0
+      -- the first staement is the 0-branch, the second the non-zero branch
       IfZ Producer Statement Statement
-    | -- definition 2.4
-      -- a toplevel call contains the name of the definition and lists of producer and consumer arguments
-      -- these need to fit with the definition
-      -- fun(prods;cons)
+    | -- | Toplevel function calls contining the name, producer and consumer arguments
+      -- Definition 2.4
+      -- The number and types of the argument are defined in the definition (added by type inference)
       Fun Name [Producer] [Consumer]
-    | -- the Done command indicating a finished computation
+    | -- | The Done Statement
+      -- Indicates finished computation
       Done
     deriving (Show, Eq)
 
--- definition 2.4
--- toplevel definitions
--- the type parameter a parameterizes extre information about the arguments
--- this is used to annotate their types (done by the type checker of duality)
+{- | Toplevel Definitions
+Definition 2.4
+The type parameter is either () or Core.Ty
+Before type checking it is always () afterwards always Ty
+This is then used to annotate  argument types
+-}
 data Def a = Def
-    { -- a definition contains
-      -- a name, used to call the definition
-      name :: Name
-    , -- a number of producer arguments, represented by variables
-      -- the additional argument a contains the type of that argument
-      pargs :: [(Var, a)]
-    , -- a number of consumer arguments, represnted by covariables
-      -- the additional argument a contains the type of that argument
-      cargs :: [(Covar, a)]
-    , -- a body, which is a statement
-      -- this statement will be substituted for the name during evaluation
-      -- within the statement all variables and covariables defined in pargs and cargs can be used
-      -- these will then be replaced by the arguments used to call the definition
-      body :: Statement
+    { name :: Name
+    -- ^ The name of the function
+    , pargs :: [(Var, a)]
+    -- ^ The producer arguments, possibly with a type
+    , cargs :: [(Covar, a)]
+    -- ^ The consumer arguments, possibly with a type
+    , body :: Statement
+    -- ^ The body of the definition
     }
 
--- a program is a list of definitions
+{- | Programs
+These are a list of toplevel definitions
+-}
 newtype Prog a = MkProg [Def a]
