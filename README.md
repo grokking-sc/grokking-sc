@@ -43,7 +43,7 @@ In order to run the web-demo, open the `web-app/index.html` file in a browser.
 This will then show a web interface, that given an input in the `Fun` language, compiles it to `Core`, focuses and simplifies it and evaluates the `main` function if it is available, giving the results of every step.
 
 
-In order to run the compiled binary either use `cabal run sequent-calculus FILENAME` or the build target `make run -filepath=FILENAME" where `FILENAME` is the path to the source file to be run.
+In order to run the compiled binary either use `cabal run sequent-calculus FILENAME` or the build target `make run -filepath=FILENAME` where `FILENAME` is the path to the source file to be run.
 The file will then be parsed, type checked, compiled, focused and evaluated, outputting the resulting `Core` program, before and after focusing, along with the trace of evaluating the `main` function. 
 
 ## Packing 
