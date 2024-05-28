@@ -1,9 +1,24 @@
-module Core.Focusing where
+{-|
+Module      : Core.Focusing
+Description : Focus expressions in the core language 
+
+This module implements focusing for expressions in the core language.
+-}
+module Core.Focusing ( 
+  -- * Focussing
+  -- Section 3
+  Focus,
+  isValue
+) where
 
 import Core.Substitution
 import Core.Syntax
 import Data.List (find)
 
+-- | Tests if a producer is a value
+-- literals, variables and cocase are always values
+-- Constructors are values if all their arguments are values 
+-- Mu-abstractions are no values
 isValue :: Producer -> Bool
 isValue (Lit _) = True
 isValue (Var _) = True
@@ -12,32 +27,25 @@ isValue (Constructor _ prds _) = all isValue prds
 isValue (Mu _ _) = False
 
 
--- section 3.2
--- Focusing is needed for
--- producers
--- consumers
--- statements
--- patterns
--- definitions
--- programs
+-- | Type class for focusing different expressions (producers, consumers, etc)
+-- Definition 3.2
 class Focus a where
+    -- | Focus an expression
     focus :: a -> a
 
--- for a pattern, the right-hand command needs to be focused,
--- everything else stays the same
+-- | Focusing instance for patterns 
+-- Focuses the statement bound in the pattern
 instance Focus (Pattern a) where
     focus :: Pattern a -> Pattern a
     focus (MkPattern nm v cv s) = MkPattern nm v cv (focus s)
 
+-- | Focusing instance for producers 
+-- Except for constructor terms, this only recursively focuses subexpressions
 instance Focus Producer where
     focus :: Producer -> Producer
-    -- variables are already focused as they are in normal form
     focus (Var x) = Var x
-    -- literals are already focused as they are in normal form
     focus (Lit n) = Lit n
-    -- for a mu abstracition, the contained command needs to be focused
     focus (Mu x s) = Mu x (focus s)
-    -- in a cocase, the patterns have to be focused as above
     focus (Cocase cocases) = Cocase (focus <$> cocases)
     -- in a constructor term, focusing amounts to replacing the first non-value argument by a variable
     -- this way, that argument is evaluated first and then the variable is substituted by the evaluated argument
@@ -53,6 +61,7 @@ instance Focus Producer where
                 -- generate the covariable for surrounding mu abstraciton
                 let cv = freshCovar [cont]
                 -- replace p1' by v in producer arguments
+                -- Mu-abstractions are no values
                 let newArgs = (\p -> if p == p1' then Var v else p) <$> pargs
                 -- the result is a mu abstraction with cv as variable
                 -- this is needed, so the result is still a producer
@@ -64,13 +73,12 @@ instance Focus Producer where
                 -- this covariable acts as a continuatiion, allowing all to be evaluated in the correct order
                 Mu cv (Cut (focus p1') (MuTilde v (Cut (focus (Constructor ct newArgs cargs)) (Covar cv))))
 
+-- | Focusing instance for consumers 
+-- As with producers, except for destructor terms, this only recursively focuses subexpressions 
 instance Focus Consumer where
     focus :: Consumer -> Consumer
-    -- covariables are in normal form, so they are already focused
     focus (Covar x) = Covar x
-    -- mutilde abstractions need the bound statement to be focused
     focus (MuTilde x s) = MuTilde x (focus s)
-    -- as with cocases, cases need their patterns focused as above
     focus (Case cases) = Case (focus <$> cases)
     -- focusing a destructor term is analogous to focusing a constructor term
     -- we find the first non-value producer argument and replace it by a variable v
@@ -91,9 +99,10 @@ instance Focus Consumer where
                 -- the cut of this abstraction then contains p1' focused and the destructor with replaced aruments
                 MuTilde v (Cut (focus p1') (Destructor dt newArgs cargs))
 
+-- | Focusing instance for statements 
+-- Ifz and binary operations are focused analogously to destructors and constructors
 instance Focus Statement where
     focus :: Statement -> Statement
-    -- in a cut we need to focus both the producer and consumer
     focus (Cut p c) = Cut (focus p) (focus c)
     -- in a binary operation focusing depends on which arguments are values
     focus s@(Op p1 op p2 c)
@@ -128,14 +137,14 @@ instance Focus Statement where
                 -- place p1 in a cut with mu-tilde abstraction whose producer is the toplevel function call
                 -- but with argument p1 replaced by v
                 Cut (focus p1) (MuTilde v (Fun nm newArgs cargs))
-    -- Done is already in normal form, so already focused
     focus Done = Done
 
--- in a toplevel definition, focus the body
+-- | Focusing instance for toplevel definitions 
+-- Focuses the defined body of the definition
 instance Focus (Def a) where
     focus Def{name = nm, pargs = prods, cargs = cons, body = bd} = Def{name = nm, pargs = prods, cargs = cons, body = focus bd}
 
--- in a program, focus all definitions
--- these definitions all need to be focused as well, as otherwise replacing a call by its definition might mean evaluation will be stuck
+-- | Focusing instance for program
+-- This focuses all definitions found in the program
 instance Focus (Prog a) where
     focus (MkProg dfs) = MkProg (focus <$> dfs)
