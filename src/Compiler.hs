@@ -6,7 +6,7 @@ This module implements the compilation of the surface language Fun to the interm
 language Core. The compilation algorithm is explained in definitions 2.1 to 2.6 of the
 paper.
 -}
-module Compiler (compile, compileProg) where
+module Compiler (compile, compileProgram) where
 
 import Core.Substitution (freshCovar)
 import Core.Syntax qualified as Core
@@ -192,5 +192,5 @@ compileDef (Fun.Def nm prodargs (Just cv) bd rt) = do
 -- note that this corresponds to the translation of toplevel calls, which also adds a consumer argument
 
 -- compiling a program amounts to compiling all its definitions
-compileProg :: forall a. Fun.Prog a -> Core.Prog a
-compileProg (Fun.MkProg defs) = Core.MkProg (compileDef <$> defs)
+compileProgram :: Fun.Program a -> Core.Prog a
+compileProgram (Fun.MkProg defs) = Core.MkProg (compileDef <$> defs)

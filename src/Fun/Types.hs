@@ -81,7 +81,7 @@ instance Zonk (Def Ty) where
         Def name ((\(x,t) -> (x, zonk m t)) <$> args) cv body (zonk m ret)
 
 -- replacing type variables in a program
-instance Zonk (Prog Ty) where
+instance Zonk (Program Ty) where
     -- this amounts to replacing all type variables in definitions
     zonk m (MkProg defs) = MkProg (zonk m <$> defs)
 
@@ -102,7 +102,7 @@ type Constraint = (Ty, Ty)
 -- contains a map of types vor (term) variables
 -- a map of types for covariables (labels)
 -- and a program (that is already typed)
-type GenReader = (M.Map Var Ty, M.Map Covar Ty, Prog Ty)
+type GenReader = (M.Map Var Ty, M.Map Covar Ty, Program Ty)
 
 -- the constraint generation state (updated during generation)
 -- contains a number, which starts at 0 and is increased whenever a new type variable is generated
@@ -545,9 +545,9 @@ genConstraintsDef (Def _ args _ body ret) = do
     addConstraint (ty, ret)
 
 -- | Annotate every toplevel definition with fresh typevariables for argument and return types.
-annotateProg :: Prog () -> Prog Ty
+annotateProgram :: Program () -> Program Ty
 -- reverse is needed because annotateDefs reverses its argument list
-annotateProg (MkProg defs) = MkProg (reverse defs')
+annotateProgram (MkProg defs) = MkProg (reverse defs')
   where
     -- generates an infinite list of type variables
     -- all of the form bi with i some integer
@@ -588,12 +588,12 @@ annotateProg (MkProg defs) = MkProg (reverse defs')
 -- or the annotated program with a list of generated constraints
 -- the argument and return types of the included definitions will all be type variables (see above)
 -- once the constraints are resolved (see below) these will be substtituted
-generateConstraints :: Prog () -> Either String (Prog Ty, [Constraint])
+generateConstraints :: Program () -> Either String (Program Ty, [Constraint])
 generateConstraints prog = do
     -- first annotate the program
     -- then run the constraint generation monad
     -- return the results of running the monad
-    let prog'@(MkProg defs) = annotateProg prog
+    let prog'@(MkProg defs) = annotateProgram prog
     let initialReader = (M.empty, M.empty, prog')
     let initialState = (0,[])
     let act :: GenM ()
@@ -700,7 +700,7 @@ solveConstraint (ty1,ty2) = throwError ("Cannot unify types: " <> show ty1 <> "a
 -------------------------------------------------------------------------------
 
 -- combine all the above monad to infer types of a program
-inferTypes :: Prog () -> IO (Either Error (Prog Ty))
+inferTypes :: Program () -> IO (Either Error (Program Ty))
 inferTypes prog = do
     -- first generate constraints
     -- this first adds type variables to definitions then generates type constraints
