@@ -502,7 +502,7 @@ genConstraintsTm (App t1 t2) = do
 -- ――――――――――――――――――――――――――
 --     Γ ⊢  Jump(t,v) : σ
 --
-genConstraintsTm (Jump t v) = do
+genConstraintsTm (Goto t v) = do
     -- get the type of t
     ty1 <- genConstraintsTm t
     -- get the type of the label
@@ -515,8 +515,8 @@ genConstraintsTm (Jump t v) = do
             Just ty -> pure ty
     -- the types of t and the label need to be equal
     addConstraint (ty1, ty2)
-    -- the type of the jump itself is arbitrary
-    -- note that if typing v succeeds it is ensured that the jump term is contained in some term
+    -- the type of the goto itself is arbitrary
+    -- note that if typing v succeeds it is ensured that the goto term is contained in some term
     -- and that this term contains a label definition
     -- by the below case for labels this means this type can be resolved
     freshVar

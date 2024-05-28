@@ -155,7 +155,7 @@ compile (Fun.App t1 t2) = do
     Core.Mu cv (Core.Cut t1' newD )
 
 -- section 2.6
--- jumps are compiled to a mu abstraction
+-- Goto is compiled to a mu abstraction
 -- note that in contrast to other compilations, here cv' is generated but not used in the cut
 -- instead we use the label cv (which is already a covariable)
 compile (Fun.Jump t cv) = do

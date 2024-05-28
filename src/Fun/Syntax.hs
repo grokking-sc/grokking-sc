@@ -60,7 +60,7 @@ data Term
     -- Introduced in definition 2.4:
 
     -- | Toplevel function call applied to arguments
-    -- The optional covariable is the label to be propagated (if the definition uses jump/label)
+    -- The optional covariable is the label to be propagated (if the definition uses goto/label)
     | Fun Name [Term] (Maybe Covar)
 
     -- Introduced in definition 2.5:
@@ -86,8 +86,8 @@ data Term
 
     -- Introduced in definition 2.7:
 
-    -- | Jump term with a covariable indicating where to jump to
-    | Jump Term Covar
+    -- | Goto term with a covariable indicating where to jump to
+    | Goto Term Covar
     -- | Label term introducing a label (covariable) and a term in which the label is scoped
     | Label Covar Term
     deriving (Show, Eq)

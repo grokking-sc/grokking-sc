@@ -53,8 +53,8 @@ keywords =
     , "of"
     -- cocase expression (also uses "of")
     , "cocase"
-    -- defining jumps and labels
-    , "jump"
+    -- defining goto and labels
+    , "goto"
     , "label"
     -- defining top level definitions
     , "def"
@@ -199,7 +199,7 @@ funArgsP = do
   args <- sepEndBy termP' (symbol ",")
   sc
   -- optionally parse the continuation covariable
-  -- this is needed to propagate labels for jumps
+  -- this is needed to propagate labels for gotos
   -- the covariable is separated by the other arguments by ;
   cv <- optional (symbol ";" >> identifierP)
   _ <- symbol ")"
@@ -271,12 +271,12 @@ lamP = do
     tm <- termP'
     pure (Lam var tm)
 
--- parser for jumps
--- jump(tm,var)
-jumpP :: Parser Term
-jumpP = do
-    -- parses the jump keyword followed by the jump label and contained term
-    _ <- symbol "jump"
+-- parser for Gotos
+-- goto(tm,var)
+gotoP :: Parser Term
+gotoP = do
+    -- parses the goto keyword followed by the label and contained term
+    _ <- symbol "goto"
     -- the varable and term are enclosed by ( ) and separated by ,
     (var, tm) <- parens $ do
         tm <- termP'
@@ -284,7 +284,7 @@ jumpP = do
         var <- identifierP
         sc
         pure (var, tm)
-    pure (Jump tm var)
+    pure (Goto tm var)
 
 -- parser for labels
 -- label v {t}
@@ -367,8 +367,8 @@ termP =
         <|> caseP
         -- parse cocase
         <|> cocaseP
-        -- parse jump
-        <|> jumpP
+        -- parse goto
+        <|> gotoP
         -- parse label
         <|> labelP
         -- parse ifzero
@@ -401,7 +401,7 @@ defP = do
     _ <- symbol "def"
     name <- identifierP
     -- parse the variable arguments along with the optional covariable argument
-    -- the covariable argument is only needed for labels/jumps to propagate a label
+    -- the covariable argument is only needed for labels/gotos to propagate a label
     (args,cv) <- option ([],Nothing) defArgsP
     sc
     -- parse ":=" followed by the body of the definition

@@ -4,6 +4,6 @@ def mult(x) := case x of {Nil=>1, Cons(y, ys) => y * mult(ys)};
 def swapLazy(x) := cocase { fst=>x, snd=>x.fst};
 def repeat(x) := cocase { hd=>x, tl=>repeat(x)};
 def map(f, l) := case l of {Nil=>Nil, Cons(x, xs) => Cons(f, map(f, xs))};
-def multFast(x) := label a { case x of {Nil=>1, Cons(y, ys) => ifz(y,jump(0,a),y * multFast(ys)) }};
+def multFast(x) := label a { case x of {Nil=>1, Cons(y, ys) => ifz(y,goto(0,a),y * multFast(ys)) }};
 
 def main := multFast(Cons(0,Cons(3,Cons(2,Nil))));
