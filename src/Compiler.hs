@@ -65,11 +65,11 @@ compile (Fun.Case ts clauses) = do
     -- The following code is slightly awkward. This is due to the fact that @alpha@ has to be fresh for all
     -- of the terms on the right-hand side of clauses, but we must first compile them to @Core@ before we can
     -- compute the fresh variable @alpha@.
-    let rhss = compile . (\(Fun.MkClause _ _ t1) -> t1) <$> pts
+    let rhss = compile . (\(Fun.MkClause _ _ t1) -> t1) <$> clauses
     let alpha = freshCovar (ts' : rhss)
     let rhss' = (\p -> Core.Cut p (Core.Covar alpha)) <$> rhss
     let ptFun (Fun.MkClause ct v _, c) = Core.MkPattern ct v [] c
-    let pts' = ptFun <$> zip pts rhss'
+    let pts' = ptFun <$> zip clauses rhss'
     Core.Mu alpha (Core.Cut ts' (Core.Case pts'))
 -- ⟦ cocase { D(x1...xn) ⇒ t, ...} ⟧ = cocase { D(x1...xn;ɑ) ⇒ ⟨ ⟦ t ⟧ | ɑ ⟩ , ...} (ɑ fresh in each cocase)
 compile (Fun.Cocase patterns) = do
