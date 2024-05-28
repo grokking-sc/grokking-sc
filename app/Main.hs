@@ -28,13 +28,11 @@ dispatch :: [String] -> IO ()
 dispatch [fp] = do
     prog <- readAndParse fp
 
-    tyRes <- inferTypes prog
-
-    case tyRes of
+    case inferTypes prog of
         Left err -> putStrLn err >> exitFailure
         Right _ -> putStrLn "Program typechecks!"
 
-    let compiled = C.compileProg prog
+    let compiled = C.compileProgram prog
     putStrLn $ colorTarget <> "---------- Result of Compilation --------" <> colorDefault
     putStrLn (render compiled)
 
@@ -60,10 +58,10 @@ printTrace xs = go (zip xs [(0::Integer)..])
         putStrLn (show i <> ": " <> render s)
         go rest
 
-readAndParse :: FilePath -> IO (Prog ())
+readAndParse :: FilePath -> IO (Program ())
 readAndParse fp = do
     file <- T.readFile fp
-    case parseProg file of
+    case parseProgram file of
         Left err -> do
             putStrLn err
             exitFailure

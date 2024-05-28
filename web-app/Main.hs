@@ -36,13 +36,13 @@ compiler :: JSVal -> IO ()
 compiler val = do
   let input = fromJSString val
   clearAll
-  case parseProg (T.pack input) of
+  case parseProgram (T.pack input) of
     Left err -> do
       setInputInvalid
       setErrorpane err
     Right prog -> do
       setInputValid
-      let compiled = C.compileProg prog
+      let compiled = C.compileProgram prog
       setCompiled (render compiled)
       let focused = focus compiled
       setFocused (render focused)

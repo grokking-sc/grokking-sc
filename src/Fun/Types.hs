@@ -1,5 +1,6 @@
-{-|
+{- |
 Module      : Fun.Types
+
 Description : Type inference for the surface language Fun
 
 This module implements a simple type inference algorithm for the surface
@@ -12,8 +13,8 @@ import Control.Monad
 import Control.Monad.Except
 import Control.Monad.RWS
 import Data.List (find)
-import Data.Set qualified as S
 import Data.Map qualified as M
+import Data.Set qualified as S
 import Data.Text (Text)
 import Data.Text qualified as T
 import Fun.Syntax
@@ -21,27 +22,25 @@ import Fun.Syntax
 -- | Type variables
 type TyVar = Text
 
--- Types
--- section 4.1, Appendix A
+-- | Types are defined in section 4.1, Appendix A
 data Ty
-    -- | Type variables
-    = TyVar TyVar
-    -- | The type of primitive integers
-    | IntTy
-    -- | The list type
-    | ListTy Ty
-    -- | The stream type
-    | StreamTy Ty
-    -- | The strict pair type
-    | PairTy Ty Ty
-    -- | The lazy pair type
-    | LPairTy Ty Ty
-    -- | The function type
-    | FunTy Ty Ty
+    = -- | Type variables
+      TyVar TyVar
+    | -- | The type of primitive integers
+      IntTy
+    | -- | The list type
+      ListTy Ty
+    | -- | The stream type
+      StreamTy Ty
+    | -- | The strict pair type
+      PairTy Ty Ty
+    | -- | The lazy pair type
+      LPairTy Ty Ty
+    | -- | The function type
+      FunTy Ty Ty
     deriving (Show, Eq)
 
 -- | Compute the set of free type variables of a type.
--- There are no ways to bind a type variable so any type variable that appears is always free
 freeTyVars :: Ty -> S.Set TyVar
 freeTyVars (TyVar v) = S.singleton v
 freeTyVars IntTy = S.empty
@@ -51,47 +50,34 @@ freeTyVars (StreamTy t) = freeTyVars t
 freeTyVars (LPairTy t1 t2) = S.union (freeTyVars t1) (freeTyVars t2)
 freeTyVars (FunTy t1 t2) = S.union (freeTyVars t1) (freeTyVars t2)
 
--- | A typeclass for applying type substitutions.
--- replaces all type variables in the map with the type in the map for a given argument of type a
+{- | A typeclass for applying type substitutions.
+replaces all type variables in the map with the type in the map for a given argument of type a
+-}
 class Zonk a where
     zonk :: M.Map TyVar Ty -> a -> a
 
--- replacing type variables in a type
 instance Zonk Ty where
-    -- a type variable is replaced if it is found in the map, otherwise it is left as-is
     zonk m (TyVar a) = case M.lookup a m of
         Nothing -> TyVar a
         Just ty -> ty
-    -- integer types can be directly returned as they contain no variables
     zonk _ IntTy = IntTy
-    -- for all other types, substitution needs to be performed on all arguments
     zonk m (ListTy t) = ListTy (zonk m t)
     zonk m (PairTy t1 t2) = PairTy (zonk m t1) (zonk m t2)
     zonk m (StreamTy t) = StreamTy (zonk m t)
     zonk m (LPairTy t1 t2) = LPairTy (zonk m t1) (zonk m t2)
     zonk m (FunTy t1 t2) = FunTy (zonk m t1) (zonk m t2)
 
--- replacing type variables in definitions
--- this can only be done if the definition actually contains a type
--- thus the instance is only defined for (Def Ty) and not for any (Def a)
 instance Zonk (Def Ty) where
-    -- types are included in arguments and the return type
-    -- so replacing type variables amounts to replacing them in the argument types and the return type
     zonk m (Def name args cv body ret) =
-        Def name ((\(x,t) -> (x, zonk m t)) <$> args) cv body (zonk m ret)
+        Def name ((\(x, t) -> (x, zonk m t)) <$> args) cv body (zonk m ret)
 
--- replacing type variables in a program
-instance Zonk (Prog Ty) where
-    -- this amounts to replacing all type variables in definitions
+instance Zonk (Program Ty) where
     zonk m (MkProg defs) = MkProg (zonk m <$> defs)
 
--- replacing type variables in typing constraints
--- these are generated during type inference (see below)
 instance Zonk Constraint where
-    -- replace type variables in both included types
-    zonk m (t1,t2) = (zonk m t1, zonk m t2)
+    zonk m (t1, t2) = (zonk m t1, zonk m t2)
 
--- a type equality constraint between two types
+-- | An equality constraint between two types.
 type Constraint = (Ty, Ty)
 
 -------------------------------------------------------------------------------
@@ -102,7 +88,7 @@ type Constraint = (Ty, Ty)
 -- contains a map of types vor (term) variables
 -- a map of types for covariables (labels)
 -- and a program (that is already typed)
-type GenReader = (M.Map Var Ty, M.Map Covar Ty, Prog Ty)
+type GenReader = (M.Map Var Ty, M.Map Covar Ty, Program Ty)
 
 -- the constraint generation state (updated during generation)
 -- contains a number, which starts at 0 and is increased whenever a new type variable is generated
@@ -135,7 +121,7 @@ freshVar :: GenM Ty
 freshVar = do
     (i, _) <- get
     modify (\(j, cs) -> (j + 1, cs))
-    pure (TyVar (T.pack("a" <> show i)))
+    pure (TyVar (T.pack ("a" <> show i)))
 
 -- adds a constraint to the monad state
 addConstraint :: Constraint -> GenM ()
@@ -150,7 +136,6 @@ lookupDefinition nm = do
     case find (\(Def nm' _ _ _ _) -> nm == nm') prog of
         Nothing -> throwError ("A toplevel function " <> T.unpack nm <> " is not contained in the program.")
         Just (Def _ args _ _ ret) -> pure (snd <$> args, ret)
-
 
 -- Appendix A
 -- generate constraints for a term
@@ -239,7 +224,15 @@ genConstraintsTm (Fun nm args Nothing) = do
     -- the number of arguments of the call need to be the same as the number of defined arguments
     -- if they are not, throw an error
     if length args /= length argtys
-        then throwError ("Function " <> T.unpack nm <> " called with wrong number of arguments. Expected: " <> show (length argtys) <> " Got: " <> show (length args))
+        then
+            throwError
+                ( "Function "
+                    <> T.unpack nm
+                    <> " called with wrong number of arguments. Expected: "
+                    <> show (length argtys)
+                    <> " Got: "
+                    <> show (length args)
+                )
         else do
             -- generate constraints for all argument terms
             tys <- forM args genConstraintsTm
@@ -255,17 +248,25 @@ genConstraintsTm (Fun nm args (Just cv)) = do
     (argtys, retty) <- lookupDefinition nm
     -- check argument lengths
     if length args /= length argtys
-        then throwError ("Function " <> T.unpack nm <> " called with wrong number of arguments. Expected: " <> show (length argtys) <> " Got: " <> show (length args))
+        then
+            throwError
+                ( "Function "
+                    <> T.unpack nm
+                    <> " called with wrong number of arguments. Expected: "
+                    <> show (length argtys)
+                    <> " Got: "
+                    <> show (length args)
+                )
         else do
             -- now we also need to find the type of the covariable
-            (_,coenv,_) <- ask
+            (_, coenv, _) <- ask
             -- if it is in the environment, use that type
             -- otherwise create a new type variable
             cvTy <- case M.lookup cv coenv of Nothing -> freshVar; Just ty -> pure ty
             -- generate constraints for all arguments as before
             -- but now locally add the type of the covariable to the environment during constraint generation
             -- this ensures that whenever cv is used in an argument, it's type will be the same
-            tys <- forM args (local (addCovarBinding cv cvTy) . genConstraintsTm )
+            tys <- forM args (local (addCovarBinding cv cvTy) . genConstraintsTm)
             -- again add a constraint for each argument
             forM_ (zip argtys tys) addConstraint
             -- and return the defined return type
@@ -545,9 +546,9 @@ genConstraintsDef (Def _ args _ body ret) = do
     addConstraint (ty, ret)
 
 -- | Annotate every toplevel definition with fresh typevariables for argument and return types.
-annotateProg :: Prog () -> Prog Ty
+annotateProgram :: Program () -> Program Ty
 -- reverse is needed because annotateDefs reverses its argument list
-annotateProg (MkProg defs) = MkProg (reverse defs')
+annotateProgram (MkProg defs) = MkProg (reverse defs')
   where
     -- generates an infinite list of type variables
     -- all of the form bi with i some integer
@@ -588,25 +589,23 @@ annotateProg (MkProg defs) = MkProg (reverse defs')
 -- or the annotated program with a list of generated constraints
 -- the argument and return types of the included definitions will all be type variables (see above)
 -- once the constraints are resolved (see below) these will be substtituted
-generateConstraints :: Prog () -> Either String (Prog Ty, [Constraint])
+generateConstraints :: Program () -> Either String (Program Ty, [Constraint])
 generateConstraints prog = do
     -- first annotate the program
     -- then run the constraint generation monad
     -- return the results of running the monad
-    let prog'@(MkProg defs) = annotateProg prog
+    let prog'@(MkProg defs) = annotateProgram prog
     let initialReader = (M.empty, M.empty, prog')
-    let initialState = (0,[])
+    let initialState = (0, [])
     let act :: GenM ()
         act = forM_ defs genConstraintsDef
     case runExcept (runRWST act initialReader initialState) of
         Left err -> Left err
-        Right (_,(_,cs),_) -> pure (prog',cs)
-
+        Right (_, (_, cs), _) -> pure (prog', cs)
 
 -------------------------------------------------------------------------------
 -- Constraint Solving
 -------------------------------------------------------------------------------
-
 
 -- solve constraints takes a list of constraints and either returns an error or returns a map
 -- this map maps type variables to types and is used to substitute type variables
@@ -616,25 +615,24 @@ solveConstraints cs = do
     let initial = MkSolverState cs M.empty
     case runExcept (runRWST run () initial) of
         Left err -> Left err
-        Right ((),s,()) -> Right (subst s)
+        Right ((), s, ()) -> Right (subst s)
 
 -- state for the solver monad
 -- contains constraints that have not been resolved yet
 -- and a map of typevariables to types, which contains the already resolved variables
-data SolverState = MkSolverState { todo :: [Constraint], subst :: M.Map TyVar Ty }
+data SolverState = MkSolverState {todo :: [Constraint], subst :: M.Map TyVar Ty}
 
 -- the solver monad
 -- again uses the RWST monad transformer with the Except monad
 -- now the environment and writer are both empty and the state is the solverstate
 type SolverM a = RWST () () SolverState (Except Error) a
 
-
 -- adds a new type variable to the state (the typevar map)
 -- before adding the new substitution, the substitution is performed on the remaining constraints
 performSubst :: TyVar -> Ty -> SolverM ()
 performSubst a ty = do
     -- generate a new variable map containing only the given variable and type
-    let m = M.fromList [(a,ty)]
+    let m = M.fromList [(a, ty)]
     -- get the current map and remaining constraints
     MkSolverState todo subst <- get
     -- replace the given type variable in all remaining constraints
@@ -646,7 +644,7 @@ performSubst a ty = do
     -- save the new substitution map and remaining constraints in the state
     put (MkSolverState todo' subst'')
 
--- add another constraint to the state
+-- | Add new constraints to the state of the solver.
 addConstraints :: [Constraint] -> SolverM ()
 addConstraints cs = modify (\(MkSolverState todos m) -> MkSolverState (cs ++ todos) m)
 
@@ -660,63 +658,50 @@ run = do
         [] -> pure ()
         -- otherwise solve the current constraint and remove it from the remaining constraints
         -- then recursively call the run function again
-        (c:_) -> do
+        (c : _) -> do
             modify (\(MkSolverState todos m) -> MkSolverState (tail todos) m)
             solveConstraint c
             run
 
--- solve a single constraints
+-- | Solve a single equality constraint.
 solveConstraint :: Constraint -> SolverM ()
--- a constraint between a type variable and itself can be discarded
+-- A constraint between a type variable and itself can be discarded.
 solveConstraint (TyVar a, TyVar b) | a == b = pure ()
 -- a constraint between a type var and another type
 -- check if the typevar appears free in the other type
 -- if it does this is a recursive type, which is not supported
 -- thus an error is thrown
 -- otherwise, the variable can be substituted by the given type in all constraints and added to the variable map
-solveConstraint (TyVar a,ty) | a `S.member` freeTyVars ty = throwError ("Occurs check! " <> show a <> " occurs in " <> show ty)
-                             | otherwise = performSubst a ty
-solveConstraint (ty,TyVar a) | a `S.member` freeTyVars ty = throwError ("Occurs check! " <> show a <> " occurs in " <> show ty)
-                             | otherwise = performSubst a ty
+solveConstraint (TyVar a, ty)
+    | a `S.member` freeTyVars ty = throwError ("Occurs check! " <> show a <> " occurs in " <> show ty)
+    | otherwise = performSubst a ty
+solveConstraint (ty, TyVar a)
+    | a `S.member` freeTyVars ty = throwError ("Occurs check! " <> show a <> " occurs in " <> show ty)
+    | otherwise = performSubst a ty
 -- two int types are always equal
 solveConstraint (IntTy, IntTy) = pure ()
--- two lists are equal if their arguments are equal
--- so we can just add a constraint between the arguments
-solveConstraint (ListTy t1,ListTy t2) = addConstraints [(t1,t2)]
--- two pairs are equal when both their arguments are equal
-solveConstraint (PairTy t1 t2, PairTy t1' t2') = addConstraints [(t1,t1'),(t2,t2')]
--- two streams are equal when both their arguments are equal
-solveConstraint (StreamTy t1,StreamTy t2) = addConstraints [(t1,t2)]
--- two lazy pairs are equal when their type arguments are equal
-solveConstraint (LPairTy t1 t2, LPairTy t1' t2') = addConstraints [(t1,t1'),(t2,t2')]
--- two functions are equal when both their argument and return types are equal
-solveConstraint (FunTy t1 t2, FunTy t1' t2') = addConstraints [(t1,t1'),(t2,t2')]
--- in any other case the constraint is between two unqeual types so the solver fails
-solveConstraint (ty1,ty2) = throwError ("Cannot unify types: " <> show ty1 <> "and" <> show ty2)
-
+-- For constraints between two lists, streams, functions, strict pairs and lazy pairs we
+-- generate new subconstraints.
+solveConstraint (ListTy t1, ListTy t2) = addConstraints [(t1, t2)]
+solveConstraint (PairTy t1 t2, PairTy t1' t2') = addConstraints [(t1, t1'), (t2, t2')]
+solveConstraint (StreamTy t1, StreamTy t2) = addConstraints [(t1, t2)]
+solveConstraint (LPairTy t1 t2, LPairTy t1' t2') = addConstraints [(t1, t1'), (t2, t2')]
+solveConstraint (FunTy t1 t2, FunTy t1' t2') = addConstraints [(t1, t1'), (t2, t2')]
+-- In any other case we cannot unify the two types and emit an error.
+solveConstraint (ty1, ty2) = throwError ("Cannot unify types: " <> show ty1 <> "and" <> show ty2)
 
 -------------------------------------------------------------------------------
 -- Type Inference
 -------------------------------------------------------------------------------
 
--- combine all the above monad to infer types of a program
-inferTypes :: Prog () -> IO (Either Error (Prog Ty))
+-- | Infer the types of a program.
+inferTypes :: Program () -> Either Error (Program Ty)
 inferTypes prog = do
-    -- first generate constraints
-    -- this first adds type variables to definitions then generates type constraints
-    case generateConstraints prog of
-        -- when constraint generation fails typing failed
-        -- otherwise we get a program with added types (all type variables) and a list of constraints
-        Left err -> pure (Left err)
-        Right (prog', constraints) -> do
-            print constraints
-            -- next we solve the constraints
-            case solveConstraints constraints of
-                -- when constraint solving fails, typing fails
-                -- otherwise we get a substitution for type variables
-                -- we then substitute type variables in the program using this map
-                -- and are done
-                Left err -> pure (Left err)
-                Right subst -> do
-                    print subst
-                    pure (Right (zonk subst prog'))
+    -- Generate the constraints and annotate the toplevel definitions
+    -- with unification variables.
+    (prog', constraints) <- generateConstraints prog
+    -- Solve the constraints and generate a unifier which maps type variables
+    -- to types.
+    subst <- solveConstraints constraints
+    -- Apply the unifier to the program annotated with type variables.
+    pure (zonk subst prog')
