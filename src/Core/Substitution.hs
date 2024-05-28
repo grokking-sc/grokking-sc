@@ -6,143 +6,301 @@ This module contains functions for generating fresh variables
 and covariables, and for substituting producers and consumers
 for variables and covariables.
 -}
-module Core.Substitution where
+module Core.Substitution (
+    substVar,
+    substCovar,
+    substSim,
+    freshVar,
+    freshCovar,
+) where
 
 import Core.Syntax
 import Data.List (find)
 import Data.Set qualified as S
 import Data.Text qualified as T
 
--- fresh variables and covariables
--- freshv variables are all variables with names xi
--- all i where xi already appears free in xs is removed
+{- | generate an infinite list of variables not occurring free in the argument list
+This arguments need to have the FreeV class implemented
+All generated variables will have the form xi with i starting from 0
+-}
+
+{-
+ >>> freshVars []
+ ["x0","x1",...]
+ -}
 freshVars :: (FreeV a) => [a] -> [Var]
 freshVars xs = filter (not . \x -> x `elem` fvs) [T.pack ("x" <> show i) | i <- [(0 :: Integer) ..]]
   where
     fvs = freeVars xs
 
--- to get a single free variable, take the first one in the list
+{- | generate a fresh variable not occuring free in the argument list
+The arguments needs to have the FreeV class implemented
+-}
+
+{-
+ >>> freshVar Done
+ "x0"
+ >>> freshVar (Var "x0")
+ "x1"
+-}
 freshVar :: (FreeV a) => [a] -> Var
 freshVar = head . freshVars
 
--- works the same as free variables,
--- now the prefix is a instead of x
+{- | generate fresh covariables not occuring in the argument list
+this arguments need to have FreeV implemented
+generated covariables will have the form ai with i starting at 0{
+-}
+
+{-
+ >>> freshCovars []
+ ["a0","a1",...]
+-}
 freshCovars :: (FreeV a) => [a] -> [Covar]
 freshCovars xs = filter (not . \x -> x `elem` fcvs) [T.pack ("a" <> show i) | i <- [(0 :: Integer) ..]]
   where
     fcvs = freeCovars xs
 
+{- | generate a fresh covariable not occurring in the argument list
+the arguments need to have FreeV implemented
+-}
+
+{-
+ >>> freshCovar Done
+ "a0"
+ >>> freshCovar (Covar "a0")
+ "a1"
+ -}
 freshCovar :: (FreeV a) => [a] -> Covar
 freshCovar = head . freshCovars
 
--- helper type for free variables/covariables
+{- | Wrapper type to use with freshVar and freshCovar
+Combines multiple different types all having FreeV implemented
+For example, (MkFree Done) and (MkFree (Var "x")) are both of type Free
+-}
 data Free = forall a. (FreeV a) => MkFree a
 
--- since all terms of type Free have a FreeV instance, we can always get free vars and covars
 instance FreeV Free where
     freeVars (MkFree x) = freeVars x
     freeCovars (MkFree x) = freeCovars x
 
--- Free Variables and Covariables
+-- | Type class for types containing free variables and covariables
 class FreeV a where
+    -- | compute all free variables
     freeVars :: a -> S.Set Var
+
+    -- | compute all free covariables
     freeCovars :: a -> S.Set Covar
 
--- to get free vars/covars of a list, map over that list
 instance (FreeV a) => FreeV [a] where
     freeVars xs = S.unions (freeVars <$> xs)
     freeCovars xs = S.unions (freeCovars <$> xs)
 
 instance FreeV Producer where
-    -- a variable without surrounding binding is free
+    {-
+     >>> freeVars (Var "x")
+     singleton "x"
+     -}
     freeVars (Var v) = S.singleton v
-    -- literals have no free variables
+    {-
+     >>> freeVars (Lit 1)
+     empty
+     -}
     freeVars (Lit _) = S.empty
-    -- mu binds a covariable, so this one can be ignored
+    -- mu binds a covariable, so this can be ignored
+    {-
+     >> freeVars (Mu "a" Done)
+     empty
+     -}
     freeVars (Mu _ s) = freeVars s
     -- combine free vars of all arguments
+    {-
+     >>> freeVars (Constructor Cons [Var "x", Nil])
+     singleton "x"
+     -}
     freeVars (Constructor _ pArgs cArgs) = S.union (freeVars pArgs) (freeVars cArgs)
     -- combine all free vars of the patterns
+    {-
+     >>> freeVars (Cocase [MkPattern Ap ["x"] ["a"] (Cut (Var "x") (Covar "a")))
+     empty
+     -}
     freeVars (Cocase pts) = freeVars pts
 
     -- a free variable has no covariables
+    {-
+     >>> freeCovars (Var "x")
+     empty
+     -}
     freeCovars (Var _) = S.empty
     -- a literal has no covariables
+    {-
+     >>> freeCovars (Lit 1)
+     empty
+     -}
     freeCovars (Lit _) = S.empty
     -- remove the bound covariable from the free covars of the bound statement
     -- mu is a binding occurrence of cv
+    {-
+     >>> freeCovars (Mu "a" (Cut (Var "x") (Covar "a")))
+     empty
+     -}
     freeCovars (Mu cv st) = S.delete cv (freeCovars st)
-    -- same as for vars
+    {-
+     >>> freeCovars (Constructor Nil [] [])
+     empty
+     -}
     freeCovars (Constructor _ pArgs cArgs) = S.union (freeCovars pArgs) (freeCovars cArgs)
+    {-
+     >>> freeCovars (Cocase (MkPattern Fst [] ["a"] (Cut (Var "x") (Covar "a"))))
+     empty
+     -}
     freeCovars (Cocase pts) = freeCovars pts
 
 instance FreeV Consumer where
-    -- a covar has no free variable
+    {-
+     >>> freeVars (Covar "a")
+     empty
+     -}
     freeVars (Covar _) = S.empty
     -- mu tilde binds v, so v is removed from the free vars of st
+    {-
+     >>> freeVars (MuTilde "x" (Cut (Var "x") (Covar "a")))
+     empty
+     -}
     freeVars (MuTilde v st) = S.delete v (freeVars st)
-    -- same as for the analogous producers
+    {-
+     >>> freeVars (Case (MkPattern Nil [] []))
+     empty
+    -}
     freeVars (Case pts) = freeVars pts
+    {-
+     >>> freeVars (Destructor Fst [] [Covar "a"])
+     empty
+     -}
     freeVars (Destructor _ pArgs cArgs) = S.union (freeVars pArgs) (freeVars cArgs)
 
-    -- covariable without binding is free
+    {-
+     >>> freeCovars (Covar "a")
+     singleton "a"
+     -}
     freeCovars (Covar cv) = S.singleton cv
     -- mutilde binds a variable, so this variable can be ignored
+    {-
+     >>> freeCovars (Mutilde "x" (Cut (Var "x") (Covar "a")))
+     singleton "a"
+     -}
     freeCovars (MuTilde _ st) = freeCovars st
     -- same as for the analogous producers
+    {-
+     >>> freeCovars (Case [])
+     empty
+     -}
     freeCovars (Case pts) = freeCovars pts
+    {-
+     freeCovars (Destructor Fst [] [Covar "a"]
+     singleton "a"
+     -}
     freeCovars (Destructor _ pArgs cArgs) = S.union (freeCovars pArgs) (freeCovars cArgs)
 
 instance FreeV Statement where
-    -- a cut does not bind variables, so combine the free variables of its producer and consumer term
+    {-
+     >>> freeVars (Cut (Var "x") (Covar "a"))
+     singleton "x"
+    -}
     freeVars (Cut p c) = S.union (freeVars p) (freeVars c)
-    -- same a for cuts
+    {-
+     >>> freeVars (Op (Lit 1) Sum (Var "x") (Covar "a"))
+     singleton "x"
+     -}
     freeVars (Op p1 _ p2 c) = S.unions [freeVars p1, freeVars p2, freeVars c]
-    -- same as for cuts
+    {-
+     >>> freeVars (IfZ (Lit 1) Done Done
+     empty
+     -}
     freeVars (IfZ p s1 s2) = S.unions [freeVars p, freeVars s1, freeVars s2]
-    -- same as for cuts
+    {-
+     >>> freeVars (Fun "Exit" [] ["a"])
+     empty
+     -}
     freeVars (Fun _ pArgs cArgs) = S.union (freeVars pArgs) (freeVars cArgs)
+    {-
+     >>> freeVars Done
+     empty
+    -}
     freeVars Done = S.empty
 
-    -- all the same as for variables
+    {-
+     >>> freeCovars (Cut (Var "x") (Covar "a"))
+     singleton "a"
+    -}
     freeCovars (Cut p c) = S.union (freeCovars p) (freeCovars c)
+    {-
+     >>> freeCovars (Op (Lit 1) Sum (Var "x") (Covar "a"))
+     singleton "a"
+     -}
     freeCovars (Op p1 _ p2 c) = S.unions [freeCovars p1, freeCovars p2, freeCovars c]
+    {-
+     freeCovars (IfZ (Lit 1) Done Done
+     empty
+     -}
     freeCovars (IfZ p s1 s2) = S.unions [freeCovars p, freeCovars s1, freeCovars s2]
+    {-
+     >>> freeCovars (Fun "Exit" [] ["a"])
+     empty
+     -}
     freeCovars (Fun _ pArgs cArgs) = S.union (freeCovars pArgs) (freeCovars cArgs)
+    {-
+     >>> freeCovars Done
+     empty
+    -}
     freeCovars Done = S.empty
 
 instance FreeV (Pattern a) where
     -- free variables/covariables of a pattern are the free ones of the bound statement
     -- but the ones bound in the pattern have to be removed
+    {-
+     >>> freeVars (MkPattern (Cons ["x","xs"]) (Cut (Var "x") (Covar "a"))
+     empty
+     -}
     freeVars MkPattern{xtor = _, patv = vars, patcv = _, patst = st} = S.difference (freeVars st) (S.fromList vars)
+
+    {-
+     >>> freeCovars (MkPattern (Cons ["x","xs"]) (Cut (Var "x") (Covar "a"))
+     singleton "a"
+    -}
     freeCovars MkPattern{xtor = _, patv = _, patcv = cvars, patst = st} = S.difference (freeCovars st) (S.fromList cvars)
 
 --- Substitution
--- class for types containing variables and covariables that can be substituted
+
+-- | type class for substituting all variables and covariables in an expression
 class Subst a where
-    -- general substitution function, substitutes both variables and covariables
-    -- each tuple (p,v) substitutes v for p whenever v appears free
-    -- note that variables can only be substituted by producers and covariables by consumers
-    -- only this function needs to be implemented, the others are implemented using this function
+    -- | substitute each variable and each covariable in some expression
+    -- the first two arguments are the replacements to be done
+    -- each tuple (prd,var) replaces var by prd and analogous for tuples (cns,covar)
+    -- the third argument is where the subtitution will be performed
     substSim :: [(Producer, Var)] -> [(Consumer, Covar)] -> a -> a
 
-    -- to substitute a single variable, use the general function with a singleton and empty list
+    -- | substitute a single variable by a producer in some expression
     substVar :: Producer -> Var -> a -> a
     substVar p v = substSim [(p, v)] []
 
-    -- analogous to variable substitution
+    -- | substitute a single covariable by a consumer in some expression
     substCovar :: Consumer -> Covar -> a -> a
     substCovar c v = substSim [] [(c, v)]
 
--- same as with free vars
--- map over list
 instance (Subst a) => Subst [a] where
     substSim ps cs xs = substSim ps cs <$> xs
 
+{- | Substitution instance for patterns
+this might need alpha renaming to ensure bound (co-) variables of a pattern are not substituted
+-}
 instance (Subst (Pattern a)) where
     -- to substitute within a pattern, bound variables and covariables need to be ignored
     -- vars/covars to be substituted might be bound by the pattern
     -- thus substitution might require alpha renaming
+    {-
+     >>> substSim [(Var "x","y")] [] (MkPattern Cons ["x","xs"] (Cut (Var "x") (Covar "a")))
+     MkPattern Cons ["x0","x1"] [] (Cut (Var "x0") (Covar "a"))
+     -}
     substSim ps cs (MkPattern xt vars cvars st) = do
         -- combine everything whose free variables we need
         -- this includes
@@ -176,12 +334,25 @@ instance Subst Producer where
     -- to substitute a variable we check if its contained in the given substitution list
     -- if so return the new one, otherwise return the original one
     -- covariables can be ignored here, since variables cannot contain covariables
+    {-
+     >>> substSim [(Var "x","y")] [] (Var "y")
+     Var "x"
+     >>> substSym [(Var "y","z")] [] (Var "x")
+     Var "x"
+    -}
     substSim ps _ (Var v1) = case find (\(_, v) -> v == v1) ps of
         Nothing -> Var v1
         Just (p, _) -> p
-    -- literals cannot include any variables/covariables
+    {-
+     >>> substSym [Var "x","y"] [Covar "a","b"] (Lit n)
+     Lit n
+    -}
     substSim _ _ (Lit n) = Lit n
     -- as with patterns, mu abstractions require alpha renaming to avoid shadowing
+    {-
+     >>> substSym [Lit 1,"x"] [Covar "b","a"] (Mu "a" (Cut (Var "x") (Covar "a")))
+     Mu "a0" (Cut (Lit 1) (Covar "a0")
+     -}
     substSim ps cs (Mu cv st) = do
         -- we replace the original covariable cv with a new one cv'
         -- this new covariable will not appear free in any of the terms in the list
@@ -199,18 +370,37 @@ instance Subst Producer where
         -- the new mu will have cv' bound instead of cv
         Mu cv' (substSim ps cs st')
     -- for constructors and cocases, substitution only needs to consider the arguments/patterns
+    {-
+     >>> substSim [] [] (Constructor Nil [] [])
+     Constructor Nil [] []
+     -}
     substSim ps cs (Constructor ct pargs cargs) = Constructor ct (substSim ps cs pargs) (substSim ps cs cargs)
+    {-
+     >>> substSim [] [] (Cocase (MkPattern Fst [] ["a"] Done)
+     Cocase (MkPattern Fst [] ["a"] Done)
+     -}
     substSim ps cs (Cocase patterns) = Cocase (substSim ps cs patterns)
 
 instance Subst Consumer where
     -- to substitute a covariable we look it up in the substitution list
     -- if it is found, return the new covariable, otherwise the original one
     -- variables are ignored here, since covariables do not contain variables
+    {-
+     >>> substSim [] (Covar "a","b") (Covar "b")
+     Covar "a"
+
+     >>> substSym [] (Covar "a", "b") (Covar "a")
+     Covar "a"
+     -}
     substSim _ cs (Covar v1) = case find (\(_, v) -> v == v1) cs of
         Nothing -> Covar v1
         Just (c, _) -> c
     -- mu tilde works analogously to mu, but with variables instead of covariables
     -- we alpha-rename the bound variable to ensure no shadowing
+    {-
+     >>> substSim [(Lit 1, "x")] [(Covar "b","a")] (Mutilde "x" (Cut (Var "x") (Covar "a")))
+     MuTilde "x0" (Cut (Var "x0") (Covar "b"))
+     -}
     substSim ps cs (MuTilde v st) = do
         -- generate a fresh variable not contained in the bound statement, any of the producers and consumers to be substituted,
         -- not equal to any variable that needs to be substituted and not equal to the originally bound variable
@@ -223,13 +413,40 @@ instance Subst Consumer where
         MuTilde v' (substSim ps cs st')
     -- cases and destructors are analogous to the corresponding producers
     -- substitute in the patterns or the arguments
+    {-
+     >>> substSym [] [] (Case (MkPattern Nil [] []))
+     Case (MkPattern Nil [] [])
+     -}
     substSim ps cs (Case patterns) = Case (substSim ps cs patterns)
+    {-
+     >>> substSim [] [(Covar "b","a")] (Destructor Fst [] [Covar "a"])
+     Destructor Fst [] [Covar "b"]
+     -}
     substSim ps cs (Destructor dt pargs cargs) = Destructor dt (substSim ps cs pargs) (substSim ps cs cargs)
 
 instance Subst Statement where
-    -- no statement binds any variable, so substitution is performed on the contained producers/consumers
+    {-
+     >>> substSim [(Lit 1,"x")] [(Covar "b","a")] (Cut (Var "x") (Covar "a"))
+     Cut (Lit 1) (Covar "b")
+     -}
     substSim ps cs (Cut p c) = Cut (substSim ps cs p) (substSim ps cs c)
+    {-
+     >>> substSim [(Lit 2,"x")] [] (Op (Lit 1) Sum (Var "x") (Covar "a")
+     Op (Lit 1) Sum (Lit 2) (Covar "a")
+     -}
     substSim ps cs (Op p1 op p2 c) = Op (substSim ps cs p1) op (substSim ps cs p2) (substSim ps cs c)
+    {-
+     >>> substSim [(Lit 1, "x")] [] (IfZ (Var "x") Done Done)
+     IfZ (Lit 1) Done DOne
+     -}
     substSim ps cs (IfZ p s1 s2) = IfZ (substSim ps cs p) (substSim ps cs s1) (substSim ps cs s2)
+    {-
+     >>> substSym [] [] (Fun "Exit" [] [])
+     Fun "Exit" [] []
+    -}
     substSim ps cs (Fun nm pargs cargs) = Fun nm (substSim ps cs pargs) (substSim ps cs cargs)
+    {-
+     >>> substSim [] [] Done
+     Done
+    -}
     substSim _ _ Done = Done

@@ -8,7 +8,7 @@ module Core.Focusing (
     -- * Focussing
 
     -- Section 3
-    Focus(..),
+    Focus (..),
     isValue,
 ) where
 
