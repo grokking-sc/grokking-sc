@@ -258,7 +258,7 @@ instance Focus (Def a) where
 {- | Focusing instance for program
 This focuses all definitions found in the program
 -}
-instance Focus (Prog a) where
+instance Focus (Program a) where
     {-
      >>> focus (MkProg [])
      MkProg []

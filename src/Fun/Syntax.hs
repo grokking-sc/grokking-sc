@@ -56,12 +56,12 @@ data Term
     | -- Introduced in definition 2.5:
 
       -- | Constructor applied to arguments
-      ConT Ctor [Term]
+      Constructor Ctor [Term]
     | -- | Destructor applied to a scrutinee
       -- the first term is the scrutinee
       -- the dtor defines the destructor and the list of terms are the destructor arguments
       -- for all dtors except ap this list is always empty
-      DesT Term Dtor [Term]
+      Destructor Term Dtor [Term]
     | -- | Case expression containing the scrutinee term and a list of patterns
       Case Term [Clause Ctor]
     | -- | Cocase expression containing only a list of copatterns

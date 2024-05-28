@@ -20,7 +20,7 @@ class Simplify a where
     -- | Simplify an expression
     simplify :: a -> a
 
-instance Simplify (Prog a) where
+instance Simplify (Program a) where
     {-
      >>> simplify (MkProg [])
      MkProg []

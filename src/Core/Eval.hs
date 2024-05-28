@@ -20,7 +20,7 @@ import Data.Text qualified as T
 import Fun.Syntax (BinOp (..))
 
 -- | Evaluate a statement within a program prg, returning the entire evaluation trace
-eval :: Statement -> Prog a -> [Statement]
+eval :: Statement -> Program a -> [Statement]
 eval start prg = eval' start [start]
   where
     -- evaluate once and check if evaluation succeeded
@@ -34,7 +34,7 @@ eval start prg = eval' start [start]
 {- | Evaluate a statement in a program by one step
 returns either the evaluated statement or Nothing, if no evaluation rule matches
 -}
-evalOnce :: Statement -> Prog a -> Maybe Statement
+evalOnce :: Statement -> Program a -> Maybe Statement
 -- definition 2.2
 -- if the producer of a cut is a mu-abstraction, replace the covariable by the consumer
 -- <mu x.st | c> -> st[c/x]
@@ -124,7 +124,7 @@ evalOnce _ _ = Nothing
 Returns Nothing if the statement could not be evaluated (if evalOnce returns Nothing)
 Otherwise returns the evaluation trace containing the fully evaluated statement
 -}
-evalMain :: Prog a -> Maybe [Statement]
+evalMain :: Program a -> Maybe [Statement]
 evalMain prg@(MkProg defs) = do
     main <- find (\def -> name def == T.pack "main") defs
     -- to evaluate main, insert the covariable ★ as last covariable argument of main

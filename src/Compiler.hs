@@ -51,10 +51,10 @@ compile (Fun.Fun v args (Just cv)) = do
     let alpha = freshCovar args'
     Core.Mu alpha (Core.Fun v args' [Core.Covar cv, Core.Covar alpha])
 -- ⟦ K(t1,...,tn) ⟧ = K(⟦ t1 ⟧,...,⟦ tn ⟧)
-compile (Fun.ConT ct ctargs) = do
+compile (Fun.Constructor ct ctargs) = do
     Core.Constructor ct (compile <$> ctargs) []
 -- ⟦ t.D(t1,...,tn) ⟧ = µɑ. ⟨ ⟦ t ⟧ | D(⟦ t1 ⟧,...,⟦ tn ⟧;ɑ) ⟩ (ɑ fresh)
-compile (Fun.DesT t dt args) = do
+compile (Fun.Destructor t dt args) = do
     let t' = compile t
     let args' = compile <$> args
     let alpha = freshCovar (MkFree t' : (MkFree <$> args'))
@@ -119,5 +119,5 @@ compileDef (Fun.Def nm prodargs (Just cv) bd rt) = do
 {- | Compile a program of the surface language @Fun@ to a program of the intermediate
 language @Core@.
 -}
-compileProgram :: Fun.Program a -> Core.Prog a
+compileProgram :: Fun.Program a -> Core.Program a
 compileProgram (Fun.MkProg defs) = Core.MkProg (compileDef <$> defs)
