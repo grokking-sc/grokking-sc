@@ -6,13 +6,17 @@ This module contains the definition of the abstract syntax of the
 intermediate language Core.
 -}
 module Core.Syntax (
+    -- * Expressions
     Producer (..),
     Var,
     Consumer (..),
     Covar,
     Statement (..),
     Pattern (..),
+
+    -- * Programs
     Def (..),
+    Name,
     Prog (..),
 ) where
 
@@ -92,7 +96,7 @@ data Statement
       -- Definition 2.1
       -- The two producers are the integers on which the operation is performed
       -- the consumer is the continuation
-      Op Producer BinOp Producer Consumers
+      Op Producer BinOp Producer Consumer
     | -- | If Zero statement containing a producer and two statements
       -- Definition 2.1
       -- the producer is the integer to be tested for 0

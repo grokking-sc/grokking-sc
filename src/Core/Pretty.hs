@@ -84,5 +84,6 @@ instance (Pretty a) => Pretty (Def a) where
 instance (Pretty a) => Pretty (Prog a) where
     pretty (MkProg defs) = vcat (pretty <$> defs)
 
+-- | Render any term with Pretty implemented
 render :: (Pretty a) => a -> String
 render x = renderString (layoutPretty defaultLayoutOptions (pretty x))

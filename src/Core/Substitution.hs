@@ -7,11 +7,20 @@ and covariables, and for substituting producers and consumers
 for variables and covariables.
 -}
 module Core.Substitution (
+    -- * Substititions
     substVar,
     substCovar,
     substSim,
+    Subst,
+
+    -- * Fresh (Co-) Variables
     freshVar,
     freshCovar,
+
+    -- * free (Co-) Variables
+    FreeV,
+    freeVars,
+    freeCovars,
 ) where
 
 import Core.Syntax
@@ -271,7 +280,7 @@ instance FreeV (Pattern a) where
 
 --- Substitution
 
--- | type class for substituting all variables and covariables in an expression
+-- | Type class for substituting all variables and covariables in an expression
 class Subst a where
     -- | substitute each variable and each covariable in some expression
     -- the first two arguments are the replacements to be done
