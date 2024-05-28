@@ -18,9 +18,9 @@ common warnings
 
 library
     import:           warnings
-    exposed-modules:  Duality.Syntax
-                      Duality.Types
-                      Duality.Parser
+    exposed-modules:  Fun.Syntax
+                      Fun.Types
+                      Fun.Parser
                       Core.Syntax
                       Core.Eval
                       Core.Focusing

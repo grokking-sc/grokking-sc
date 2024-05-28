@@ -1,11 +1,17 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-|
+Module      : Fun.Parser
+Description : Parser for the surface language Fun
 
-module Duality.Parser (parseTerm, parseProg) where
+This module implements the parser for the surface language Fun.
+The parser is implemented using the parser combinator library "Megaparsec".
+-}
+{-# LANGUAGE OverloadedStrings #-}
+module Fun.Parser (parseTerm, parseProg) where
 
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Void (Void)
-import Duality.Syntax
+import Fun.Syntax
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer qualified as L
@@ -15,15 +21,15 @@ type Parser = Parsec Void Text
 
 -- Lexing
 
--- space parser 
--- parses spaces and comments 
+-- space parser
+-- parses spaces and comments
 -- either line comments starting with // or block comments enclosed by /* */
 sc :: Parser ()
 sc = L.space space1 (L.skipLineComment "//") (L.skipBlockComment "/*" "*/")
 
 keywords :: [Text]
 keywords =
-    -- constructor for empty list 
+    -- constructor for empty list
     [ "Nil"
     -- constructor for list with head and tail
     , "Cons"
@@ -47,25 +53,25 @@ keywords =
     , "of"
     -- cocase expression (also uses "of")
     , "cocase"
-    -- defining jumps and labels
-    , "jump"
+    -- defining goto and labels
+    , "goto"
     , "label"
     -- defining top level definitions
     , "def"
     ]
 
--- checks if a name can be used 
+-- checks if a name can be used
 -- fails the parser if the given text is a keyword, otherwise returns
 checkReserved :: Text -> Parser ()
 checkReserved str
     | str `elem` keywords = fail ("Keyword " <> T.unpack str <> " cannot be used as an identifier.")
     | otherwise = return ()
 
--- parses a given symbol (of type Text) 
+-- parses a given symbol (of type Text)
 symbol :: Text -> Parser Text
 symbol = L.symbol sc
 
--- parses (, then runs a given parser, then parses ) 
+-- parses (, then runs a given parser, then parses )
 parens :: Parser a -> Parser a
 parens = between (symbol "(") (symbol ")")
 
@@ -82,7 +88,7 @@ ctorP = nilP <|> consP <|> tupP
     consP = symbol "Cons" >> pure Cons
     tupP = symbol "Tup" >> pure Tup
 
--- destructor name parser 
+-- destructor name parser
 -- parses hd,tl, fst or snd
 dtorP :: Parser Dtor
 dtorP = hdP <|> tlP <|> fstP <|> sndP
@@ -102,18 +108,18 @@ binOpP = prodP <|> sumP <|> subP
     subP = symbol "-" >> pure Sub
 
 -- argument parser
--- parses a list of terms separated by , and enclosed by ( ) 
+-- parses a list of terms separated by , and enclosed by ( )
 argsP :: Parser [Term]
 argsP = parens (sepEndBy termP' (symbol ","))
 
--- variable parser 
+-- variable parser
 -- parses a number of variables (identifier) separated by , and enclosed by ( )
 varsP :: Parser [Var]
 varsP = parens (sepEndBy (identifierP <* sc) (symbol ","))
 
--- identifier parser 
+-- identifier parser
 -- used for variables  and new names
--- parses any number of alphanumeric characters, then checks if the parsed name is reserved 
+-- parses any number of alphanumeric characters, then checks if the parsed name is reserved
 -- the <?> is used for error propagation
 identifierP :: Parser Text
 identifierP = do
@@ -122,15 +128,15 @@ identifierP = do
     pure str
 
 -- Parsing Terms
--- variable parser 
--- parses only an identifier 
+-- variable parser
+-- parses only an identifier
 variableP :: Parser Term
 variableP = do
     var <- identifierP
     sc
     pure (VarT var)
 
--- integer literal parser 
+-- integer literal parser
 -- parses any decimal
 litP :: Parser Term
 litP = do
@@ -138,7 +144,7 @@ litP = do
     sc
     pure (Lit n)
 
--- if zero parser 
+-- if zero parser
 -- ifz(t1,t2,t3)
 ifzP :: Parser Term
 ifzP = do
@@ -146,7 +152,7 @@ ifzP = do
     _ <- symbol "ifz"
     -- parse the arguments
     (tm1, tm2, tm3) <- parens $ do
-        -- arguments are three terms separated by commas 
+        -- arguments are three terms separated by commas
         tm1 <- termP'
         _ <- symbol ","
         tm2 <- termP'
@@ -155,7 +161,7 @@ ifzP = do
         pure (tm1, tm2, tm3)
     pure (IfZ tm1 tm2 tm3)
 
--- let-in parser 
+-- let-in parser
 -- let v = t1 in t2
 letP :: Parser Term
 letP = do
@@ -167,33 +173,33 @@ letP = do
     -- parse "=" and the term bound to the variable
     _ <- symbol "="
     tm <- termP'
-    -- parse "in" and the term the variable is bound in 
+    -- parse "in" and the term the variable is bound in
     _ <- symbol "in"
     tm' <- termP'
     pure (Let var tm tm')
 
 -- parse toplevel definition call
--- fun(args) 
+-- fun(args)
 funP :: Parser Term
 funP = do
     -- parse the name of the definition
     name <- identifierP
     -- parse the arguments
     args <- funArgsP
-    pure $ uncurry (Fun name) args 
+    pure $ uncurry (Fun name) args
 
 -- argument parser for toplevel calls
 -- (args;cv) or (args)
 funArgsP :: Parser ([Term],Maybe Covar)
 funArgsP = do
-  -- arguments are enclsed by () 
+  -- arguments are enclsed by ()
   _ <- symbol "("
   sc
   -- arguments are terms separated by comas
   args <- sepEndBy termP' (symbol ",")
   sc
-  -- optionally parse the continuation covariable 
-  -- this is needed to propagate labels for jumps 
+  -- optionally parse the continuation covariable
+  -- this is needed to propagate labels for gotos
   -- the covariable is separated by the other arguments by ;
   cv <- optional (symbol ";" >> identifierP)
   _ <- symbol ")"
@@ -205,7 +211,7 @@ conP :: Parser Term
 conP = do
     -- parse constructor name using ctorP defined above
     ctor <- ctorP
-    -- optionally parse arguments 
+    -- optionally parse arguments
     -- Nil has no  arguments, so option is needed
     -- this uses the argsP parser defined above for arguments
     args <- option [] argsP
@@ -228,16 +234,16 @@ clauseP p = do
     tm <- termP'
     pure (MkClause xtor vars tm)
 
--- parser for cases 
+-- parser for cases
 -- case t of { pts }
 caseP :: Parser Term
 caseP = do
-    -- first parse case t of 
-    -- with t being the scrutinee term 
+    -- first parse case t of
+    -- with t being the scrutinee term
     _ <- symbol "case"
     e <- termP'
     _ <- symbol "of"
-    -- then parse any number of patterns enclosed by { } and separated by , 
+    -- then parse any number of patterns enclosed by { } and separated by ,
     -- this used the above clauseP parser with the above constructor name parser
     cases <- braces (sepEndBy (clauseP ctorP) (symbol ","))
     pure (Case e cases)
@@ -246,15 +252,15 @@ caseP = do
 -- cocase { pts }
 cocaseP :: Parser Term
 cocaseP = do
-    -- parse "cocase" followed by any number of patterns enclosed by {} and separated by , 
+    -- parse "cocase" followed by any number of patterns enclosed by {} and separated by ,
     -- cocases have no scrutinee term, so we immediately parse patterns after the "cocase"-keyword
     -- this again uses the clauseP parser above with the destructor name parser dtorP
     _ <- symbol "cocase"
     cocases <- braces (sepEndBy (clauseP dtorP) (symbol ","))
     pure (Cocase cocases)
 
--- parser for lambda abstractions 
--- \\var => t 
+-- parser for lambda abstractions
+-- \\var => t
 lamP :: Parser Term
 lamP = do
     -- parses a backslash, followed by a variable, then followed by => and finished by the function body tm
@@ -265,12 +271,12 @@ lamP = do
     tm <- termP'
     pure (Lam var tm)
 
--- parser for jumps 
--- jump(tm,var)
-jumpP :: Parser Term
-jumpP = do
-    -- parses the jump keyword followed by the jump label and contained term
-    _ <- symbol "jump"
+-- parser for Gotos
+-- goto(tm,var)
+gotoP :: Parser Term
+gotoP = do
+    -- parses the goto keyword followed by the label and contained term
+    _ <- symbol "goto"
     -- the varable and term are enclosed by ( ) and separated by ,
     (var, tm) <- parens $ do
         tm <- termP'
@@ -278,10 +284,10 @@ jumpP = do
         var <- identifierP
         sc
         pure (var, tm)
-    pure (Jump tm var)
+    pure (Goto tm var)
 
 -- parser for labels
--- label v {t} 
+-- label v {t}
 labelP :: Parser Term
 labelP = do
     -- parses the "label"-keyword
@@ -290,7 +296,7 @@ labelP = do
     var <- identifierP
     sc
     tm <- braces termP'
-    pure (Duality.Syntax.Label var tm)
+    pure (Fun.Syntax.Label var tm)
 
 -- parses a term enclosed by  ()
 termParensP :: Parser Term
@@ -298,8 +304,8 @@ termParensP = parens termP'
 
 -- Left recursive parsers
 -- all these parsers start by parsing another term
--- these have to be handled separately to avoid infinite recursion 
--- see termP and termP' below 
+-- these have to be handled separately to avoid infinite recursion
+-- see termP and termP' below
 
 -- parser for function application
 -- parses two terms after one another
@@ -310,23 +316,23 @@ appP = do
     tm2 <- termP'
     pure (App tm1 tm2)
 
--- parser for destructors 
+-- parser for destructors
 -- dtor(args)
 desP :: Parser Term
 desP = do
-    -- parses the term to be destructed 
+    -- parses the term to be destructed
     -- followed by "." and optionally the destructor arguments
     tm <- termP
     _ <- string "."
     dtor <- dtorP
-    -- since our only destructors are fst, snd, hd and tl, these should always be empty 
+    -- since our only destructors are fst, snd, hd and tl, these should always be empty
     -- in the language there is also the ap destructor for functions (replacing lambda abstractions)
     -- it is not included in the parser, but could be added by adding "ap" to keywords and the dtorP parser
     args <- option [] argsP
     pure (DesT tm dtor args)
 
 -- parses a binary operation
--- in duality, these are inline, e.g. 3*4 
+-- in duality, these are inline, e.g. 3*4
 -- t2 (x) t2
 opP :: Parser Term
 opP = do
@@ -340,7 +346,7 @@ opP = do
 
 -- Combined parser for terms
 -- the termP parser only parses non-left-recursive terms
--- that is anything that is not a destructor, function application or binary operation 
+-- that is anything that is not a destructor, function application or binary operation
 -- the termP' parser then uses the termP parser to parse any possible term
 
 -- parse any non-left-recursive term
@@ -348,21 +354,21 @@ termP :: Parser Term
 termP =
     -- try parsing toplevel call
     -- this needs to be try, as toplevel calls start with the name
-    -- the parser could fail but already have consumed a name, so it needs to backtrack on fail 
+    -- the parser could fail but already have consumed a name, so it needs to backtrack on fail
     try funP
-    --try parsing a variable 
+    --try parsing a variable
     --this also needs to try as the parser could fail after consuming a name
         <|> try variableP
         -- parse literal
         <|> litP
         -- parse constructor
         <|> conP
-        -- parse case 
+        -- parse case
         <|> caseP
-        -- parse cocase 
+        -- parse cocase
         <|> cocaseP
-        -- parse jump
-        <|> jumpP
+        -- parse goto
+        <|> gotoP
         -- parse label
         <|> labelP
         -- parse ifzero
@@ -385,8 +391,8 @@ termP' = try desP <|> try appP <|> try opP <|> termP
 
 -- Program parser
 -- parse a toplevel definition
--- the definition has type argument () 
--- the type argument is used for the argument types 
+-- the definition has type argument ()
+-- the type argument is used for the argument types
 -- since these are only added by the type checker, these are blank for now
 -- def name(args) := t;
 defP :: Parser (Def ())
@@ -394,8 +400,8 @@ defP = do
     -- parse the "def" keyword, the name of the definition
     _ <- symbol "def"
     name <- identifierP
-    -- parse the variable arguments along with the optional covariable argument 
-    -- the covariable argument is only needed for labels/jumps to propagate a label
+    -- parse the variable arguments along with the optional covariable argument
+    -- the covariable argument is only needed for labels/gotos to propagate a label
     (args,cv) <- option ([],Nothing) defArgsP
     sc
     -- parse ":=" followed by the body of the definition
@@ -408,7 +414,7 @@ defP = do
 -- parse arguments for a toplevel definition
 -- (args) or (args;cv)
 defArgsP :: Parser ([Var],Maybe Covar)
-defArgsP = do 
+defArgsP = do
   -- arguments are enclosed by ( )
   _ <- symbol "("
   sc
@@ -427,7 +433,7 @@ progP :: Parser (Prog ())
 progP = MkProg <$> many defP
 
 -- Exported
--- parseTerm and parseProg both run a parser 
+-- parseTerm and parseProg both run a parser
 -- either for parsing a single term or for parsing a program
 -- either returns the pretty printed error if the parser fails or returns the parsed term/program
 parseTerm :: Text -> Either String Term

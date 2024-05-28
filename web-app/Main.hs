@@ -8,7 +8,7 @@ import Core.Eval
 import JSBits
 import Data.Text qualified as T
 import GHC.JS.Foreign.Callback
-import Duality.Parser
+import Fun.Parser
 import Core.Focusing
 import Core.Simplify
 import Core.Syntax qualified as Core

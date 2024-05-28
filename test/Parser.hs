@@ -1,7 +1,7 @@
 module Parser (parserTests) where
 
-import Duality.Parser
-import Duality.Syntax
+import Fun.Parser
+import Fun.Syntax
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -93,7 +93,7 @@ testCocaseStream =
     mkTermTest "cocase { hd => x, tl => x}" (Cocase [MkClause Hd [] (VarT "x"), MkClause Tl [] (VarT "x")])
 
 testThrow :: TestTree
-testThrow = mkTermTest "jump(2,x)" (Jump (Lit 2) "x")
+testThrow = mkTermTest "goto(2,x)" (Goto (Lit 2) "x")
 
 testCatch :: TestTree
 testCatch = mkTermTest "label x { 2 }" (Label "x" (Lit 2))
@@ -161,6 +161,6 @@ simpleProg3 :: TestTree
 simpleProg3 = mkProgTest "def foo(x) := x; def bar(y) := y;" (MkProg [Def "foo" [("x",())] Nothing (VarT "x") (), Def "bar" [("y",())] Nothing (VarT "y") ()])
 
 simpleProg4 :: TestTree
-simpleProg4 = mkProgTest "def mult(l) := label a { mult2(l;a)}; def mult2(l;a) := case l of { Nil => 1,Cons(x,xs) => ifz(x,jump(0,a),x*mult2(xs;a))};"
+simpleProg4 = mkProgTest "def mult(l) := label a { mult2(l;a)}; def mult2(l;a) := case l of { Nil => 1,Cons(x,xs) => ifz(x,goto(0,a),x*mult2(xs;a))};"
   (MkProg [Def "mult" [("l", ())] Nothing (Label "a" (Fun "mult2" [VarT "l"] (Just "a"))) (), 
-           Def "mult2" [("l",())] (Just "a") (Case  (VarT "l") [MkClause Nil [] (Lit 1), MkClause Cons ["x","xs"] (IfZ (VarT "x") (Jump (Lit 0) "a") (Op (VarT "x") Prod (Fun "mult2" [VarT "xs"] (Just "a")) ))]) ()])
+           Def "mult2" [("l",())] (Just "a") (Case  (VarT "l") [MkClause Nil [] (Lit 1), MkClause Cons ["x","xs"] (IfZ (VarT "x") (Goto (Lit 0) "a") (Op (VarT "x") Prod (Fun "mult2" [VarT "xs"] (Just "a")) ))]) ()])

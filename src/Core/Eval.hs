@@ -10,7 +10,7 @@ import Core.Substitution
 import Core.Syntax
 import Data.List (find)
 import Data.Text qualified as T
-import Duality.Syntax (BinOp (..))
+import Fun.Syntax (BinOp (..))
 
 -- | Evaluate a statement within a program prg, returning the entire evaluation trace
 eval :: Statement -> Prog a -> [Statement]

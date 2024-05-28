@@ -13,12 +13,12 @@ isValue (Mu _ _) = False
 
 
 -- section 3.2
--- Focusing is needed for 
+-- Focusing is needed for
 -- producers
 -- consumers
--- statements 
+-- statements
 -- patterns
--- definitions 
+-- definitions
 -- programs
 class Focus a where
     focus :: a -> a
@@ -42,7 +42,7 @@ instance Focus Producer where
     -- in a constructor term, focusing amounts to replacing the first non-value argument by a variable
     -- this way, that argument is evaluated first and then the variable is substituted by the evaluated argument
     focus cont@(Constructor ct pargs cargs) =
-        -- find the first non-value argument 
+        -- find the first non-value argument
         case find (not . isValue) pargs of
             --- when all are values, all arguments are focused
             Nothing -> Constructor ct (focus <$> pargs) (focus <$> cargs)
@@ -54,10 +54,10 @@ instance Focus Producer where
                 let cv = freshCovar [cont]
                 -- replace p1' by v in producer arguments
                 let newArgs = (\p -> if p == p1' then Var v else p) <$> pargs
-                -- the result is a mu abstraction with cv as variable 
+                -- the result is a mu abstraction with cv as variable
                 -- this is needed, so the result is still a producer
                 -- the statement bound by mu has producer p1' (after focusing p1' again)
-                -- the consumer of this statement is a mutilde abstraction 
+                -- the consumer of this statement is a mutilde abstraction
                 -- this means evaluating will then replace v with p1' (after p1' has been evaluated to a value
                 -- the statment of that mutilde expression has producer that is the original constructor with v instead of p1'
                 -- its consumer is the bound covariable bound by the outer mu abstraction
@@ -85,7 +85,7 @@ instance Focus Consumer where
                 let v = freshVar [dest]
                 -- replace p1' by v in pargs
                 let newArgs = (\p -> if p == p1' then Var v else p) <$> pargs
-                -- the returned focused consumer is a mu-tilde abstraction with v as bound variable 
+                -- the returned focused consumer is a mu-tilde abstraction with v as bound variable
                 -- this means when p1' has been evaluated to a value it is reinserted for v
                 -- since mutilde already defines a consumer, we do not need an additional mu abstraction
                 -- the cut of this abstraction then contains p1' focused and the destructor with replaced aruments
@@ -99,8 +99,8 @@ instance Focus Statement where
     focus s@(Op p1 op p2 c)
         -- when both producers are already values, we only need to focus all arguments of the operation
         | isValue p1 && isValue p2 = Op (focus p1) op (focus p2) (focus c)
-        -- when only p1 is a value, we replace p2 by a fresh variable v 
-        -- this variable is then bound by a mu-tilde abstraction, which is the consumer of the resulting cut 
+        -- when only p1 is a value, we replace p2 by a fresh variable v
+        -- this variable is then bound by a mu-tilde abstraction, which is the consumer of the resulting cut
         -- the producer of that cut is p2 focused.
         -- this works as with producers and consumers, replacing v by p2 once it is evaluated to a value
         | isValue p1 = let v = freshVar [s] in Cut (focus p2) (MuTilde v (focus (Op p1 op (Var v) c)))
@@ -121,7 +121,7 @@ instance Focus Statement where
             Nothing -> Fun nm (focus <$> pargs) (focus <$> cargs)
             -- otherwise replace p1 by a new variable
             Just p1 -> do
-                -- generate variable to replace p1 by 
+                -- generate variable to replace p1 by
                 let v = freshVar [s]
                 -- replace p1 by v in pargs
                 let newArgs = (\p -> if p == p1 then Var v else p1) <$> pargs
@@ -131,7 +131,7 @@ instance Focus Statement where
     -- Done is already in normal form, so already focused
     focus Done = Done
 
--- in a toplevel definition, focus the body 
+-- in a toplevel definition, focus the body
 instance Focus (Def a) where
     focus Def{name = nm, pargs = prods, cargs = cons, body = bd} = Def{name = nm, pargs = prods, cargs = cons, body = focus bd}
 
