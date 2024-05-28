@@ -158,7 +158,7 @@ compile (Fun.App t1 t2) = do
 -- Goto is compiled to a mu abstraction
 -- note that in contrast to other compilations, here cv' is generated but not used in the cut
 -- instead we use the label cv (which is already a covariable)
-compile (Fun.Jump t cv) = do
+compile (Fun.Goto t cv) = do
     let t' = compile t
     let cv' = freshCovar [t']
     Core.Mu cv' (Core.Cut t' (Core.Covar cv))
