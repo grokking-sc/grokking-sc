@@ -28,9 +28,7 @@ dispatch :: [String] -> IO ()
 dispatch [fp] = do
     prog <- readAndParse fp
 
-    tyRes <- inferTypes prog
-
-    case tyRes of
+    case inferTypes prog of
         Left err -> putStrLn err >> exitFailure
         Right _ -> putStrLn "Program typechecks!"
 

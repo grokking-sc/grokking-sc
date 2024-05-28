@@ -1,6 +1,6 @@
 {-|
 Module      : Compiler
-Description : Compilation of the surface language Fun to the intermediate language Core
+Description : Compilation of the surface language @Fun@ to the intermediate language @Core@.
 
 This module implements the compilation of the surface language Fun to the intermediate
 language Core. The compilation algorithm is explained in definitions 2.1 to 2.6 of the
@@ -13,7 +13,8 @@ import Core.Syntax qualified as Core
 import Fun.Syntax qualified as Fun
 
 
--- duality terms are compiled to core producers
+-- | Compile a term of the surface language @Fun@ to a producer of the intermediate
+-- language @Core.
 compile :: Fun.Term -> Core.Producer
 
 -- section 2.1
@@ -167,10 +168,9 @@ compile (Fun.Goto t cv) = do
 compile (Fun.Label cv t) = do
     Core.Mu cv (Core.Cut (compile t) (Core.Covar cv))
 
--- section 2.3
--- compile a definition
--- works regardless of if its typed or not
-compileDef :: forall a. Fun.Def a -> Core.Def a
+
+-- | Compile a single definition of the surface language @Fun@ to the intermediate language @Core@.
+compileDef :: Fun.Def a -> Core.Def a
 compileDef (Fun.Def nm prodargs Nothing bd rt) = do
     -- compile the body and generate a new covariable
     let bd' = compile bd
@@ -191,6 +191,8 @@ compileDef (Fun.Def nm prodargs (Just cv) bd rt) = do
     Core.Def nm prodargs [(cv',rt),(cv, rt)] newCut
 -- note that this corresponds to the translation of toplevel calls, which also adds a consumer argument
 
--- compiling a program amounts to compiling all its definitions
+
+-- | Compile a program of the surface language @Fun@ to a program of the intermediate
+-- language @Core.
 compileProgram :: Fun.Program a -> Core.Prog a
 compileProgram (Fun.MkProg defs) = Core.MkProg (compileDef <$> defs)

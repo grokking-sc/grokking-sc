@@ -1,5 +1,6 @@
 {- |
 Module      : Fun.Types
+
 Description : Type inference for the surface language Fun
 
 This module implements a simple type inference algorithm for the surface
@@ -693,24 +694,14 @@ solveConstraint (ty1, ty2) = throwError ("Cannot unify types: " <> show ty1 <> "
 -- Type Inference
 -------------------------------------------------------------------------------
 
--- combine all the above monad to infer types of a program
-inferTypes :: Program () -> IO (Either Error (Program Ty))
+-- | Infer the types of a program.
+inferTypes :: Program () -> Either Error (Program Ty)
 inferTypes prog = do
-    -- first generate constraints
-    -- this first adds type variables to definitions then generates type constraints
-    case generateConstraints prog of
-        -- when constraint generation fails typing failed
-        -- otherwise we get a program with added types (all type variables) and a list of constraints
-        Left err -> pure (Left err)
-        Right (prog', constraints) -> do
-            print constraints
-            -- next we solve the constraints
-            case solveConstraints constraints of
-                -- when constraint solving fails, typing fails
-                -- otherwise we get a substitution for type variables
-                -- we then substitute type variables in the program using this map
-                -- and are done
-                Left err -> pure (Left err)
-                Right subst -> do
-                    print subst
-                    pure (Right (zonk subst prog'))
+    -- Generate the constraints and annotate the toplevel definitions
+    -- with unification variables.
+    (prog', constraints) <- generateConstraints prog
+    -- Solve the constraints and generate a unifier which maps type variables
+    -- to types.
+    subst <- solveConstraints constraints
+    -- Apply the unifier to the program annotated with type variables.
+    pure (zonk subst prog')
