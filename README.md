@@ -13,7 +13,7 @@ The artifact can be used in two different ways: There is a small binary with a c
 ├── src
 │   ├── Compiler.hs         Compilation from Fun to Core
 │   ├── Core
-│   │   ├── Eval.hs         Substitution-based evaluation.
+│   │   ├── Eval.hs         Substitution-based evaluation
 │   │   ├── Focusing.hs     Implementation of the focusing algorithm
 │   │   ├── Pretty.hs       Prettyprinting of Core programs
 │   │   ├── Simplify.hs     Term simplification
