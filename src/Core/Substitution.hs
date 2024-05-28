@@ -19,6 +19,7 @@ module Core.Substitution (
 
     -- * free (Co-) Variables
     FreeV,
+    Free (..),
     freeVars,
     freeCovars,
 ) where

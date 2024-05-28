@@ -81,7 +81,7 @@ instance (Pretty a) => Pretty (Def a) where
                     <> hcat (intersperse comma (pretty . fst <$> cargs))
          in "def" <+> pretty name <> parens args <+> ":=" <+> pretty body
 
-instance (Pretty a) => Pretty (Prog a) where
+instance (Pretty a) => Pretty (Program a) where
     pretty (MkProg defs) = vcat (pretty <$> defs)
 
 -- | Render any term with Pretty implemented

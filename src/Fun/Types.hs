@@ -282,13 +282,13 @@ genConstraintsTm (Fun nm args (Just cv)) = do
 -- ――――――――――――――――――――――――――
 --   Γ ⊢ Nil : List(τ)
 --
-genConstraintsTm (ConT Nil []) = ListTy <$> freshVar
+genConstraintsTm (Constructor Nil []) = ListTy <$> freshVar
 --
 --  Γ ⊢ t1: τ  Γ ⊢ t2: List(τ)
 -- ―――――――――――――――――――――――――――――
 --   Γ ⊢ Cons(t1,t2) : List(τ)
 --
-genConstraintsTm (ConT Cons [t1, t2]) = do
+genConstraintsTm (Constructor Cons [t1, t2]) = do
     -- given Cons(t1 t2),
     -- t1 can have any type
     -- t2 needs to have a list type
@@ -303,7 +303,7 @@ genConstraintsTm (ConT Cons [t1, t2]) = do
 -- ―――――――――――――――――――――――――――――
 --   Γ ⊢ Tup(t1,t2) : Pair(τ,σ)
 --
-genConstraintsTm (ConT Tup [t1, t2]) = do
+genConstraintsTm (Constructor Tup [t1, t2]) = do
     -- the contents of a tuple can have any type
     -- these types are the arguments of the pair type
     ty1 <- genConstraintsTm t1
@@ -311,7 +311,7 @@ genConstraintsTm (ConT Tup [t1, t2]) = do
     pure (PairTy ty1 ty2)
 -- given any other constructor term, typing always fails
 -- this means the above three patterns ensure correct arities for the constructors
-genConstraintsTm (ConT ctor _) =
+genConstraintsTm (Constructor ctor _) =
     throwError ("Constructor " <> show ctor <> " applied to wrong number of arguments.")
 -- Cases
 -- Lists
@@ -374,7 +374,7 @@ genConstraintsTm tm@(Case _ _) = throwError ("Invalid case expression: " <> show
 -- ―――――――――――――――
 --   Γ ⊢ t.hd : τ
 --
-genConstraintsTm (DesT t Hd []) = do
+genConstraintsTm (Destructor t Hd []) = do
     -- the type of the scrutinee needs to be a stream type
     -- this is analogous to cases above
     -- since we do not know the contents of the stream we generate a
@@ -389,7 +389,7 @@ genConstraintsTm (DesT t Hd []) = do
 -- ――――――――――――――――――――――――
 --   Γ ⊢ t.tl : Stream(τ)
 --
-genConstraintsTm (DesT t Tl []) = do
+genConstraintsTm (Destructor t Tl []) = do
     -- analogous to head
     -- we again require the scrutinee to have type stream a
     -- and need a type variable for the argument
@@ -405,7 +405,7 @@ genConstraintsTm (DesT t Tl []) = do
 -- ――――――――――――――――――――――――
 --      Γ ⊢ t.fst : τ
 --
-genConstraintsTm (DesT t Fst []) = do
+genConstraintsTm (Destructor t Fst []) = do
     -- the scrutinee needs to have type lpair a b
     -- a and b are unclear for now, so we generate type variables for them
     ty <- genConstraintsTm t
@@ -419,7 +419,7 @@ genConstraintsTm (DesT t Fst []) = do
 -- ――――――――――――――――――――――――
 --    Γ ⊢ t.snd : σ
 --
-genConstraintsTm (DesT t Snd []) = do
+genConstraintsTm (Destructor t Snd []) = do
     -- analogous to fst
     -- t needs to have type lpair a b with a b unclear
     -- so type variables are generated for a and b
@@ -431,7 +431,7 @@ genConstraintsTm (DesT t Snd []) = do
     pure b
 -- all other destructor terms are rejected
 -- so as with cosntructors this ensures argument arity
-genConstraintsTm (DesT _ dtor _) =
+genConstraintsTm (Destructor _ dtor _) =
     throwError ("Destructor " <> show dtor <> " called with wrong number of arguments")
 -- cocases
 -- streams

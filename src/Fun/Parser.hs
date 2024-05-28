@@ -174,7 +174,7 @@ conP :: Parser Term
 conP = do
     ctor <- ctorP
     args <- option [] argsP
-    pure (ConT ctor args)
+    pure (Constructor ctor args)
 
 -- | Parse a single clause for a case or cocase expression.
 clauseP :: Parser a -> Parser (Clause a)
@@ -252,7 +252,7 @@ desP = do
     _ <- string "."
     dtor <- dtorP
     args <- option [] argsP
-    pure (DesT tm dtor args)
+    pure (Destructor tm dtor args)
 
 {- | Parse a binary operator @t1 + t2@, @t1 * t2@ and @t1 - t2@.
 We don't implement different precedences for different binary operators.

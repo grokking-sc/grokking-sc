@@ -17,7 +17,7 @@ module Core.Syntax (
     -- * Programs
     Def (..),
     Name,
-    Prog (..),
+    Program (..),
 ) where
 
 import Data.Text (Text)
@@ -128,7 +128,5 @@ data Def a = Def
     -- ^ The body of the definition
     }
 
-{- | Programs
-These are a list of toplevel definitions
--}
-newtype Prog a = MkProg [Def a]
+-- | Programs are represented as a list of toplevel definitions
+newtype Program a = MkProg [Def a]
