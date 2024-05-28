@@ -36,16 +36,16 @@ returns either the evaluated statement or Nothing, if no evaluation rule matches
 -}
 evalOnce :: Statement -> Prog a -> Maybe Statement
 -- definition 2.2
--- if the producer of a cut is a mu-abstraction, replace the covariable by the consumer
--- <mu x.st | c> -> st[c/x]
+-- if the producer of a cut is a μ-abstraction, replace the covariable by the consumer
+-- ⟨μ x.st | c⟩ ▹ st[c/x]
 {-
 >>> evalOnce (Cut (Mu (Covar "a") (Cut (Lit 1) (Covar "a"))) (Covar "b")) (MkProgram [])
 (Cut (Lit 1) (Covar "b"))
 -}
 evalOnce (Cut (Mu cv st) c) _ = Just (substCovar c cv st)
 -- definition 2.3
--- if the consumer of a cut is a mu-tilde-abstraction, replace the variable by the producer
--- <p | mu~ x.st> -> st[p/x]
+-- if the consumer of a cut is a μ-tilde-abstraction, replace the variable by the producer
+-- ⟨p | μ~ x.st⟩ ▹ st[p/x]
 {-
 >>> evalOnce (Cut (Lit 1) (MuTilde (Var "x") (BinOp (Var "x") Sum (Lit 1) (Covar "a")))) (MkProgram [])
 BinOp (Lit 1) Sum (Lit 1) (Covar "a")
@@ -53,8 +53,8 @@ BinOp (Lit 1) Sum (Lit 1) (Covar "a")
 evalOnce (Cut p (MuTilde v st)) _ = Just (substVar p v st)
 -- definition 2.5
 -- when a cut contains a constructor and case (of the same type), proceed with the matching command
--- <ctor(args) | case { ... ctor(vars) => st }> -> st[args/vars]
--- dual to the <cocase | dtor> case
+-- ⟨ctor(pargs;cargs) | case { ... ctor(vars;covars) ⇒ st }⟩ ▹ st[pargs/vars,cargs/covars]
+-- dual to cuts between cocases and destructors
 {-
 >>> evalOnce (Cut (Constructor Nil [] []) (Case [(MkPattern Nil [] Done),(MkPattern Cons ["x","xs"] (Cut (Var "x") (Covar "b")))])) (MkProgram [])
 Done
@@ -65,8 +65,8 @@ evalOnce (Cut (Constructor ct pargs cargs) (Case patterns)) _ = do
     -- then substitute the pattern variables by the ctor arguments
     Just (substSim (zip pargs vars) (zip cargs cvars) st)
 -- when a cut contains a cocase and destructor (of the same type), proceed with the matching command
--- <cocase { ... dtor(vars) => st } | dtor(args)> -> st[args/vars]
--- dual to the <ctor | case> case
+--  ⟨cocase { ... dtor(vars;covars) ⇒ st } | dtor(pargs;cargs)⟩ ▹ st[pargs/vars,cargs/covars]
+-- dual to the case fur cases and constructors
 {-
 >>> evalOnce (Cut (Cocase [(MkPattern {Fst ["a"] (Cut (Lit 1) (Covar "a"))}) (MkPattern {Snd ["b"] (Cut (Lit 2) (Covar "b"))})]) (Destructor Fst [] [(Covar "c")])) (MkProgram [)]
  Cut (Lit 1) (Covar "c")
@@ -76,11 +76,9 @@ evalOnce (Cut (Cocase patterns) (Destructor dt pargs cargs)) _ = do
     MkPattern _ vars cvars st <- find (\pat -> xtor pat == dt) patterns
     -- then replace the pattern variables by the dtor args
     Just (substSim (zip pargs vars) (zip cargs cvars) st)
-
 -- definition 2.2
--- A binary operation (x) containing two literals (integers) n,m directly evaluates to n (x) m
--- The consumer argument c is then used as the consumer of the resulting command
--- this consumer is the continuation of the binary operation
+-- ⊙(n,m,c) ▹  ⟨n⊙m | c⟩
+-- -- this consumer is the continuation of the binary operation
 {-
 >>> evalOnce (Op (Lit 2) Prod (Lit 2) (Covar "a")) (MkProgram [])
 Cut (Lit 4) (Covar "a")
@@ -97,6 +95,8 @@ Cut (Lit 2) (Covar "a")
 -}
 evalOnce (Op (Lit n) Sub (Lit m) c) _ = Just (Cut (Lit (n - m)) c)
 -- for if zero, check the first argument and return the corresponding second or third argument
+-- ifz(0,s1,s2) ▹ s1
+-- ifz(n,s1,s2) ▹ s2
 {-
 >>> evalOnce (IfZ (Lit 0) Done (Cut (Lit 1) (Covar "a"))) (MkProgram [])
 Done
@@ -108,6 +108,7 @@ evalOnce (IfZ (Lit n) s1 s2) _
     | otherwise = Just s2
 -- definition 2.4
 -- For a top-level declaration, look up the definition in the program and replace the variables by arguments
+-- f(ts;as) ▹ t[ts/xs;as/ys] if f(xs;ys) in P
 {-
 >>> evalOnce (Fun "Exit" [] []) (MkProgram [Def { "Exit" [] [] Done }])
 Done

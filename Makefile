@@ -9,4 +9,5 @@ build:
 	$(BUILD_SCRIPT) 
 
 doc: 
+	fourmolu -i src/*
 	cabal haddock

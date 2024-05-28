@@ -76,16 +76,20 @@ instance Focus Producer where
     >>> focus (Var "x")
     Var "x"
      -}
+    -- F("x") = "x"
     focus (Var x) = Var x
     {-
+    -- F(n) = n
     >>> focus (Lit 3)
     Lit 3
      -}
     focus (Lit n) = Lit n
+    -- F(μ a.s) = μ a.F(s)
     {-
     >>> focus (Mu "x" Done) = Mu "x" Done
      -}
     focus (Mu x s) = Mu x (focus s)
+    -- F(cocse { D(xs;as) ⇒ s,... } = cocase { D(xs;as) ⇒ F(x), ...}
     {-
      focus (Cocase [MkPattern Fst [] ["a"] Done])
      Cocase [MkPattern Fst '[] ["a"] Done]
@@ -93,12 +97,14 @@ instance Focus Producer where
     focus (Cocase cocases) = Cocase (focus <$> cocases)
     -- in a constructor term, focusing amounts to replacing the first non-value argument by a variable
     -- this way, that argument is evaluated first and then the variable is substituted by the evaluated argument
+    -- F(K(ps,p,ps'cs)) = μ a.⟨F(p) | μ~ x.⟨F(K(ps,x,ps',cs)) | a⟩
+    -- where ps are all values and p is the first argument that is no value
     {-
      >>> focus (Constructor Cons [Lit 1,Nil] [])
      Constructor Cons [Lit 1, Nil] []
 
-     >>> focus (Constructor Cons [mu x.Ifz(Lit 1, Done, Done),Nil] [])
-     Mu "a0" (Cut (mu x.IfZ(Lit 1, Done, Done)) (Mutilde "x0" (Cut (Constructor Cons [(Var "x0"),Nil] []) (Covar "a0"))))
+     >>> focus (Constructor Cons [Mu x.Ifz(Lit 1, Done, Done),Nil] [])
+     Mu "a0" (Cut (Mu x.IfZ(Lit 1, Done, Done)) (Mutilde "x0" (Cut (Constructor Cons [(Var "x0"),Nil] []) (Covar "a0"))))
      -}
     focus cont@(Constructor ct pargs cargs) =
         -- find the first non-value argument
@@ -109,18 +115,18 @@ instance Focus Producer where
             Just p1' -> do
                 -- generate the variable to replace p1'
                 let v = freshVar [cont]
-                -- generate the covariable for surrounding mu abstraciton
+                -- generate the covariable for surrounding μ abstraciton
                 let cv = freshCovar [cont]
                 -- replace p1' by v in producer arguments
                 -- Mu-abstractions are no values
                 let newArgs = (\p -> if p == p1' then Var v else p) <$> pargs
-                -- the result is a mu abstraction with cv as variable
+                -- the result is a μ abstraction with cv as variable
                 -- this is needed, so the result is still a producer
-                -- the statement bound by mu has producer p1' (after focusing p1' again)
+                -- the statement bound by μ has producer p1' (after focusing p1' again)
                 -- the consumer of this statement is a mutilde abstraction
                 -- this means evaluating will then replace v with p1' (after p1' has been evaluated to a value)
                 -- the statment of that mutilde expression has producer that is the original constructor with v instead of p1'
-                -- its consumer is the bound covariable bound by the outer mu abstraction
+                -- its consumer is the bound covariable bound by the outer μ abstraction
                 -- this covariable acts as a continuatiion, allowing all to be evaluated in the correct order
                 Mu cv (Cut (focus p1') (MuTilde v (Cut (focus (Constructor ct newArgs cargs)) (Covar cv))))
 
@@ -129,21 +135,26 @@ As with producers, except for destructor terms, this only recursively focuses su
 -}
 instance Focus Consumer where
     focus :: Consumer -> Consumer
+    -- F(a) = a
     {-
     >>> focus (Covar "a")
     Covar "a"
     -}
     focus (Covar x) = Covar x
+    -- F(μ~ x.s) = μ~ x.F(s)
     {-
     >>> focus (MuTilde "x" Done)
     MuTilde "x" Done
     -}
     focus (MuTilde x s) = MuTilde x (focus s)
+    -- F(case { K(xs;as) ⇒ s, ... }) = case { K(xs;as) ⇒ F(s), ...}
     {-
     >>> focus (Case [MkPattern Nil [] [] Done)]
     Case [MkPattern Nil [] [] Done]
      -}
     focus (Case cases) = Case (focus <$> cases)
+    -- F(D(ps,p,ps';cs)) = μ~ x. ⟨F(p) | F(D(ps,x,ps';c)⟩
+    -- where ps are all values and p is the first non-value argument
     -- focusing a destructor term is analogous to focusing a constructor term
     -- we find the first non-value producer argument and replace it by a variable v
     {-
@@ -174,11 +185,17 @@ Ifz and binary operations are focused analogously to destructors and constructor
 -}
 instance Focus Statement where
     focus :: Statement -> Statement
+    -- F(⟨p | c⟩) = ⟨F(p) | F(c) ⟩
     {-
     >>> focus (Cut (Var "x") (Covar "a")
     Cut (Var "x") (Covar "a")
      -}
     focus (Cut p c) = Cut (focus p) (focus c)
+    -- F(⊙(p1,p2;c) = ⟨ F(p1) |  μ~ x. F(⊙(x,p2;c))⟩
+    -- if neither p1 nor p2 are values
+    -- F(⊙(p1,p2;c) = ⟨ F(p2) |  μ~ x. F(⊙(p1,x;c))⟩
+    -- if p1 is a value but p2 is not
+    -- F(⊙(p1,p2;c) = ⟨n⊙m | c⟩ = ⊙(F(p1),F(p2);F(c))
     -- in a binary operation focusing depends on which arguments are values
     {-
     >>> focus (Op (Lit 1) Sum (Lit 2) (Covar "a")
@@ -204,6 +221,10 @@ instance Focus Statement where
         -- when both producer arguemtns are not values, we do the same as in the last case, but with p1 instead of p2
         | otherwise = let v = freshVar [s] in Cut (focus p1) (MuTilde v (focus (Op (Var v) op p2 c)))
     -- an ifzero statement works the same as a binary operation, just with only a single producer argument
+    -- F(ifz(p;s1,s2)) = ⟨ F(p) | μ~ x.ifz(x;s1,s2)⟩
+    -- if p is not a value
+    -- F(ifz(p;s1,s2)) = ifz(F(p);F(s1),F(s2))
+    -- if p is a value
     {-
      >>> focus (IfZ (Lit 1) Done Done)
      IfZ (Lit 1) Done Done
@@ -217,6 +238,10 @@ instance Focus Statement where
         -- when the producer is not a value, it is replaced by a new variable v bound by a mu-tilde abstraction
         -- this abstraction is placed in a cut with p as producer just as above
         | otherwise = let v = freshVar [s] in Cut (focus p) (MuTilde v (focus (IfZ (Var v) s1 s2)))
+    -- F(f(ps,p,ps';cs)) = ⟨ F(p) | μ~ x.F(f(ps,x,ps';cs))⟩
+    -- where ps are all values and p is the first non-value arugment
+    -- F(f(ps;cs)) = f(F(ps);F(cs))
+    -- if all producer arguments are values
     -- top-level definitions are focused similarly to constructors and destructors
     {-
     >>> focus (Fun "Exit" [] [))

@@ -1,4 +1,4 @@
-{-|
+{- |
 Module      : Compiler
 Description : Compilation of the surface language @Fun@ to the intermediate language @Core@.
 
@@ -12,13 +12,12 @@ import Core.Substitution (freshCovar)
 import Core.Syntax qualified as Core
 import Fun.Syntax qualified as Fun
 
-
--- | Compile a term of the surface language @Fun@ to a producer of the intermediate
--- language @Core.
+{- | Compile a term of the surface language @Fun@ to a producer of the intermediate
+language @Core.
+-}
 compile :: Fun.Term -> Core.Producer
-
 -- section 2.1
---variable and literal terms appear in both core and duality
+-- variable and literal terms appear in both core and duality
 compile (Fun.VarT v) = Core.Var v
 compile (Fun.Lit n) = Core.Lit n
 -- binary operations in core are statements while they are terms in duality
@@ -153,7 +152,7 @@ compile (Fun.App t1 t2) = do
     let (t1', t2') = (compile t1, compile t2)
     let cv = freshCovar [t1', t2']
     let newD = Core.Destructor Fun.Ap [t2'] [Core.Covar cv]
-    Core.Mu cv (Core.Cut t1' newD )
+    Core.Mu cv (Core.Cut t1' newD)
 
 -- section 2.6
 -- Goto is compiled to a mu abstraction
@@ -167,7 +166,6 @@ compile (Fun.Goto t cv) = do
 -- here, the bound covariable is the same as the label
 compile (Fun.Label cv t) = do
     Core.Mu cv (Core.Cut (compile t) (Core.Covar cv))
-
 
 -- | Compile a single definition of the surface language @Fun@ to the intermediate language @Core@.
 compileDef :: Fun.Def a -> Core.Def a
@@ -188,11 +186,12 @@ compileDef (Fun.Def nm prodargs (Just cv) bd rt) = do
     let bd' = compile bd
     let cv' = freshCovar [bd']
     let newCut = Core.Cut bd' (Core.Covar cv)
-    Core.Def nm prodargs [(cv',rt),(cv, rt)] newCut
+    Core.Def nm prodargs [(cv', rt), (cv, rt)] newCut
+
 -- note that this corresponds to the translation of toplevel calls, which also adds a consumer argument
 
-
--- | Compile a program of the surface language @Fun@ to a program of the intermediate
--- language @Core.
+{- | Compile a program of the surface language @Fun@ to a program of the intermediate
+language @Core.
+-}
 compileProgram :: Fun.Program a -> Core.Prog a
 compileProgram (Fun.MkProg defs) = Core.MkProg (compileDef <$> defs)
