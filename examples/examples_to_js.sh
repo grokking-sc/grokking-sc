@@ -1,4 +1,4 @@
-EXAMPLEDIR="./web-app/examples"
+EXAMPLEDIR="./examples"
 OUTFILE="./web-app/examples.js"
 
 echo "" > $OUTFILE
