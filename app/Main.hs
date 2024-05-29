@@ -1,17 +1,16 @@
 module Main (main) where
 
 import Compiler qualified as C
-import Fun.Syntax
-import Fun.Parser
-import Fun.Types
-import Core.Focusing
-import Core.Syntax qualified as Core
 import Core.Eval
-
-import Data.Text.IO qualified as T
+import Core.Focusing
 import Core.Pretty (render)
-import System.Exit (exitFailure)
+import Core.Syntax qualified as Core
+import Data.Text.IO qualified as T
+import Fun.Parser
+import Fun.Syntax
+import Fun.Types
 import System.Environment (getArgs)
+import System.Exit (exitFailure)
 
 main :: IO ()
 main = do
@@ -46,15 +45,15 @@ dispatch [fp] = do
             putStrLn "Main not found"
             exitFailure
         Just res -> do
-          putStrLn $ colorTarget <> "---------- Result of Evaluation --------" <> colorDefault
-          printTrace res
+            putStrLn $ colorTarget <> "---------- Result of Evaluation --------" <> colorDefault
+            printTrace res
 dispatch _ = putStrLn "Please invoke the program with a filepath"
 
 printTrace :: [Core.Statement] -> IO ()
-printTrace xs = go (zip xs [(0::Integer)..])
+printTrace xs = go (zip xs [(0 :: Integer) ..])
   where
     go [] = pure ()
-    go ((s,i):rest) = do
+    go ((s, i) : rest) = do
         putStrLn (show i <> ": " <> render s)
         go rest
 
