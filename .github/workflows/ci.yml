@@ -16,5 +16,5 @@ jobs:
         with:
           ghc-version: ${{ matrix.ghc }}
           cabal-version: ${{ matrix.cabal }}
-      - run: cabal build sequent-calculus sequent-calculus:sequent-calculus sequent-calculus:unit-tests
+      - run: cabal build lib:sequent-calculus exe:sequent-calculus sequent-calculus:unit-tests
       - run: cabal test
