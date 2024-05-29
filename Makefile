@@ -2,7 +2,7 @@ BUILD_SCRIPT = ./build-webdemo.sh
 PACK_SCRIPT = ./pack.sh
 JS_BUILD = ./examples/examples_to_js.sh
 
-.PHONY: doc pack
+.PHONY: doc pack format
 
 all: build doc
 
@@ -24,3 +24,6 @@ pack: build-web
 
 run: 
 	cabal run sequent-calculus $(filepath)
+
+format:
+	fourmolu --mode inplace $$(git ls-files '*.hs')

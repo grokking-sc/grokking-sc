@@ -40,8 +40,8 @@ parserTests =
         , testOpProd
         , testOpSub
         , testOpNested
-          -- Program tests
-        , simpleProg1
+        , -- Program tests
+          simpleProg1
         , simpleProg2
         , simpleProg3
         , simpleProg4
@@ -54,7 +54,6 @@ mkTermTest str tm = testCase ("Expression \"" <> str <> "\" can be parsed") $ pa
 
 mkProgTest :: String -> Prog () -> TestTree
 mkProgTest str prog = testCase ("Programm \"" <> str <> "\" can be parsed") $ parseProg str @?= Right prog
-
 
 -- Term Tests
 
@@ -90,7 +89,9 @@ testCaseTup = mkTermTest "case x of { Tup(x,x) => x}" (Case (VarT "x") [MkClause
 
 testCocaseStream :: TestTree
 testCocaseStream =
-    mkTermTest "cocase { hd => x, tl => x}" (Cocase [MkClause Hd [] (VarT "x"), MkClause Tl [] (VarT "x")])
+    mkTermTest
+        "cocase { hd => x, tl => x}"
+        (Cocase [MkClause Hd [] (VarT "x"), MkClause Tl [] (VarT "x")])
 
 testThrow :: TestTree
 testThrow = mkTermTest "goto(2,x)" (Goto (Lit 2) "x")
@@ -114,7 +115,10 @@ testFuncallParens :: TestTree
 testFuncallParens = mkTermTest "(fac(10))" (Fun "fac" [Lit 10] Nothing)
 
 testFuncCont :: TestTree
-testFuncCont = mkTermTest "fmult(Cons(1,Cons(0,Cons(2,Nil)));beta)" (Fun "fmult" [ConT Cons [Lit 1,ConT Cons [Lit 0, ConT Cons [Lit 2,ConT Nil []]]]] (Just "beta"))
+testFuncCont =
+    mkTermTest
+        "fmult(Cons(1,Cons(0,Cons(2,Nil)));beta)"
+        (Fun "fmult" [ConT Cons [Lit 1, ConT Cons [Lit 0, ConT Cons [Lit 2, ConT Nil []]]]] (Just "beta"))
 
 testHd :: TestTree
 testHd = mkTermTest "x.hd" (DesT (VarT "x") Hd [])
@@ -155,12 +159,33 @@ simpleProg1 :: TestTree
 simpleProg1 = mkProgTest "def foo := x;" (MkProg [Def "foo" [] Nothing (VarT "x") ()])
 
 simpleProg2 :: TestTree
-simpleProg2 = mkProgTest "def foo(x) := x;" (MkProg [Def "foo" [("x",())] Nothing (VarT "x") ()])
+simpleProg2 = mkProgTest "def foo(x) := x;" (MkProg [Def "foo" [("x", ())] Nothing (VarT "x") ()])
 
 simpleProg3 :: TestTree
-simpleProg3 = mkProgTest "def foo(x) := x; def bar(y) := y;" (MkProg [Def "foo" [("x",())] Nothing (VarT "x") (), Def "bar" [("y",())] Nothing (VarT "y") ()])
+simpleProg3 =
+    mkProgTest
+        "def foo(x) := x; def bar(y) := y;"
+        (MkProg [Def "foo" [("x", ())] Nothing (VarT "x") (), Def "bar" [("y", ())] Nothing (VarT "y") ()])
 
 simpleProg4 :: TestTree
-simpleProg4 = mkProgTest "def mult(l) := label a { mult2(l;a)}; def mult2(l;a) := case l of { Nil => 1,Cons(x,xs) => ifz(x,goto(0,a),x*mult2(xs;a))};"
-  (MkProg [Def "mult" [("l", ())] Nothing (Label "a" (Fun "mult2" [VarT "l"] (Just "a"))) (), 
-           Def "mult2" [("l",())] (Just "a") (Case  (VarT "l") [MkClause Nil [] (Lit 1), MkClause Cons ["x","xs"] (IfZ (VarT "x") (Goto (Lit 0) "a") (Op (VarT "x") Prod (Fun "mult2" [VarT "xs"] (Just "a")) ))]) ()])
+simpleProg4 =
+    mkProgTest
+        "def mult(l) := label a { mult2(l;a)}; def mult2(l;a) := case l of { Nil => 1,Cons(x,xs) => ifz(x,goto(0,a),x*mult2(xs;a))};"
+        ( MkProg
+            [ Def "mult" [("l", ())] Nothing (Label "a" (Fun "mult2" [VarT "l"] (Just "a"))) ()
+            , Def
+                "mult2"
+                [("l", ())]
+                (Just "a")
+                ( Case
+                    (VarT "l")
+                    [ MkClause Nil [] (Lit 1)
+                    , MkClause
+                        Cons
+                        ["x", "xs"]
+                        (IfZ (VarT "x") (Goto (Lit 0) "a") (Op (VarT "x") Prod (Fun "mult2" [VarT "xs"] (Just "a"))))
+                    ]
+                )
+                ()
+            ]
+        )
