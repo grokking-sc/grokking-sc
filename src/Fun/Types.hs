@@ -142,7 +142,7 @@ genConstraintsTm (VarT x) = do
     --
     (env, _, _) <- ask
     case M.lookup x env of
-        Nothing -> throwError ("Variable " <> show v <> " not bound in environment.")
+        Nothing -> throwError ("Variable " <> show x <> " not bound in environment.")
         Just tau -> pure tau
 genConstraintsTm (Lit _) = do
     --
