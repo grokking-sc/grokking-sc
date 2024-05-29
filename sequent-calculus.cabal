@@ -15,7 +15,7 @@ extra-doc-files:    README.md
 common warnings
     ghc-options: -Wall -Wno-orphans
 
-library sequent-lib
+library
     import:           warnings
     exposed-modules:  Fun.Syntax
                       Fun.Types
@@ -42,7 +42,7 @@ executable sequent-calculus
     build-depends:
         base,
         text,
-        sequent-lib
+        sequent-calculus
 
     hs-source-dirs:   app
     default-language: GHC2021
@@ -53,7 +53,7 @@ executable web-demo
     build-depends:
         base,
         text,
-        sequent-lib
+        sequent-calculus
     hs-source-dirs:   web-app
     other-modules:    JSBits
     default-language: GHC2021
@@ -67,8 +67,9 @@ test-suite sequent-calculus-tests
     build-depends:
         prettyprinter,
         base,
-        sequent-lib,
+        sequent-calculus,
         tasty,
-        tasty-hunit
+        tasty-hunit,
+        text
     hs-source-dirs:   test
     default-language: GHC2021

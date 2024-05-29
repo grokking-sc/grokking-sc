@@ -1,2 +1,8 @@
 packages: sequent-calculus.cabal
 allow-newer: all
+
+package unix
+  flags: +os-string
+
+package directory
+  flags: +os-string
