@@ -27,12 +27,12 @@ library sequent-lib
                       Core.Substitution
                       Core.Simplify
                       Compiler
-    build-depends:    base,
-                      containers,
-                      megaparsec,
-                      text,
-                      mtl,
-                      prettyprinter
+    build-depends:    base >= 4.17.0 && < 4.20,
+                      containers >= 0.6 && < 0.8,
+                      megaparsec >= 9.6 && < 9.7,
+                      text >= 2.0 && < 2.2,
+                      mtl >= 2.3 && < 2.4,
+                      prettyprinter >= 1.7 && < 1.8
     hs-source-dirs:   src
     default-language: GHC2021
 
