@@ -58,7 +58,7 @@ executable web-demo
     other-modules:    JSBits
     default-language: GHC2021
 
-test-suite sequent-calculus-tests
+test-suite unit-tests
     import:           warnings
     main-is:          Main.hs
     type:             exitcode-stdio-1.0
