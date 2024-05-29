@@ -1,5 +1,9 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Parser (parserTests) where
 
+import Data.Text (Text)
+import Data.Text qualified as T
 import Fun.Parser
 import Fun.Syntax
 import Test.Tasty
@@ -49,11 +53,12 @@ parserTests =
 
 -- Helper utilities
 
-mkTermTest :: String -> Term -> TestTree
-mkTermTest str tm = testCase ("Expression \"" <> str <> "\" can be parsed") $ parseTerm str @?= Right tm
+mkTermTest :: Text -> Term -> TestTree
+mkTermTest str tm = testCase (T.unpack ("Expression \"" <> str <> "\" can be parsed")) $ parseTerm str @?= Right tm
 
-mkProgTest :: String -> Prog () -> TestTree
-mkProgTest str prog = testCase ("Programm \"" <> str <> "\" can be parsed") $ parseProg str @?= Right prog
+mkProgTest :: Text -> Program () -> TestTree
+mkProgTest str prog =
+    testCase (T.unpack ("Programm \"" <> str <> "\" can be parsed")) $ parseProgram str @?= Right prog
 
 -- Term Tests
 
@@ -73,16 +78,16 @@ testProd :: TestTree
 testProd = mkTermTest "2 * 3" (Op (Lit 2) Prod (Lit 3))
 
 testNil :: TestTree
-testNil = mkTermTest "Nil" (ConT Nil [])
+testNil = mkTermTest "Nil" (Constructor Nil [])
 
 testNilParens :: TestTree
-testNilParens = mkTermTest "(Nil)" (ConT Nil [])
+testNilParens = mkTermTest "(Nil)" (Constructor Nil [])
 
 testCons :: TestTree
-testCons = mkTermTest "Cons(x,xs)" (ConT Cons [VarT "x", VarT "xs"])
+testCons = mkTermTest "Cons(x,xs)" (Constructor Cons [VarT "x", VarT "xs"])
 
 testTup :: TestTree
-testTup = mkTermTest "Tup(2 , 3 )" (ConT Tup [Lit 2, Lit 3])
+testTup = mkTermTest "Tup(2 , 3 )" (Constructor Tup [Lit 2, Lit 3])
 
 testCaseTup :: TestTree
 testCaseTup = mkTermTest "case x of { Tup(x,x) => x}" (Case (VarT "x") [MkClause Tup ["x", "x"] (VarT "x")])
@@ -118,22 +123,26 @@ testFuncCont :: TestTree
 testFuncCont =
     mkTermTest
         "fmult(Cons(1,Cons(0,Cons(2,Nil)));beta)"
-        (Fun "fmult" [ConT Cons [Lit 1, ConT Cons [Lit 0, ConT Cons [Lit 2, ConT Nil []]]]] (Just "beta"))
+        ( Fun
+            "fmult"
+            [Constructor Cons [Lit 1, Constructor Cons [Lit 0, Constructor Cons [Lit 2, Constructor Nil []]]]]
+            (Just "beta")
+        )
 
 testHd :: TestTree
-testHd = mkTermTest "x.hd" (DesT (VarT "x") Hd [])
+testHd = mkTermTest "x.hd" (Destructor (VarT "x") Hd [])
 
 testTl :: TestTree
-testTl = mkTermTest "x.tl" (DesT (VarT "x") Tl [])
+testTl = mkTermTest "x.tl" (Destructor (VarT "x") Tl [])
 
 testTlTl :: TestTree
-testTlTl = mkTermTest "x.tl.tl" (DesT (DesT (VarT "x") Tl []) Tl [])
+testTlTl = mkTermTest "x.tl.tl" (Destructor (Destructor (VarT "x") Tl []) Tl [])
 
 testFst :: TestTree
-testFst = mkTermTest "x.fst" (DesT (VarT "x") Fst [])
+testFst = mkTermTest "x.fst" (Destructor (VarT "x") Fst [])
 
 testSnd :: TestTree
-testSnd = mkTermTest "x.snd" (DesT (VarT "x") Snd [])
+testSnd = mkTermTest "x.snd" (Destructor (VarT "x") Snd [])
 
 testApp1 :: TestTree
 testApp1 = mkTermTest "f x" (App (VarT "f") (VarT "x"))

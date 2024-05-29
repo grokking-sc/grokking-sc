@@ -238,21 +238,33 @@ termParensP = parens termP'
 
 -- The following terms are all left-recursive, i.e. they start with another term.
 
--- | Parse a function application @t1 t2@.
+-- | Parse a chain of function applications @t t1 ... tn@.
 appP :: Parser Term
 appP = do
-    tm1 <- termP
-    tm2 <- termP'
-    pure (App tm1 tm2)
-
--- | Parse the application of a destructor to a term: @t.dtor(t1,...tn)@.
-desP :: Parser Term
-desP = do
     tm <- termP
-    _ <- string "."
-    dtor <- dtorP
-    args <- option [] argsP
-    pure (Destructor tm dtor args)
+    tms <- some termP
+    pure (mergeApps tm tms)
+  where
+    mergeApps :: Term -> [Term] -> Term
+    mergeApps tm [] = tm
+    mergeApps tm (x : xs) = mergeApps (App tm x) xs
+
+-- | Parse a "destructor chain": @t.dtor(t1,...tn)...dtor(s1,...,sm)@.
+destructorChainP :: Parser Term
+destructorChainP = do
+    tm <- termP
+    dtors <- some destructorApp
+    pure (mergeDestructorChain tm dtors)
+  where
+    destructorApp :: Parser (Dtor, [Term])
+    destructorApp = do
+        _ <- string "."
+        dtor <- dtorP
+        args <- option [] argsP
+        pure (dtor, args)
+    mergeDestructorChain :: Term -> [(Dtor, [Term])] -> Term
+    mergeDestructorChain tm [] = tm
+    mergeDestructorChain tm ((dtor, args) : xs) = mergeDestructorChain (Destructor tm dtor args) xs
 
 {- | Parse a binary operator @t1 + t2@, @t1 * t2@ and @t1 - t2@.
 We don't implement different precedences for different binary operators.
@@ -286,7 +298,7 @@ termP =
 
 -- | Parse any term, including those which are left-recursive.
 termP' :: Parser Term
-termP' = try desP <|> try appP <|> try opP <|> termP
+termP' = try destructorChainP <|> try appP <|> try opP <|> termP
 
 -------------------------------------------------------------------------------
 -- Parsing toplevel functions and programs
