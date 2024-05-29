@@ -238,12 +238,16 @@ termParensP = parens termP'
 
 -- The following terms are all left-recursive, i.e. they start with another term.
 
--- | Parse a function application @t1 t2@.
+-- | Parse a chain of function applications @t t1 ... tn@.
 appP :: Parser Term
 appP = do
-    tm1 <- termP
-    tm2 <- termP'
-    pure (App tm1 tm2)
+    tm <- termP
+    tms <- some termP
+    pure (mergeApps tm tms)
+  where
+    mergeApps :: Term -> [Term] -> Term
+    mergeApps tm [] = tm
+    mergeApps tm (x : xs) = mergeApps (App tm x) xs
 
 -- | Parse a "destructor chain": @t.dtor(t1,...tn)...dtor(s1,...,sm)@.
 destructorChainP :: Parser Term
