@@ -1,0 +1,38 @@
+name: CI
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    ghcjs:
+        name: GHC Javascript Job
+        runs-on: ubuntu-latest
+        permissions:
+          contents: write
+
+        steps:
+        - uses: actions/checkout@v4
+        # We follow the instructions from: https://www.haskell.org/ghcup/guide/#cross-support
+        - name: Install emscripten
+          uses: mymindstorm/setup-emsdk@v14
+          with:
+            version: 3.1.57
+        - name: Add GHCup release channel for crosscompiler
+          run: ghcup config add-release-channel https://raw.githubusercontent.com/haskell/ghcup-metadata/develop/ghcup-cross-0.0.8.yaml
+        - name: Install GHC cross compiler
+          run: emconfigure ghcup install ghc --set javascript-unknown-ghcjs-9.10.0.20240413
+        - name: Update cabal
+          run: cabal update
+        - name: Build project
+          run: cabal build --with-compiler=javascript-unknown-ghcjs-ghc --with-hc-pkg=javascript-unknown-ghcjs-ghc-pkg web-demo
+        - name: Move files
+          run: |
+            mkdir public
+            mv dist-newstyle/build/javascript-ghcjs/ghc-9.10.0.20240413/sequent-calculus-0.1.0.0/x/web-demo/build/web-demo/web-demo.jsexe/all.js public
+            mv web-app/index.html public
+        - name: Deploy
+          uses: JamesIves/github-pages-deploy-action@v4
+          with:
+            folder: ./public
+            commit-message: 'Deploy webdemo'
