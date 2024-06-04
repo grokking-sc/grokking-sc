@@ -34,17 +34,16 @@ type Name = Text
 
 {- | Pattern
 Definition 2.5
-constructor and destructor names are parametrized by the type variable a
 -}
 data Pattern a = MkPattern
     { xtor :: a
-    -- ^ the constcutor or destructor of the pattern
+    -- ^ Constructor or destructor
     , patv :: [Var]
-    -- ^ the bound variables of the pattern
+    -- ^ Bound variables
     , patcv :: [Covar]
-    -- ^ the bound covariables of the pattern
+    -- ^ Bound covariables
     , patst :: Statement
-    -- ^ the bound statnement (right hand side) of the pattern
+    -- ^ Right hand side
     }
     deriving (Show, Eq)
 
@@ -58,13 +57,13 @@ data Producer
     | -- | Integer literals
       -- Definition 2.1
       Lit Int
-    | -- | Mu abstractions binding a covariable and a statement
+    | -- | Mu abstractions
       -- Definition 2.1
       Mu Covar Statement
-    | -- | Constructor terms with producer and consumer arguments
+    | -- | Constructors
       -- Definition 2.5
       Constructor Ctor [Producer] [Consumer]
-    | -- | Cocases containing a number of destructor patterns
+    | -- | Cocases
       -- Definition 2.5
       Cocase [Pattern Dtor]
     deriving (Show, Eq)
@@ -73,57 +72,49 @@ data Producer
 Definitions 2.1,2.3 and 2.5
 -}
 data Consumer
-    = -- | Covairables
+    = -- | Covariables
       -- Definition 2.1
       Covar Covar
-    | -- | MuTilde abstractions binding a variable and statement
+    | -- | MuTilde abstractions
       -- Definition 2.3
       MuTilde Var Statement
-    | -- | Case expressions containing a number of constructor patterns
+    | -- | Case expressions
       -- Definition 2.5
       Case [Pattern Ctor]
-    | -- | Destructors with producer and consumer arguments
+    | -- | Destructors
       -- Definition 2.5
       Destructor Dtor [Producer] [Consumer]
     deriving (Show, Eq)
 
 -- | Statements
 data Statement
-    = -- | Cuts containing a producer and consumer (of the same type)
+    = -- | Cuts
       -- Definition 2.1
       Cut Producer Consumer
-    | -- | Binary opration with two producers, the operation and one consumer
+    | -- | Binary operation on primitive integers
       -- Definition 2.1
-      -- The two producers are the integers on which the operation is performed
-      -- the consumer is the continuation
       Op Producer BinOp Producer Consumer
-    | -- | If Zero statement containing a producer and two statements
+    | -- | If Zero statement
       -- Definition 2.1
-      -- the producer is the integer to be tested for 0
-      -- the first staement is the 0-branch, the second the non-zero branch
       IfZ Producer Statement Statement
-    | -- | Toplevel function calls contining the name, producer and consumer arguments
+    | -- | Toplevel function calls
       -- Definition 2.4
-      -- The number and types of the argument are defined in the definition (added by type inference)
       Fun Name [Producer] [Consumer]
-    | -- | The Done Statement
-      -- Indicates finished computation
+    | -- | Done
+      -- Indicates a finished computation
       Done
     deriving (Show, Eq)
 
 {- | Toplevel Definitions
 Definition 2.4
-The type parameter is either () or Core.Ty
-Before type checking it is always () afterwards always Ty
-This is then used to annotate  argument types
 -}
 data Def a = Def
     { name :: Name
     -- ^ The name of the function
     , pargs :: [(Var, a)]
-    -- ^ The producer arguments, possibly with a type
+    -- ^ Producer arguments
     , cargs :: [(Covar, a)]
-    -- ^ The consumer arguments, possibly with a type
+    -- ^ Consumer arguments
     , body :: Statement
     -- ^ The body of the definition
     }
