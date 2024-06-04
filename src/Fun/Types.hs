@@ -84,47 +84,45 @@ type Error = String
 -- Constraint Generation
 -------------------------------------------------------------------------------
 
--- the constraint generation environment (only read from)
--- contains a map of types vor (term) variables
--- a map of types for covariables (labels)
--- and a program (that is already typed)
+{- | The constraint generation environment
+maps locally bound variables and covariables to their types.
+It also contains an environment of typed toplevel definitions.
+-}
 type GenReader = (M.Map Var Ty, M.Map Covar Ty, Program Ty)
 
--- the constraint generation state (updated during generation)
--- contains a number, which starts at 0 and is increased whenever a new type variable is generated
--- and contains a list of generated constraints
+{- | The constraint generation state contains a number which is used
+to generate fresh unification variables and a list of generated
+constraints.
+-}
 type GenState = (Int, [Constraint])
 
--- the generator monad
--- uses the RWS and Except monad
--- RWS contains the environment GenReader,
--- an output to write to (), here nothing
--- and a state GenState
--- Using the transformer RWST it is combined with the Except monad to add errors
+{- | The GenM Monad stack contains:
+- A reader component of type @GenReader@
+- A state component of type @GenState@
+- An error component of type @Error@
+-}
 type GenM a = RWST GenReader () GenState (Except Error) a
 
--- | Add a variable binding to the typing context.
+-- | Add variable bindings to the typing context.
 addVarBindings :: [(Var, Ty)] -> GenReader -> GenReader
 addVarBindings xs (env, coenv, prog) = (M.union (M.fromList xs) env, coenv, prog)
 
--- | Add a covariable binding to the typing context.
+-- | Add covariable bindings to the typing context.
 addCovarBinding :: Covar -> Ty -> GenReader -> GenReader
 addCovarBinding v ty (env, coenv, prog) = (env, M.insert v ty coenv, prog)
 
--- | Generate a fresh type variable @ai@.
+-- | Generate a fresh unification variable @ai@.
 freshVar :: GenM Ty
 freshVar = do
     (i, _) <- get
     modify (\(j, cs) -> (j + 1, cs))
     pure (TyVar (T.pack ("a" <> show i)))
 
--- | Add a constraint to the monad state.
+-- | Add a constraint.
 addConstraint :: Constraint -> GenM ()
 addConstraint c = modify (\(i, cs) -> (i, c : cs))
 
--- looks up a type definition in the environment
--- when the name is not contained in the environment proram an error is thrown
--- otherwise a list of argument types and the return type is returned
+-- |  Look up the type signature of a function declared in the program.
 lookupDefinition :: Name -> GenM ([Ty], Ty)
 lookupDefinition nm = do
     (_, _, MkProg prog) <- ask
@@ -181,21 +179,15 @@ genConstraintsTm (Let v t1 t2) = do
     --
     ty1 <- genConstraintsTm t1
     local (addVarBindings [(v, ty1)]) $ genConstraintsTm t2
--- Toplevel Function Calls
--- Function calls without covariable argument
 --
 --   f(x_i:τ_i;a:τ'):σ ∈ P  Γ⊢t_i:τ_i  Γ⊢a:τ'
 -- ――――――――――――――――――――――――――――――――――――――――― Call
 --              Γ ⊢ f(t_i) : σ
 --
---   a here is optional, when it is not present in P it is ignored
+--   The covariable a is optional
 --
 genConstraintsTm (Fun nm args Nothing) = do
-    -- to type a toplevel call, its definition needs to be in the environment
-    -- so first we look up the definition
     (argtys, retty) <- lookupDefinition nm
-    -- the number of arguments of the call need to be the same as the number of defined arguments
-    -- if they are not, throw an error
     if length args /= length argtys
         then
             throwError
@@ -207,19 +199,11 @@ genConstraintsTm (Fun nm args Nothing) = do
                     <> show (length args)
                 )
         else do
-            -- generate constraints for all argument terms
             tys <- forM args genConstraintsTm
-            -- the types of the arguments need to be the same as the ones defined in the definition
-            -- thus we add constraints between them
-            -- this always adds one constraint per argument, since we already checked the lengths of argtys and tys are equal
             forM_ (zip argtys tys) addConstraint
-            -- the final type is then the looked up return type
             pure retty
--- function calls with covariable argument
 genConstraintsTm (Fun nm args (Just cv)) = do
-    -- again look up the definition
     (argtys, retty) <- lookupDefinition nm
-    -- check argument lengths
     if length args /= length argtys
         then
             throwError
@@ -231,18 +215,10 @@ genConstraintsTm (Fun nm args (Just cv)) = do
                     <> show (length args)
                 )
         else do
-            -- now we also need to find the type of the covariable
             (_, coenv, _) <- ask
-            -- if it is in the environment, use that type
-            -- otherwise create a new type variable
             cvTy <- case M.lookup cv coenv of Nothing -> freshVar; Just ty -> pure ty
-            -- generate constraints for all arguments as before
-            -- but now locally add the type of the covariable to the environment during constraint generation
-            -- this ensures that whenever cv is used in an argument, it's type will be the same
             tys <- forM args (local (addCovarBinding cv cvTy) . genConstraintsTm)
-            -- again add a constraint for each argument
             forM_ (zip argtys tys) addConstraint
-            -- and return the defined return type
             pure retty
 genConstraintsTm (Constructor Nil []) = do
     --
@@ -406,64 +382,33 @@ genConstraintsTm (Label v t) = do
     addConstraint (a, ty)
     pure ty
 
--- to generate constraints for a definition (with already included types
--- we add the argument variables to the environment while generting constraints for the body
--- this already needs to have types included
--- these types are always type variables (see below), which are then resolved with the generated constraints
+-- | Generate constraints for a toplevel definition.
 genConstraintsDef :: Def Ty -> GenM ()
 genConstraintsDef (Def _ args _ body ret) = do
     ty <- local (addVarBindings args) $ genConstraintsTm body
     addConstraint (ty, ret)
 
--- | Annotate every toplevel definition with fresh typevariables for argument and return types.
+{- | Annotate every toplevel definition with fresh unification variables @bi@
+for argument and return types.
+-}
 annotateProgram :: Program () -> Program Ty
--- reverse is needed because annotateDefs reverses its argument list
 annotateProgram (MkProg defs) = MkProg (reverse defs')
   where
-    -- generates an infinite list of type variables
-    -- all of the form bi with i some integer
-    -- annotateDefs then takes all the ones needed for bodies and arguments and discards the rest
     defs' :: [Def Ty]
     defs' = annotateDefs defs [] [TyVar (T.pack ("b" <> show i)) | i <- [(0 :: Integer) ..]]
 
-    -- takes unannotated definitions
-    -- a list of already annotated  definitions
-    -- a list of types to use for the definition
-    -- this list is the infinite list of type variables generated above
-    -- then returns a list of annotated definitions
     annotateDefs :: [Def ()] -> [Def Ty] -> [Ty] -> [Def Ty]
-    -- once all definitions are annotated we are done
     annotateDefs [] acc _ = acc
-    -- given at least one unannotated definition
-    -- first annotate the arguments using annotateArgs
-    -- this also returns a new list of types to annotate (so the same type variable is not used multiple times
-    -- then add the next type variable for the return type
-    -- add the newly annotated definition to the list of already annotated definitions
-    -- recursively call annotateDefs for the remaining annotated variables
-    -- make sure to remove the taken type vairables so they are not reused
     annotateDefs (Def nm args cv body () : rest) acc fvs = do
         let (args', fvs') = annotateArgs args fvs
         annotateDefs rest (Def nm args' cv body (head fvs') : acc) (tail fvs')
 
-    -- given a list of argument variables and types for them
-    -- returns a list of annotated variables and remaining types
-    -- since the type list is inifinite this removes all used types and returns another infinite list of types
-    -- zip only returns a tuple when both lists are nonempty
-    -- thus the first element of the return tuple always has exactly (length args) elements
-    -- and the second one is the original type list with (length args) elements removed
     annotateArgs :: [(Var, ())] -> [Ty] -> ([(Var, Ty)], [Ty])
     annotateArgs args fvs = (zip (fst <$> args) fvs, drop (length args) fvs)
 
--- generate constraints for a program
--- runs the constraint generation monad and returns either an error string
--- or the annotated program with a list of generated constraints
--- the argument and return types of the included definitions will all be type variables (see above)
--- once the constraints are resolved (see below) these will be substtituted
+-- | Generate constraints for a program.
 generateConstraints :: Program () -> Either String (Program Ty, [Constraint])
 generateConstraints prog = do
-    -- first annotate the program
-    -- then run the constraint generation monad
-    -- return the results of running the monad
     let prog'@(MkProg defs) = annotateProgram prog
     let initialReader = (M.empty, M.empty, prog')
     let initialState = (0, [])
@@ -477,9 +422,9 @@ generateConstraints prog = do
 -- Constraint Solving
 -------------------------------------------------------------------------------
 
--- solve constraints takes a list of constraints and either returns an error or returns a map
--- this map maps type variables to types and is used to substitute type variables
--- it suns the solving monad below, the results are the results of that monad
+{- | Solve a set of constraints. If the constraints can be solved then
+the result is a substitution of types for unification variables.
+-}
 solveConstraints :: [Constraint] -> Either Error (M.Map TyVar Ty)
 solveConstraints cs = do
     let initial = MkSolverState cs M.empty
@@ -487,47 +432,38 @@ solveConstraints cs = do
         Left err -> Left err
         Right ((), s, ()) -> Right (subst s)
 
--- state for the solver monad
--- contains constraints that have not been resolved yet
--- and a map of typevariables to types, which contains the already resolved variables
+{- |  The state consists of unsolved constraints and a substitution which maps
+ unification variables to types.
+-}
 data SolverState = MkSolverState {todo :: [Constraint], subst :: M.Map TyVar Ty}
 
--- the solver monad
--- again uses the RWST monad transformer with the Except monad
--- now the environment and writer are both empty and the state is the solverstate
+-- | The monad used for constraint solving.
 type SolverM a = RWST () () SolverState (Except Error) a
 
--- adds a new type variable to the state (the typevar map)
--- before adding the new substitution, the substitution is performed on the remaining constraints
+{- | Add a new binding to the type substitution.
+The substitution is also applied on the remaining constraints.
+-}
 performSubst :: TyVar -> Ty -> SolverM ()
 performSubst a ty = do
-    -- generate a new variable map containing only the given variable and type
     let m = M.fromList [(a, ty)]
-    -- get the current map and remaining constraints
     MkSolverState todo subst <- get
-    -- replace the given type variable in all remaining constraints
-    -- this ensures a resolved variable does not appear again
+    -- perform the substitution on remaining constraints.
     let todo' = zonk m <$> todo
-    -- add the new substitution to the substitution map
+    -- perform the substitution on the partial solution
     let subst' = fmap (zonk m) subst
     let subst'' = M.insert a ty subst'
-    -- save the new substitution map and remaining constraints in the state
     put (MkSolverState todo' subst'')
 
 -- | Add new constraints to the state of the solver.
 addConstraints :: [Constraint] -> SolverM ()
 addConstraints cs = modify (\(MkSolverState todos m) -> MkSolverState (cs ++ todos) m)
 
--- | Solve constraints until the todo list is empty.
+-- | Solve constraints until none remain.
 run :: SolverM ()
 run = do
-    -- get reaming constraints
     todo <- gets todo
     case todo of
-        -- once no more constraints are left we are done
         [] -> pure ()
-        -- otherwise solve the current constraint and remove it from the remaining constraints
-        -- then recursively call the run function again
         (c : _) -> do
             modify (\(MkSolverState todos m) -> MkSolverState (tail todos) m)
             solveConstraint c
@@ -537,18 +473,15 @@ run = do
 solveConstraint :: Constraint -> SolverM ()
 -- A constraint between a type variable and itself can be discarded.
 solveConstraint (TyVar a, TyVar b) | a == b = pure ()
--- a constraint between a type var and another type
--- check if the typevar appears free in the other type
--- if it does this is a recursive type, which is not supported
--- thus an error is thrown
--- otherwise, the variable can be substituted by the given type in all constraints and added to the variable map
+-- For constraints between a unification variable and a type we
+-- need to perform an occurs check.
 solveConstraint (TyVar a, ty)
     | a `S.member` freeTyVars ty = throwError ("Occurs check! " <> show a <> " occurs in " <> show ty)
     | otherwise = performSubst a ty
 solveConstraint (ty, TyVar a)
     | a `S.member` freeTyVars ty = throwError ("Occurs check! " <> show a <> " occurs in " <> show ty)
     | otherwise = performSubst a ty
--- two int types are always equal
+-- Int is equal to itself.
 solveConstraint (IntTy, IntTy) = pure ()
 -- For constraints between two lists, streams, functions, strict pairs and lazy pairs we
 -- generate new subconstraints.
