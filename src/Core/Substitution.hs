@@ -281,69 +281,42 @@ instance FreeV (Pattern a) where
 
 --- Substitution
 
--- | Type class for substituting all variables and covariables in an expression
+-- | Type class which allows for the simultaneous substitution of
+-- producers for variables and consumers for covariables
 class Subst a where
-    -- | substitute each variable and each covariable in some expression
-    -- the first two arguments are the replacements to be done
-    -- each tuple (prd,var) replaces var by prd and analogous for tuples (cns,covar)
-    -- the third argument is where the subtitution will be performed
+    -- | Simultaneous substitution
     substSim :: [(Producer, Var)] -> [(Consumer, Covar)] -> a -> a
 
-    -- | substitute a single variable by a producer in some expression
+    -- | Substitute a single variable by a producer
     substVar :: Producer -> Var -> a -> a
     substVar p v = substSim [(p, v)] []
 
-    -- | substitute a single covariable by a consumer in some expression
+    -- | Substitute a single covariable by a consumer
     substCovar :: Consumer -> Covar -> a -> a
     substCovar c v = substSim [] [(c, v)]
 
 instance (Subst a) => Subst [a] where
     substSim ps cs xs = substSim ps cs <$> xs
 
-{- | Substitution instance for patterns
-this might need alpha renaming to ensure bound (co-) variables of a pattern are not substituted
--}
+
 instance (Subst (Pattern a)) where
-    -- to substitute within a pattern, bound variables and covariables need to be ignored
-    -- vars/covars to be substituted might be bound by the pattern
-    -- thus substitution might require alpha renaming
     {-
      >>> substSim [(Var "x","y")] [] (MkPattern Cons ["x","xs"] (Cut (Var "x") (Covar "a")))
      MkPattern Cons ["x0","x1"] [] (Cut (Var "x0") (Covar "a"))
      -}
     substSim ps cs (MkPattern xt vars cvars st) = do
-        -- combine everything whose free variables we need
-        -- this includes
-        -- the bound statement st
-        -- variables to be substituted (fst <$> ps)
-        -- producers to substitute for the variables (snd<$>ps)
-        -- covariables to be substituted (fst<$>cs)
-        -- consumers to substitute for the covariables (snd<$>cs)
         let foo :: [Free] =
                 MkFree st
                     : (MkFree . Var . snd <$> ps)
                         <> (MkFree . fst <$> ps)
                         <> (MkFree . Covar . snd <$> cs)
                         <> (MkFree . fst <$> cs)
-        -- generate fresh variables and covariables for the pattern
-        -- these replace the ones bound in the pattern
-        -- the number of vars and covars will be the same
-        -- and their names will not clash with any of the ones in foo
-        -- thus these are all fresh wrt the entire pattern
         let freshvars = take (length vars) (freshVars foo)
         let freshcovars = take (length cvars) (freshCovars foo)
-        -- substitute the original variables and covariables by the newly generated ones
-        -- this ensures there is no shadowing with the variables/covariables that are to be substituted
         let st' = substSim (zip (Var <$> freshvars) vars) (zip (Covar <$> freshcovars) cvars) st
-        -- return the new pattern with renamed bound variables
-        -- and substitute the variables/covariables to actually be substituted in the new statement
-        -- since st' does not contain any of the originally bound variables of the pattern, no substitutions fail due to shadowing
         MkPattern xt freshvars freshcovars (substSim ps cs st')
 
 instance Subst Producer where
-    -- to substitute a variable we check if its contained in the given substitution list
-    -- if so return the new one, otherwise return the original one
-    -- covariables can be ignored here, since variables cannot contain covariables
     {-
      >>> substSim [(Var "x","y")] [] (Var "y")
      Var "x"
@@ -358,28 +331,16 @@ instance Subst Producer where
      Lit n
     -}
     substSim _ _ (Lit n) = Lit n
-    -- as with patterns, mu abstractions require alpha renaming to avoid shadowing
     {-
      >>> substSym [Lit 1,"x"] [Covar "b","a"] (Mu "a" (Cut (Var "x") (Covar "a")))
      Mu "a0" (Cut (Lit 1) (Covar "a0")
      -}
     substSim ps cs (Mu cv st) = do
-        -- we replace the original covariable cv with a new one cv'
-        -- this new covariable will not appear free in any of the terms in the list
-        -- this list contains
-        -- the bound statement
-        -- all covariables to be substituted (snd <$> cs)
-        -- all consumers to be substituted (fst <$> cs)
-        -- all producers to be substituted (fst <$> ps)
         let cv' =
                 freshCovar
                     (MkFree st : (MkFree . Covar . snd <$> cs) ++ (MkFree . fst <$> cs) ++ (MkFree . fst <$> ps))
-        -- we then need to substitute cv by cv', so the new variable is correctly bound by mu
         let st' = substCovar (Covar cv') cv st
-        -- lastly, substitute ps and cs in the new statement no longer containing cv
-        -- the new mu will have cv' bound instead of cv
         Mu cv' (substSim ps cs st')
-    -- for constructors and cocases, substitution only needs to consider the arguments/patterns
     {-
      >>> substSim [] [] (Constructor Nil [] [])
      Constructor Nil [] []
@@ -392,9 +353,6 @@ instance Subst Producer where
     substSim ps cs (Cocase patterns) = Cocase (substSim ps cs patterns)
 
 instance Subst Consumer where
-    -- to substitute a covariable we look it up in the substitution list
-    -- if it is found, return the new covariable, otherwise the original one
-    -- variables are ignored here, since covariables do not contain variables
     {-
      >>> substSim [] (Covar "a","b") (Covar "b")
      Covar "a"
@@ -405,24 +363,15 @@ instance Subst Consumer where
     substSim _ cs (Covar v1) = case find (\(_, v) -> v == v1) cs of
         Nothing -> Covar v1
         Just (c, _) -> c
-    -- mu tilde works analogously to mu, but with variables instead of covariables
-    -- we alpha-rename the bound variable to ensure no shadowing
     {-
      >>> substSim [(Lit 1, "x")] [(Covar "b","a")] (Mutilde "x" (Cut (Var "x") (Covar "a")))
      MuTilde "x0" (Cut (Var "x0") (Covar "b"))
      -}
     substSim ps cs (MuTilde v st) = do
-        -- generate a fresh variable not contained in the bound statement, any of the producers and consumers to be substituted,
-        -- not equal to any variable that needs to be substituted and not equal to the originally bound variable
         let v' =
                 freshVar (MkFree st : (MkFree . Var . snd <$> ps) ++ (MkFree . fst <$> ps) ++ (MkFree . fst <$> cs))
-        -- replace the bound variable by the new one
         let st' = substVar (Var v') v st
-        -- perform the substitution on the new statement
-        -- and bind the new variable instead of the old one
         MuTilde v' (substSim ps cs st')
-    -- cases and destructors are analogous to the corresponding producers
-    -- substitute in the patterns or the arguments
     {-
      >>> substSym [] [] (Case (MkPattern Nil [] []))
      Case (MkPattern Nil [] [])
@@ -450,13 +399,5 @@ instance Subst Statement where
      IfZ (Lit 1) Done DOne
      -}
     substSim ps cs (IfZ p s1 s2) = IfZ (substSim ps cs p) (substSim ps cs s1) (substSim ps cs s2)
-    {-
-     >>> substSym [] [] (Fun "Exit" [] [])
-     Fun "Exit" [] []
-    -}
     substSim ps cs (Fun nm pargs cargs) = Fun nm (substSim ps cs pargs) (substSim ps cs cargs)
-    {-
-     >>> substSim [] [] Done
-     Done
-    -}
     substSim _ _ Done = Done

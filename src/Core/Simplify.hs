@@ -21,22 +21,11 @@ class Simplify a where
     simplify :: a -> a
 
 instance Simplify (Program a) where
-    {-
-     >>> simplify (MkProg [])
-     MkProg []
-     -}
     simplify (MkProg dfs) = MkProg (simplify <$> dfs)
 
 instance Simplify (Def a) where
-    {-
-     >>> simplify (Def "Exit" [] [] Done)
-     Def "Exit" [] [] Done
-     -}
     simplify Def{name = nm, pargs = args, cargs = coargs, body = st} = Def{name = nm, pargs = args, cargs = coargs, body = simplify st}
 
-{- | Simplify Instance for statements
-This uses evaluation rules from Core.Eval to simplify statements
--}
 instance Simplify Statement where
     -- a mu abstraction in a cut can immediately be removed by substituting the consumer
     -- <mu cv1.st | c> -> st [c/cv1]
@@ -121,71 +110,21 @@ instance Simplify Statement where
      IfZ (Mu "x" Cut (Lit 1) (Var "x")) Done Done
      -}
     simplify (IfZ p s1 s2) = IfZ (simplify p) (simplify s1) (simplify s2)
-    -- for a toplevel call, simplify all arguments
-    -- this does not replace the call with it's body
-    {-
-     >>> simplify (Fun "Exit" [] [])
-     Fun "Exit" [] []
-    -}
     simplify (Fun nm args coargs) = Fun nm (simplify <$> args) (simplify <$> coargs)
-    {-
-     >>> simplify Done
-     Done
-    -}
     simplify Done = Done
 
 instance Simplify (Pattern a) where
-    {-
-     >>> simplify (MkPattern Nil [] [] Done)
-     MkPattern Nil [] [] Done
-    -}
     simplify MkPattern{xtor = xt, patv = vars, patcv = covars, patst = st} = MkPattern{xtor = xt, patv = vars, patcv = covars, patst = simplify st}
 
 instance Simplify Producer where
-    {-
-     >>>simplify (Var "x")
-     Var "x"
-    -}
     simplify (Var v) = Var v
-    {-
-     >>> simplify (Lit 1)
-     Lit 1
-     -}
     simplify (Lit n) = Lit n
-    {-
-     >>> simplify (Mu "a" Done)
-     Mu "a" Done
-     -}
     simplify (Mu cv st) = Mu cv (simplify st)
-    {-
-     >>> simplify (Constructor Nil [] [])
-     Constructor Nil [] []
-     -}
     simplify (Constructor ct args coargs) = Constructor ct (simplify <$> args) (simplify <$> coargs)
-    {-
-     >>> simplify (Cocase [])
-     Cocase []
-     -}
     simplify (Cocase pts) = Cocase (simplify <$> pts)
 
 instance Simplify Consumer where
-    {-
-     >>> simplify (Covar "a")
-     Covar "a"
-     -}
     simplify (Covar cv) = Covar cv
-    {-
-     >>> simplify (MuTilde "x" Done)
-     MuTilde "x" Done
-     -}
     simplify (MuTilde v st) = MuTilde v (simplify st)
-    {-
-     >>> simplify (Case [])
-     Case []
-     -}
     simplify (Case pts) = Case (simplify <$> pts)
-    {-
-     >>> simplify (Destructor Fst [] [Covar "a'])
-     Destructor Fst [] (Covar "a")
-     -}
     simplify (Destructor dt args coargs) = Destructor dt (simplify <$> args) (simplify <$> coargs)

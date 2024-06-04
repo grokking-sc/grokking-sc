@@ -56,9 +56,6 @@ class Focus a where
     -- | Focus an expression
     focus :: a -> a
 
-{- | Focusing instance for patterns
-Focuses the statement bound in the pattern
--}
 instance Focus (Pattern a) where
     focus :: Pattern a -> Pattern a
     {-
@@ -67,9 +64,6 @@ instance Focus (Pattern a) where
     -}
     focus (MkPattern nm v cv s) = MkPattern nm v cv (focus s)
 
-{- | Focusing instance for producers
-Except for constructor terms, this only recursively focuses subexpressions
--}
 instance Focus Producer where
     focus :: Producer -> Producer
     {-
@@ -130,9 +124,6 @@ instance Focus Producer where
                 -- this covariable acts as a continuatiion, allowing all to be evaluated in the correct order
                 Mu cv (Cut (focus p1') (MuTilde v (Cut (focus (Constructor ct newArgs cargs)) (Covar cv))))
 
-{- | Focusing instance for consumers
-As with producers, except for destructor terms, this only recursively focuses subexpressions
--}
 instance Focus Consumer where
     focus :: Consumer -> Consumer
     -- F(a) = a
@@ -180,9 +171,6 @@ instance Focus Consumer where
                 -- the cut of this abstraction then contains p1' focused and the destructor with replaced aruments
                 MuTilde v (Cut (focus p1') (Destructor dt newArgs cargs))
 
-{- | Focusing instance for statements
-Ifz and binary operations are focused analogously to destructors and constructors
--}
 instance Focus Statement where
     focus :: Statement -> Statement
     -- F(⟨p | c⟩) = ⟨F(p) | F(c) ⟩
@@ -264,15 +252,8 @@ instance Focus Statement where
                 -- place p1 in a cut with mu-tilde abstraction whose producer is the toplevel function call
                 -- but with argument p1 replaced by v
                 Cut (focus p1) (MuTilde v (Fun nm newArgs cargs))
-    {-
-    >>> focus Done
-    Done
-     -}
     focus Done = Done
 
-{- | Focusing instance for toplevel definitions
-Focuses the defined body of the definition
--}
 instance Focus (Def a) where
     {-
     >>> focus Def "Succ" ["x"] ["a"] (Op (Var "x") Sum (Lit 1) (Covar "a"))
@@ -280,12 +261,5 @@ instance Focus (Def a) where
     -}
     focus Def{name = nm, pargs = prods, cargs = cons, body = bd} = Def{name = nm, pargs = prods, cargs = cons, body = focus bd}
 
-{- | Focusing instance for program
-This focuses all definitions found in the program
--}
 instance Focus (Program a) where
-    {-
-     >>> focus (MkProg [])
-     MkProg []
-    -}
     focus (MkProg dfs) = MkProg (focus <$> dfs)
