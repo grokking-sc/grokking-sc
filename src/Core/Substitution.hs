@@ -281,8 +281,9 @@ instance FreeV (Pattern a) where
 
 --- Substitution
 
--- | Type class which allows for the simultaneous substitution of
--- producers for variables and consumers for covariables
+{- | Type class which allows for the simultaneous substitution of
+producers for variables and consumers for covariables
+-}
 class Subst a where
     -- | Simultaneous substitution
     substSim :: [(Producer, Var)] -> [(Consumer, Covar)] -> a -> a
@@ -297,7 +298,6 @@ class Subst a where
 
 instance (Subst a) => Subst [a] where
     substSim ps cs xs = substSim ps cs <$> xs
-
 
 instance (Subst (Pattern a)) where
     {-
