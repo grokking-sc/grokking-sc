@@ -29,11 +29,6 @@ import Data.List (find)
 import Data.Set qualified as S
 import Data.Text qualified as T
 
-{- | generate an infinite list of variables not occurring free in the argument list
-This arguments need to have the FreeV class implemented
-All generated variables will have the form xi with i starting from 0
--}
-
 {-
  >>> freshVars []
  ["x0","x1",...]
@@ -43,10 +38,6 @@ freshVars xs = filter (not . \x -> x `elem` fvs) [T.pack ("x" <> show i) | i <- 
   where
     fvs = freeVars xs
 
-{- | generate a fresh variable not occuring free in the argument list
-The arguments needs to have the FreeV class implemented
--}
-
 {-
  >>> freshVar Done
  "x0"
@@ -55,11 +46,6 @@ The arguments needs to have the FreeV class implemented
 -}
 freshVar :: (FreeV a) => [a] -> Var
 freshVar = head . freshVars
-
-{- | generate fresh covariables not occuring in the argument list
-this arguments need to have FreeV implemented
-generated covariables will have the form ai with i starting at 0{
--}
 
 {-
  >>> freshCovars []
@@ -83,9 +69,9 @@ the arguments need to have FreeV implemented
 freshCovar :: (FreeV a) => [a] -> Covar
 freshCovar = head . freshCovars
 
-{- | Wrapper type to use with freshVar and freshCovar
-Combines multiple different types all having FreeV implemented
-For example, (MkFree Done) and (MkFree (Var "x")) are both of type Free
+{- | Existential wrapper around the FreeV typeclass.
+This allows to simultaneously compute free variables for terms from different
+syntactic categories.
 -}
 data Free = forall a. (FreeV a) => MkFree a
 
@@ -93,12 +79,12 @@ instance FreeV Free where
     freeVars (MkFree x) = freeVars x
     freeCovars (MkFree x) = freeCovars x
 
--- | Type class for types containing free variables and covariables
+-- | Compute free variables and covariables
 class FreeV a where
-    -- | compute all free variables
+    -- | Compute all free variables.
     freeVars :: a -> S.Set Var
 
-    -- | compute all free covariables
+    -- | Compute all free covariables.
     freeCovars :: a -> S.Set Covar
 
 instance (FreeV a) => FreeV [a] where
@@ -106,177 +92,47 @@ instance (FreeV a) => FreeV [a] where
     freeCovars xs = S.unions (freeCovars <$> xs)
 
 instance FreeV Producer where
-    {-
-     >>> freeVars (Var "x")
-     singleton "x"
-     -}
     freeVars (Var v) = S.singleton v
-    {-
-     >>> freeVars (Lit 1)
-     empty
-     -}
     freeVars (Lit _) = S.empty
     -- mu binds a covariable, so this can be ignored
-    {-
-     >> freeVars (Mu "a" Done)
-     empty
-     -}
     freeVars (Mu _ s) = freeVars s
-    -- combine free vars of all arguments
-    {-
-     >>> freeVars (Constructor Cons [Var "x", Nil])
-     singleton "x"
-     -}
     freeVars (Constructor _ pArgs cArgs) = S.union (freeVars pArgs) (freeVars cArgs)
-    -- combine all free vars of the patterns
-    {-
-     >>> freeVars (Cocase [MkPattern Ap ["x"] ["a"] (Cut (Var "x") (Covar "a")))
-     empty
-     -}
     freeVars (Cocase pts) = freeVars pts
 
-    -- a free variable has no covariables
-    {-
-     >>> freeCovars (Var "x")
-     empty
-     -}
     freeCovars (Var _) = S.empty
-    -- a literal has no covariables
-    {-
-     >>> freeCovars (Lit 1)
-     empty
-     -}
     freeCovars (Lit _) = S.empty
-    -- remove the bound covariable from the free covars of the bound statement
-    -- mu is a binding occurrence of cv
-    {-
-     >>> freeCovars (Mu "a" (Cut (Var "x") (Covar "a")))
-     empty
-     -}
     freeCovars (Mu cv st) = S.delete cv (freeCovars st)
-    {-
-     >>> freeCovars (Constructor Nil [] [])
-     empty
-     -}
     freeCovars (Constructor _ pArgs cArgs) = S.union (freeCovars pArgs) (freeCovars cArgs)
-    {-
-     >>> freeCovars (Cocase (MkPattern Fst [] ["a"] (Cut (Var "x") (Covar "a"))))
-     empty
-     -}
     freeCovars (Cocase pts) = freeCovars pts
 
 instance FreeV Consumer where
-    {-
-     >>> freeVars (Covar "a")
-     empty
-     -}
     freeVars (Covar _) = S.empty
-    -- mu tilde binds v, so v is removed from the free vars of st
-    {-
-     >>> freeVars (MuTilde "x" (Cut (Var "x") (Covar "a")))
-     empty
-     -}
     freeVars (MuTilde v st) = S.delete v (freeVars st)
-    {-
-     >>> freeVars (Case (MkPattern Nil [] []))
-     empty
-    -}
     freeVars (Case pts) = freeVars pts
-    {-
-     >>> freeVars (Destructor Fst [] [Covar "a"])
-     empty
-     -}
     freeVars (Destructor _ pArgs cArgs) = S.union (freeVars pArgs) (freeVars cArgs)
 
-    {-
-     >>> freeCovars (Covar "a")
-     singleton "a"
-     -}
     freeCovars (Covar cv) = S.singleton cv
     -- mutilde binds a variable, so this variable can be ignored
-    {-
-     >>> freeCovars (Mutilde "x" (Cut (Var "x") (Covar "a")))
-     singleton "a"
-     -}
     freeCovars (MuTilde _ st) = freeCovars st
-    -- same as for the analogous producers
-    {-
-     >>> freeCovars (Case [])
-     empty
-     -}
     freeCovars (Case pts) = freeCovars pts
-    {-
-     freeCovars (Destructor Fst [] [Covar "a"]
-     singleton "a"
-     -}
     freeCovars (Destructor _ pArgs cArgs) = S.union (freeCovars pArgs) (freeCovars cArgs)
 
 instance FreeV Statement where
-    {-
-     >>> freeVars (Cut (Var "x") (Covar "a"))
-     singleton "x"
-    -}
     freeVars (Cut p c) = S.union (freeVars p) (freeVars c)
-    {-
-     >>> freeVars (Op (Lit 1) Sum (Var "x") (Covar "a"))
-     singleton "x"
-     -}
     freeVars (Op p1 _ p2 c) = S.unions [freeVars p1, freeVars p2, freeVars c]
-    {-
-     >>> freeVars (IfZ (Lit 1) Done Done
-     empty
-     -}
     freeVars (IfZ p s1 s2) = S.unions [freeVars p, freeVars s1, freeVars s2]
-    {-
-     >>> freeVars (Fun "Exit" [] ["a"])
-     empty
-     -}
     freeVars (Fun _ pArgs cArgs) = S.union (freeVars pArgs) (freeVars cArgs)
-    {-
-     >>> freeVars Done
-     empty
-    -}
     freeVars Done = S.empty
 
-    {-
-     >>> freeCovars (Cut (Var "x") (Covar "a"))
-     singleton "a"
-    -}
     freeCovars (Cut p c) = S.union (freeCovars p) (freeCovars c)
-    {-
-     >>> freeCovars (Op (Lit 1) Sum (Var "x") (Covar "a"))
-     singleton "a"
-     -}
     freeCovars (Op p1 _ p2 c) = S.unions [freeCovars p1, freeCovars p2, freeCovars c]
-    {-
-     freeCovars (IfZ (Lit 1) Done Done
-     empty
-     -}
     freeCovars (IfZ p s1 s2) = S.unions [freeCovars p, freeCovars s1, freeCovars s2]
-    {-
-     >>> freeCovars (Fun "Exit" [] ["a"])
-     empty
-     -}
     freeCovars (Fun _ pArgs cArgs) = S.union (freeCovars pArgs) (freeCovars cArgs)
-    {-
-     >>> freeCovars Done
-     empty
-    -}
     freeCovars Done = S.empty
 
 instance FreeV (Pattern a) where
-    -- free variables/covariables of a pattern are the free ones of the bound statement
-    -- but the ones bound in the pattern have to be removed
-    {-
-     >>> freeVars (MkPattern (Cons ["x","xs"]) (Cut (Var "x") (Covar "a"))
-     empty
-     -}
     freeVars MkPattern{xtor = _, patv = vars, patcv = _, patst = st} = S.difference (freeVars st) (S.fromList vars)
 
-    {-
-     >>> freeCovars (MkPattern (Cons ["x","xs"]) (Cut (Var "x") (Covar "a"))
-     singleton "a"
-    -}
     freeCovars MkPattern{xtor = _, patv = _, patcv = cvars, patst = st} = S.difference (freeCovars st) (S.fromList cvars)
 
 --- Substitution
