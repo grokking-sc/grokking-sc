@@ -13,7 +13,7 @@ build-web:
 	$(BUILD_SCRIPT) 
 
 build-exe:
-	cabal build sequent-calculus
+	cabal build exe:sequent-calculus
 
 doc: 
 	fourmolu -i src/*
