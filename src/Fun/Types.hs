@@ -19,6 +19,8 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Fun.Syntax
 
+import Debug.Trace 
+
 -- | Type variables
 type TyVar = Text
 
@@ -363,6 +365,7 @@ genConstraintsTm (Goto t v) = do
     -- ―――――――――――――――――――――――――― Goto
     --     Γ ⊢ Goto(t,v) : σ
     --
+    trace ("generating constraints for goto "<> show v <> ": "  <> show t) $ pure ()
     ty1 <- genConstraintsTm t
     ty2 <- do
         (_, coenv, _) <- ask
@@ -378,15 +381,21 @@ genConstraintsTm (Label v t) = do
     --  Γ ⊢ Label(v,t) : τ
     --
     a <- freshVar
+    trace ("added covar " <> show v <> " with type " <> show a <> " to env") $ pure ()
     ty <- local (addCovarBinding v a) (genConstraintsTm t)
     addConstraint (a, ty)
     pure ty
 
 -- | Generate constraints for a toplevel definition.
 genConstraintsDef :: Def Ty -> GenM ()
-genConstraintsDef (Def _ args _ body ret) = do
+genConstraintsDef (Def _ args Nothing body ret) = do
     ty <- local (addVarBindings args) $ genConstraintsTm body
     addConstraint (ty, ret)
+genConstraintsDef (Def _ args (Just covar) body ret) = do
+    ty <- freshVar 
+    ty' <- local (addCovarBinding covar ty . addVarBindings args) $ (genConstraintsTm body)
+    addConstraint (ty', ret) 
+
 
 {- | Annotate every toplevel definition with fresh unification variables @bi@
 for argument and return types.
@@ -400,6 +409,7 @@ annotateProgram (MkProg defs) = MkProg (reverse defs')
     annotateDefs :: [Def ()] -> [Def Ty] -> [Ty] -> [Def Ty]
     annotateDefs [] acc _ = acc
     annotateDefs (Def nm args cv body () : rest) acc fvs = do
+        trace ("annotating definition " <> show nm) $ pure ()
         let (args', fvs') = annotateArgs args fvs
         annotateDefs rest (Def nm args' cv body (head fvs') : acc) (tail fvs')
 
