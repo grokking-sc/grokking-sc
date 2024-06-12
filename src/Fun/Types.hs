@@ -365,7 +365,6 @@ genConstraintsTm (Goto t v) = do
     -- ―――――――――――――――――――――――――― Goto
     --     Γ ⊢ Goto(t,v) : σ
     --
-    trace ("generating constraints for goto "<> show v <> ": "  <> show t) $ pure ()
     ty1 <- genConstraintsTm t
     ty2 <- do
         (_, coenv, _) <- ask
@@ -381,7 +380,6 @@ genConstraintsTm (Label v t) = do
     --  Γ ⊢ Label(v,t) : τ
     --
     a <- freshVar
-    trace ("added covar " <> show v <> " with type " <> show a <> " to env") $ pure ()
     ty <- local (addCovarBinding v a) (genConstraintsTm t)
     addConstraint (a, ty)
     pure ty
@@ -409,7 +407,6 @@ annotateProgram (MkProg defs) = MkProg (reverse defs')
     annotateDefs :: [Def ()] -> [Def Ty] -> [Ty] -> [Def Ty]
     annotateDefs [] acc _ = acc
     annotateDefs (Def nm args cv body () : rest) acc fvs = do
-        trace ("annotating definition " <> show nm) $ pure ()
         let (args', fvs') = annotateArgs args fvs
         annotateDefs rest (Def nm args' cv body (head fvs') : acc) (tail fvs')
 
