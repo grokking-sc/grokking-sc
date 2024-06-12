@@ -4,7 +4,7 @@ JS_BUILD = ./examples/examples_to_js.sh
 
 .PHONY: doc pack format
 
-all: build doc
+all: build-exe build-web doc
 
 build-examples: 
 	$(JS_BUILD)
@@ -18,9 +18,6 @@ build-exe:
 doc: 
 	fourmolu -i src/*
 	cabal haddock
-
-pack: build-web
-	$(PACK_SCRIPT)
 
 run: 
 	cabal run sequent-calculus $(filepath)

@@ -19,8 +19,6 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Fun.Syntax
 
-import Debug.Trace 
-
 -- | Type variables
 type TyVar = Text
 
@@ -390,10 +388,9 @@ genConstraintsDef (Def _ args Nothing body ret) = do
     ty <- local (addVarBindings args) $ genConstraintsTm body
     addConstraint (ty, ret)
 genConstraintsDef (Def _ args (Just covar) body ret) = do
-    ty <- freshVar 
+    ty <- freshVar
     ty' <- local (addCovarBinding covar ty . addVarBindings args) $ (genConstraintsTm body)
-    addConstraint (ty', ret) 
-
+    addConstraint (ty', ret)
 
 {- | Annotate every toplevel definition with fresh unification variables @bi@
 for argument and return types.
