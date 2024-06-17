@@ -6,10 +6,15 @@ JS_BUILD = ./examples/examples_to_js.sh
 
 all: build-exe build-web doc
 
+clean: 
+	rm -rf dist-newstyle
+	rm web-app/examples.js
+	rm web-app/all.js
+
 build-examples: 
 	$(JS_BUILD)
 
-build-web: 
+build-web: build-examples
 	$(BUILD_SCRIPT) 
 
 build-exe:

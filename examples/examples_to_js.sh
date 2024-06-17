@@ -1,3 +1,4 @@
+#!/bin/bash
 EXAMPLEDIR="./examples"
 OUTFILE="./web-app/examples.js"
 
