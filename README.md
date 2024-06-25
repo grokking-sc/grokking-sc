@@ -199,6 +199,37 @@ The zipped source code already includes those files, so it should work out of th
 If they are not present, they have to be rebuilt with the `make build-web` target.
 However, since the disk image does not contain a web browser, this has to be done on the host system without the use of a VM, and thus all build requirements have to be manually installed.
 
+## Language Grammar 
+
+We include a Parser for the `Fun` language (`src/Fun/Parser.hs`). The language accepted by this parser is defined by the following grammar, where we use `a` to denote a fixed set of identifiers used for labels.
+```
+// Programs 
+P ::= Def | Def; P 
+// Top-level definitions
+Def ::= def f(x,..; a,..) := T;
+        | def f(x,..) := T;
+// Terms
+T ::= x                             // Variables
+    | n                             // Integer Literals
+    | (T)                           // Term in Parentheses
+    | T * T | T + T | T - T         // Arithmetic Expressions
+    | ifz(T, T, T)                  // If-Zero
+    | let x = T in T                // Let-Binding
+    | f(T,..; a,..)                 // Top-level call (with label a)
+    | f(T,..)                       // Top-level call (without label)
+    | K(T,..) | K                   // Constructor Term
+    | case T of { PtC,.. }          // Case Term
+    | T.D(T,..) | T.D               // Destructor Term
+    | cocase { PtD }                // Cocase Term
+    | \x => T                       // Lambda Abstraction
+    | T T                           // Function Application
+    | label a { T }                 // Label Term
+    | goto(T; a)                    // Goto Term
+PtC ::= K(x,..) => T | K => T       //Constructor Patterns
+PtD ::= D(x,..) => T | D => T       //Destructor Patterns
+K ::= Nil | Cons | Tup              // Constructors
+D ::= hd | tl | fst | snd           // Destructors
+```
 
 ## Paper Claims
 

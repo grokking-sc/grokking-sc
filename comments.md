@@ -17,6 +17,7 @@
 	K ::= Nil | Cons | Tup
 	D ::= hd | tl | fst | snd | ap
     ```
+    fixed, added to README
 * where in the covariable argument list the "additional [continuation] parameter α [is added] to every top-level definition when [they are translated]" in the case compileDef (Fun.Def nm prodargs (Just cv) bd rt) of compileDef :: Fun.Def a -> Core.Def a in src/Compiler.hs (it does not seem to be added at the end as the comment right above the function definition suggests)
 * the recursion in the case focus s@(Fun nm pargs cargs) of instance Focus Statement in src/Core/Focusing.hs (it does not seem to happen as the comment right above the case suggests, also newArgs seems to replace all producer arguments by the first non-value producer argument)
 * the case focus dest@(Destructor dt pargs cargs) of instance Focus Consumer in src/Core/Focusing.hs (it does not seem to be correct nor match the corresponding rule in Definition 3.2 in the paper)
