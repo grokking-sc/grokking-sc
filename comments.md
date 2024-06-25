@@ -23,16 +23,7 @@
 * the case focus dest@(Destructor dt pargs cargs) of instance Focus Consumer in src/Core/Focusing.hs (it does not seem to be correct nor match the corresponding rule in Definition 3.2 in the paper)
 * add a function-application-with-multiple-non-value-arguments example along the lines of def main := (\x => \y => y) (1 + 2) (3 + 4); and make sure that it gets focused correctly
 *  It was not completely obvious what to do and what to install, but this was expected since I am not an expert of the Haskell ecosystem. At the end, however, I was able to compile everything from scratch.
-* Syntax of goto
-    The first one is actually only a minor problem. While the syntax of goto in the paper is goto(t;a), the compiler needs a comma instead of the semicolon, otherwise compilation stops (with a quite misleading error message). For example, the program `def main := label a { 3 + goto(0;a) };`gives the error
-	```
-	<interactive>:1:25:
-	  |
-	1 | def main := label a { 3 + goto(0;a) };
-	  |                         ^
-	unexpected '+'
-	expecting '}'
-	```
+
 * Problems with co-variables in the formal parameters of a function Now consider, the following program
 	```
 	def f1(v) := label a0 {f2(v;a0)};
@@ -183,3 +174,14 @@
     and this is clearly wrong, for two reasons:
     * (m,1;a0) in the original compiled code becomes -(n,1;a0) in the focused one;
     * focusing is not complete: the code still contains monus(x0,μa0. -(n,1;a0);a0) which is not correctly focused. Actually, execution of monus(10,5) does not terminate with a value.
+
+* Syntax of goto
+    The first one is actually only a minor problem. While the syntax of goto in the paper is goto(t;a), the compiler needs a comma instead of the semicolon, otherwise compilation stops (with a quite misleading error message). For example, the program `def main := label a { 3 + goto(0;a) };`gives the error
+	```
+	<interactive>:1:25:
+	  |
+	1 | def main := label a { 3 + goto(0;a) };
+	  |                         ^
+	unexpected '+'
+	expecting '}'
+	```
