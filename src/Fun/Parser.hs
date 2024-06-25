@@ -217,7 +217,7 @@ gotoP = do
     _ <- symbol "goto"
     (var, tm) <- parens $ do
         tm <- termP'
-        _ <- symbol ","
+        _ <- symbol ";"
         var <- identifierP
         sc
         pure (var, tm)

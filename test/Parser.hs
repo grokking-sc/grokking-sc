@@ -99,7 +99,7 @@ testCocaseStream =
         (Cocase [MkClause Hd [] (VarT "x"), MkClause Tl [] (VarT "x")])
 
 testThrow :: TestTree
-testThrow = mkTermTest "goto(2,x)" (Goto (Lit 2) "x")
+testThrow = mkTermTest "goto(2;x)" (Goto (Lit 2) "x")
 
 testCatch :: TestTree
 testCatch = mkTermTest "label x { 2 }" (Label "x" (Lit 2))
@@ -179,7 +179,7 @@ simpleProg3 =
 simpleProg4 :: TestTree
 simpleProg4 =
     mkProgTest
-        "def mult(l) := label a { mult2(l;a)}; def mult2(l;a) := case l of { Nil => 1,Cons(x,xs) => ifz(x,goto(0,a),x*mult2(xs;a))};"
+        "def mult(l) := label a { mult2(l;a)}; def mult2(l;a) := case l of { Nil => 1,Cons(x,xs) => ifz(x,goto(0;a),x*mult2(xs;a))};"
         ( MkProg
             [ Def "mult" [("l", ())] Nothing (Label "a" (Fun "mult2" [VarT "l"] (Just "a"))) ()
             , Def

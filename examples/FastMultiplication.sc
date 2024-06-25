@@ -1,3 +1,3 @@
 def fmult(l) := label a {mult2(l;a)};
-def mult2(l;a) := case l of { Nil => 1, Cons(x,xs) => ifz(x,goto(0,a),x*mult2(xs;a))};
+def mult2(l;a) := case l of { Nil => 1, Cons(x,xs) => ifz(x,goto(0;a),x*mult2(xs;a))};
 def main := fmult(Cons(2,Cons(0,Cons(3,Cons(3,Nil)))));
