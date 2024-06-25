@@ -5,13 +5,6 @@
 * fix the errors Invalid hexadecimal escape sequence and all_examples is not defined in index.html (the drop-down list "Select example..." is empty)
 * README "add the additional flag `-nic user,hostfwd=tcp:8000-:8000`" (hostaddr column before hostport missing, cf. qemu(1))
 * README "this becomes `./start.sh -nic user,hostfwd=tcp:8000-:8000`" (hostaddr column before hostport missing, cf. qemu(1))
-* README "The command will thn host the web-demo locally"
-* README "Ubunutu/Debian"
-* README "run the copmmand `guestmount -a disk.qcow -m /dev/sda1 /mnt`"
-* README "All examples included in the `examples` directoty"
-* README "During many steps of compliation and evaluation"
-* README "where theiy compiled terms can be compared"
-* README "Evaluating this [paragraph ends unexpectedly]"
 * add a concrete way of installing the required versions of GHC and Cabal to the README along the following lines:
     ```
 	> # you might want to `export GHCUP_USE_XDG_DIRS=1` to use XDG-style directories
@@ -156,5 +149,19 @@
 * Include instructions on how to run the executable on one of the example files.
         fixed, added more explanation to `make run`
 * include the startup scripts start.sh and start.bat in the disk archive
+        fixed
+* README "The command will thn host the web-demo locally"
+        fixed
+* README "Ubunutu/Debian"
+        fixed
+* README "run the copmmand `guestmount -a disk.qcow -m /dev/sda1 /mnt`"
+        fixed
+* README "All examples included in the `examples` directoty"
+        fixed
+* README "During many steps of compliation and evaluation"
+        fixed
+* README "where theiy compiled terms can be compared"
+        fixed
+* README "Evaluating this [paragraph ends unexpectedly]"
         fixed
 
