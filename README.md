@@ -631,9 +631,9 @@ Evaluation then shows how in a call-by-value alnguage, mu-abstractions are evalu
 ```
 If we instead used call-by-name, the mu-tilde abstraction would be evaluated first. 
 This is also how eta-laws are applied in call-by-value languages and call-by-name languages, where call-by-value allows eta-reductions for data types and call-by-name for codata types.
-This can be seen in the output of simplification for this example:
+When simplifing this example, eta-laws allow us to almost fully evaluate it before evaluation:
 ```
-add output in web app
+def criticalPair(;a0) := 〈 1 | a0 〉
 ```
 Note that this simplification is only included in the output of the web demo, and not in the output of the binary.
 
