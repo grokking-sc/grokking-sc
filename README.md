@@ -33,10 +33,45 @@ The artifact can be used in two different ways: There is a small binary with a c
 For both the binary and the web demo cabal>=3.0 is required.
 If only using the binary, additionally, GHC>=9.4 is also required.
 
+### Installing GHC and Cabal (using GHCUP)
+
+First, ensure GHCUP is correctly installed
+
+```
+> ghcup --version
+The GHCup Haskell installer, version 0.1.22.0
+```
+
+If GHCUP is not installed on your system, follow the installation instructions [here](https://www.haskell.org/ghcup/install/).
+Once GHCUP is successfully installed, you can use it to install GHC 9.4 using the following command 
+
+```
+ghcup install ghc 9.4 --set
+```
+
+The `--set` flag also adds ghc to the path, so ghc can be run from any directoy.
+Next, install cabal the same way: 
+
+```
+ghcup install cabal --set 
+```
+
+If both of these commands successfully finish you can verify your installations as follows
+
+```
+> ghc --version
+The Glorious Glasgow Haskell Compilation System, version 9.4.8
+> cabal --version                                                                                                                                 ✔ 
+cabal-install version 3.10.2.1
+compiled using version 3.10.2.1 of the Cabal library 
+```
+
+Depending on which version of cabal is installed, the version number in the second command might be different, but as long as it is above 3.0 everything should work as expected.
+
 ### Web Demo
 
 The web demo uses the GHC-JS cross compiler.
-This is still a bit experimental, but you can use the instructions here: https://www.haskell.org/ghcup/guide/#cross-support  
+This is still a bit experimental, but you can use the instructions [here](https://www.haskell.org/ghcup/guide/#cross-support) 
 Be sure to first install an emscripten toolchain.
 
 Verify that you can run the cross compiler, for example by checking its version:

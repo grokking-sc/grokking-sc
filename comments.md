@@ -1,25 +1,5 @@
 # Open 
 
-* add a concrete way of installing the required versions of GHC and Cabal to the README along the following lines:
-    ```
-	> # you might want to `export GHCUP_USE_XDG_DIRS=1` to use XDG-style directories
-	> ghcup install ghc 9.4 --set
-	> ghcup install cabal
-	> EMSDK_SRCDIR=$(mktemp -dt emsdk.XXXXXXXXXX)
-	> git clone https://github.com/emscripten-core/emsdk.git $EMSDK_SRCDIR
-	> cd $EMSDK_SRCDIR
-	> ./emsdk install 3.1.57
-	> ./emsdk activate 3.1.57
-	> source ./emsdk_env.sh
-	> cd -
-	> ghcup config add-release-channel https://raw.githubusercontent.com/haskell/ghcup-metadata/develop/ghcup-cross-0.0.8.yaml
-	> emconfigure ghcup install ghc --set javascript-unknown-ghcjs-9.10.0.20240413
-	> # you might need to pre- or append $HOME/.local/bin or $HOME/.ghcup/bin to PATH
-	> command -v ghc cabal javascript-unknown-ghcjs-ghc
-	> ghc --version
-	> cabal --version
-	> javascript-unknown-ghcjs-ghc --version
-    ```
 * add a summary of the surface syntax (note that, as reported by @A6, there seems to be an inconsistency between what is suggested by the paper and what is expected by the parser for the goto argument list syntax: goto(T; a) vs. goto(T, a)) to the README along the following lines:
     ```
 	P ::= def f(x,..; a,..) := T;..
@@ -177,3 +157,25 @@
     * add hostfwd=tcp:8000-:8000 directly to the netdev option in the start.sh file (which should be included in the artifact anyway), since this should work in any system;
     * suggest to run the web-based demo directly from the source code in the grokking-sc-AEC2.tar.gz archive, since it already contains a compiled version of the web GUI.
     implemented both suggestions
+* add a concrete way of installing the required versions of GHC and Cabal to the README along the following lines:
+    ```
+	> # you might want to `export GHCUP_USE_XDG_DIRS=1` to use XDG-style directories
+	> ghcup install ghc 9.4 --set
+	> ghcup install cabal
+	> EMSDK_SRCDIR=$(mktemp -dt emsdk.XXXXXXXXXX)
+	> git clone https://github.com/emscripten-core/emsdk.git $EMSDK_SRCDIR
+	> cd $EMSDK_SRCDIR
+	> ./emsdk install 3.1.57
+	> ./emsdk activate 3.1.57
+	> source ./emsdk_env.sh
+	> cd -
+	> ghcup config add-release-channel https://raw.githubusercontent.com/haskell/ghcup-metadata/develop/ghcup-cross-0.0.8.yaml
+	> emconfigure ghcup install ghc --set javascript-unknown-ghcjs-9.10.0.20240413
+	> # you might need to pre- or append $HOME/.local/bin or $HOME/.ghcup/bin to PATH
+	> command -v ghc cabal javascript-unknown-ghcjs-ghc
+	> ghc --version
+	> cabal --version
+	> javascript-unknown-ghcjs-ghc --version
+    ```
+    fixed, but only added links instead of full instructions
+
