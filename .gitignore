@@ -4,3 +4,4 @@ dist-newstyle
 .git.grokking-sc
 web-app/all.js
 web-app/examples.js
+disk_image/disk.qcow

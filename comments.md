@@ -1,6 +1,5 @@
 # Open 
 
-* fix the errors Invalid hexadecimal escape sequence and all_examples is not defined in index.html (the drop-down list "Select example..." is empty)
 * README "add the additional flag `-nic user,hostfwd=tcp:8000-:8000`" (hostaddr column before hostport missing, cf. qemu(1))
 * README "this becomes `./start.sh -nic user,hostfwd=tcp:8000-:8000`" (hostaddr column before hostport missing, cf. qemu(1))
 * add a concrete way of installing the required versions of GHC and Cabal to the README along the following lines:
@@ -175,3 +174,5 @@
         fixed, added `paper_examples.sc` in examples
 * the formatting of the section "Paper Claims" in the README can be improved
         fixed
+* fix the errors Invalid hexadecimal escape sequence and all_examples is not defined in index.html (the drop-down list "Select example..." is empty)
+        fixed 
