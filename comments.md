@@ -1,28 +1,9 @@
 # Open 
 
-* add a summary of the surface syntax (note that, as reported by @A6, there seems to be an inconsistency between what is suggested by the paper and what is expected by the parser for the goto argument list syntax: goto(T; a) vs. goto(T, a)) to the README along the following lines:
-    ```
-	P ::= def f(x,..; a,..) := T;..
-	T ::= x
-	    | n
-	    | (T)
-	    | T * T | T + T | T - T
-	    | ifz(T, T, T)
-	    | let x = T in T
-	    | f(T,..; a,..)
-	    | K(T,..)    | case T of { K(x,..) => T,.. }
-	    | T.D(T,..)  | cocase { D(x,..) => T,.. }
-	    | \x => T | T T
-	    | label a { T } | goto(T; a)
-	K ::= Nil | Cons | Tup
-	D ::= hd | tl | fst | snd | ap
-    ```
-    fixed, added to README
 * where in the covariable argument list the "additional [continuation] parameter α [is added] to every top-level definition when [they are translated]" in the case compileDef (Fun.Def nm prodargs (Just cv) bd rt) of compileDef :: Fun.Def a -> Core.Def a in src/Compiler.hs (it does not seem to be added at the end as the comment right above the function definition suggests)
 * the recursion in the case focus s@(Fun nm pargs cargs) of instance Focus Statement in src/Core/Focusing.hs (it does not seem to happen as the comment right above the case suggests, also newArgs seems to replace all producer arguments by the first non-value producer argument)
 * the case focus dest@(Destructor dt pargs cargs) of instance Focus Consumer in src/Core/Focusing.hs (it does not seem to be correct nor match the corresponding rule in Definition 3.2 in the paper)
 * add a function-application-with-multiple-non-value-arguments example along the lines of def main := (\x => \y => y) (1 + 2) (3 + 4); and make sure that it gets focused correctly
-*  It was not completely obvious what to do and what to install, but this was expected since I am not an expert of the Haskell ecosystem. At the end, however, I was able to compile everything from scratch.
 
 * Problems with co-variables in the formal parameters of a function Now consider, the following program
 	```
@@ -185,3 +166,23 @@
 	unexpected '+'
 	expecting '}'
 	```
+* add a summary of the surface syntax (note that, as reported by @A6, there seems to be an inconsistency between what is suggested by the paper and what is expected by the parser for the goto argument list syntax: goto(T; a) vs. goto(T, a)) to the README along the following lines:
+    ```
+	P ::= def f(x,..; a,..) := T;..
+	T ::= x
+	    | n
+	    | (T)
+	    | T * T | T + T | T - T
+	    | ifz(T, T, T)
+	    | let x = T in T
+	    | f(T,..; a,..)
+	    | K(T,..)    | case T of { K(x,..) => T,.. }
+	    | T.D(T,..)  | cocase { D(x,..) => T,.. }
+	    | \x => T | T T
+	    | label a { T } | goto(T; a)
+	K ::= Nil | Cons | Tup
+	D ::= hd | tl | fst | snd | ap
+    ```
+    fixed, added to README
+*  It was not completely obvious what to do and what to install, but this was expected since I am not an expert of the Haskell ecosystem. At the end, however, I was able to compile everything from scratch
+        should be fixed with additional ghcup instructions
