@@ -1,11 +1,11 @@
-// example 2.1 
+// example 2.1
 def ex211 := 2*3;
 def ex212 := ifz(2,5,10);
 
 // example 2.2
 def ex22 := let x = 2*2 in x*x;
 
-// example 2.3 
+// example 2.3
 def fac(n) := ifz(n,1,n*fac(n-1));
 def ex23 := fac(1);
 
@@ -13,8 +13,8 @@ def ex23 := fac(1);
 def sum(x) := case x of { Nil => 0, Cons(y,ys) => y + sum(ys) };
 def repeat(x) := cocase { hd => x, tl => repeat(x) };
 
-// section 2.4.1, example 2.4 
-def swap(x) := case x of { Tup(y,z) => Tup(z,y) }; 
+// section 2.4.1, example 2.4
+def swap(x) := case x of { Tup(y,z) => Tup(z,y) };
 // section 2.4.2, example 2.5
 def swaplazy(x) := cocase { fst => x.snd, snd => x.fst };
 
