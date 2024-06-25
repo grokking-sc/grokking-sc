@@ -21,7 +21,6 @@
 * the recursion in the case focus s@(Fun nm pargs cargs) of instance Focus Statement in src/Core/Focusing.hs (it does not seem to happen as the comment right above the case suggests, also newArgs seems to replace all producer arguments by the first non-value producer argument)
 * the case focus dest@(Destructor dt pargs cargs) of instance Focus Consumer in src/Core/Focusing.hs (it does not seem to be correct nor match the corresponding rule in Definition 3.2 in the paper)
 * add a function-application-with-multiple-non-value-arguments example along the lines of def main := (\x => \y => y) (1 + 2) (3 + 4); and make sure that it gets focused correctly
-* superfluous label–goto in def multFast(x) := label a { case x of {Nil=>1, Cons(y, ys) => ifz(y,goto(0,a),y * multFast(ys))}}; in Lists.sc
 *  It was not completely obvious what to do and what to install, but this was expected since I am not an expert of the Haskell ecosystem. At the end, however, I was able to compile everything from scratch.
 * Syntax of goto
     The first one is actually only a minor problem. While the syntax of goto in the paper is goto(t;a), the compiler needs a comma instead of the semicolon, otherwise compilation stops (with a quite misleading error message). For example, the program `def main := label a { 3 + goto(0;a) };`gives the error
@@ -74,7 +73,6 @@
     * focusing is not complete: the code still contains monus(x0,μa0. -(n,1;a0);a0) which is not correctly focused. Actually, execution of monus(10,5) does not terminate with a value.
 * Make Core programs more readable
     Core programs would be much more readable if bound variables were renamed to be all different one from another. In this moment, it is exactly the opposite: the compiler tries to reuse the same variables over and over. However, this makes very difficult for an human being to read the generated code, since it is hard to match each variable occurrence with the corresponding binder.
-* In examples/List.sc there is a weird implementation of multFast function, different from the one in examples/FastMultiplication.sc. It uses goto in a way not particularly interesting, since this goto only exits from the current execution frame, like a simple 0 expression would, and not from all the recursive calls of multFast as the implementation in examples/FastMultiplication.sc (and in the paper).
 
 # Done 
 
@@ -178,4 +176,8 @@
 	> javascript-unknown-ghcjs-ghc --version
     ```
     fixed, but only added links instead of full instructions
+* superfluous label–goto in def multFast(x) := label a { case x of {Nil=>1, Cons(y, ys) => ifz(y,goto(0,a),y * multFast(ys))}}; in Lists.sc
+        fixed, removed multFast from this example. only kept FastMultiplication.sc
+* In examples/List.sc there is a weird implementation of multFast function, different from the one in examples/FastMultiplication.sc. It uses goto in a way not particularly interesting, since this goto only exits from the current execution frame, like a simple 0 expression would, and not from all the recursive calls of multFast as the implementation in examples/FastMultiplication.sc (and in the paper).
+        fixed, removed multFast from this example. only kept FastMultiplication.sc
 
