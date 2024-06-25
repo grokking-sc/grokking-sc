@@ -1,6 +1,5 @@
 # Open 
 
-* include the list of claims the paper claims to be supported by the artifact alongside instructions on how to verify each of them in the README, not only to help us review but also others navigate your artifact efficiently (the formatting of the section "Paper Claims" in the README can be improved)
 * fix the errors Invalid hexadecimal escape sequence and all_examples is not defined in index.html (the drop-down list "Select example..." is empty)
 * README "add the additional flag `-nic user,hostfwd=tcp:8000-:8000`" (hostaddr column before hostport missing, cf. qemu(1))
 * README "this becomes `./start.sh -nic user,hostfwd=tcp:8000-:8000`" (hostaddr column before hostport missing, cf. qemu(1))
@@ -172,4 +171,7 @@
         fixed
 * In examples/List.sc there are two copies of the map function;
         fixed
-
+* include the list of claims the paper claims to be supported by the artifact alongside instructions on how to verify each of them in the README, not only to help us review but also others navigate your artifact efficiently 
+        fixed, added `paper_examples.sc` in examples
+* the formatting of the section "Paper Claims" in the README can be improved
+        fixed
