@@ -1,6 +1,5 @@
 # Open 
 
-* add a concrete example of the cabal run sequent-calculus FILENAME and make run filepath=FILENAME command lines to the README
 * include the list of claims the paper claims to be supported by the artifact alongside instructions on how to verify each of them in the README, not only to help us review but also others navigate your artifact efficiently (the formatting of the section "Paper Claims" in the README can be improved)
 * fix the errors Invalid hexadecimal escape sequence and all_examples is not defined in index.html (the drop-down list "Select example..." is empty)
 * README "add the additional flag `-nic user,hostfwd=tcp:8000-:8000`" (hostaddr column before hostport missing, cf. qemu(1))
@@ -46,11 +45,7 @@
 * the recursion in the case focus s@(Fun nm pargs cargs) of instance Focus Statement in src/Core/Focusing.hs (it does not seem to happen as the comment right above the case suggests, also newArgs seems to replace all producer arguments by the first non-value producer argument)
 * the case focus dest@(Destructor dt pargs cargs) of instance Focus Consumer in src/Core/Focusing.hs (it does not seem to be correct nor match the corresponding rule in Definition 3.2 in the paper)
 * add a function-application-with-multiple-non-value-arguments example along the lines of def main := (\x => \y => y) (1 + 2) (3 + 4); and make sure that it gets focused correctly
-* missing .snd in def swapLazy(x) := cocase { fst=>x, snd=>x.fst}; in LazyPair.sc
-* duplicate def map(f, l) := case l of {Nil=>Nil, Cons(x, xs) => Cons(f, map(f, xs))}; in Lists.sc
 * superfluous label–goto in def multFast(x) := label a { case x of {Nil=>1, Cons(y, ys) => ifz(y,goto(0,a),y * multFast(ys))}}; in Lists.sc
-* Include a link to the Zenodo archive of the base image in the README. This will allow users to find the base image easily.
-* The disk image contains a file ''. I suggest removing this file. There are other superfluous files (e.g., .git) that can be removed.
 *  It was not completely obvious what to do and what to install, but this was expected since I am not an expert of the Haskell ecosystem. At the end, however, I was able to compile everything from scratch.
 * Syntax of goto
     The first one is actually only a minor problem. While the syntax of goto in the paper is goto(t;a), the compiler needs a comma instead of the semicolon, otherwise compilation stops (with a quite misleading error message). For example, the program `def main := label a { 3 + goto(0;a) };`gives the error
@@ -117,9 +112,8 @@
     Therefore I would suggest to:
     * add hostfwd=tcp:8000-:8000 directly to the netdev option in the start.sh file (which should be included in the artifact anyway), since this should work in any system;
     * suggest to run the web-based demo directly from the source code in the grokking-sc-AEC2.tar.gz archive, since it already contains a compiled version of the web GUI.
-* In examples/LazyPair.sc: the swapLazy function has a typo. It should be def swapLazy(x) := cocase { fst=>x.snd, snd=>x.fst}; but it is missing .snd after x.
-* In examples/List.sc: there are two copies of the map function;
-    there is a weird implementation of multFast function, different from the one in examples/FastMultiplication.sc. It uses goto in a way not particularly interesting, since this goto only exits from the current execution frame, like a simple 0 expression would, and not from all the recursive calls of multFast as the implementation in examples/FastMultiplication.sc (and in the paper).
+* In examples/List.sc there is a weird implementation of multFast function, different from the one in examples/FastMultiplication.sc. It uses goto in a way not particularly interesting, since this goto only exits from the current execution frame, like a simple 0 expression would, and not from all the recursive calls of multFast as the implementation in examples/FastMultiplication.sc (and in the paper).
+
 # Done 
 
 * I could not find the username and password to use anywhere, so I had to guess them (username: artifact, password: password). 
@@ -163,5 +157,19 @@
 * README "where theiy compiled terms can be compared"
         fixed
 * README "Evaluating this [paragraph ends unexpectedly]"
+        fixed
+* add a concrete example of the cabal run sequent-calculus FILENAME and make run filepath=FILENAME command lines to the README
+    fixed, run for lists included in README
+* missing .snd in def swapLazy(x) := cocase { fst=>x, snd=>x.fst}; in LazyPair.sc
+        fixed
+* duplicate def map(f, l) := case l of {Nil=>Nil, Cons(x, xs) => Cons(f, map(f, xs))}; in Lists.sc
+        fixed
+* Include a link to the Zenodo archive of the base image in the README. This will allow users to find the base image easily.
+        fixed
+* The disk image contains a file ''. I suggest removing this file. There are other superfluous files (e.g., .git) that can be removed.
+        fixed with the `clean_repo.sh`
+* In examples/LazyPair.sc: the swapLazy function has a typo. It should be def swapLazy(x) := cocase { fst=>x.snd, snd=>x.fst}; but it is missing .snd after x.
+        fixed
+* In examples/List.sc there are two copies of the map function;
         fixed
 
