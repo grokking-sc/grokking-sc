@@ -3,7 +3,6 @@
 * add a concrete example of the cabal run sequent-calculus FILENAME and make run filepath=FILENAME command lines to the README
 * include the list of claims the paper claims to be supported by the artifact alongside instructions on how to verify each of them in the README, not only to help us review but also others navigate your artifact efficiently (the formatting of the section "Paper Claims" in the README can be improved)
 * fix the errors Invalid hexadecimal escape sequence and all_examples is not defined in index.html (the drop-down list "Select example..." is empty)
-* include the startup scripts start.sh and start.bat in the disk archive
 * README "add the additional flag `-nic user,hostfwd=tcp:8000-:8000`" (hostaddr column before hostport missing, cf. qemu(1))
 * README "this becomes `./start.sh -nic user,hostfwd=tcp:8000-:8000`" (hostaddr column before hostport missing, cf. qemu(1))
 * README "The command will thn host the web-demo locally"
@@ -156,3 +155,6 @@
         fixed, added `clean` target
 * Include instructions on how to run the executable on one of the example files.
         fixed, added more explanation to `make run`
+* include the startup scripts start.sh and start.bat in the disk archive
+        fixed
+
