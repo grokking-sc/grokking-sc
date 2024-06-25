@@ -56,21 +56,7 @@
     The twos are not alpha-convertible. It seems there are two points where the artifact is wrong:
     the goto should be compiled to μa2.〈 0 | a0 〉where a0 is the second formal parameter of f2. However, in the artifact's output, a0 is the third argument of f2, which is the standard return consumer.
     in the recursive call to f2, the second argument should be equal to the second formal parameter in the definition of f2, like in my hand-made compiled code. However, in the artifact's compiled code, the consumer arguments of f2 are equal.
-* Problems in the focusing algorithm: Consider the file examples/ArithmeticExpressions.sc, in particular the function monus
-    ```
-    def monus(n,m) := ifz(m,n,ifz(n,0,monus(n-1,m-1)));
-    ```
-    It is compiled by the artifact as
-    ```
-    def monus(n,m;a0) := 〈 μa0. ifz(m;〈 n | a0 〉,〈 μa0. ifz(n;〈 0 | a0 〉,〈 μa0. monus(μa0. -(n,1;a0),μa0. -(m,1;a0);a0) | a0 〉) | a0 〉) | a0 〉
-    ```
-    which seems correct (although calling a0 all bound variables makes checking the code very hard). The focused code returned by the artifact is
-    ```
-    def monus(n,m;a0) := 〈 μa0. ifz(m;〈 n | a0 〉,〈 μa0. ifz(n;〈 0 | a0 〉,〈 μa0. 〈 μa0. -(n,1;a0) | ~μx0. monus(x0,μa0. -(n,1;a0);a0) 〉 | a0 〉) | a0 〉) | a0 〉
-    ```
-    and this is clearly wrong, for two reasons:
-    * (m,1;a0) in the original compiled code becomes -(n,1;a0) in the focused one;
-    * focusing is not complete: the code still contains monus(x0,μa0. -(n,1;a0);a0) which is not correctly focused. Actually, execution of monus(10,5) does not terminate with a value.
+
 * Make Core programs more readable
     Core programs would be much more readable if bound variables were renamed to be all different one from another. In this moment, it is exactly the opposite: the compiler tries to reuse the same variables over and over. However, this makes very difficult for an human being to read the generated code, since it is hard to match each variable occurrence with the corresponding binder.
 
@@ -181,3 +167,18 @@
 * In examples/List.sc there is a weird implementation of multFast function, different from the one in examples/FastMultiplication.sc. It uses goto in a way not particularly interesting, since this goto only exits from the current execution frame, like a simple 0 expression would, and not from all the recursive calls of multFast as the implementation in examples/FastMultiplication.sc (and in the paper).
         fixed, removed multFast from this example. only kept FastMultiplication.sc
 
+* Problems in the focusing algorithm: Consider the file examples/ArithmeticExpressions.sc, in particular the function monus
+    ```
+    def monus(n,m) := ifz(m,n,ifz(n,0,monus(n-1,m-1)));
+    ```
+    It is compiled by the artifact as
+    ```
+    def monus(n,m;a0) := 〈 μa0. ifz(m;〈 n | a0 〉,〈 μa0. ifz(n;〈 0 | a0 〉,〈 μa0. monus(μa0. -(n,1;a0),μa0. -(m,1;a0);a0) | a0 〉) | a0 〉) | a0 〉
+    ```
+    which seems correct (although calling a0 all bound variables makes checking the code very hard). The focused code returned by the artifact is
+    ```
+    def monus(n,m;a0) := 〈 μa0. ifz(m;〈 n | a0 〉,〈 μa0. ifz(n;〈 0 | a0 〉,〈 μa0. 〈 μa0. -(n,1;a0) | ~μx0. monus(x0,μa0. -(n,1;a0);a0) 〉 | a0 〉) | a0 〉) | a0 〉
+    ```
+    and this is clearly wrong, for two reasons:
+    * (m,1;a0) in the original compiled code becomes -(n,1;a0) in the focused one;
+    * focusing is not complete: the code still contains monus(x0,μa0. -(n,1;a0);a0) which is not correctly focused. Actually, execution of monus(10,5) does not terminate with a value.
