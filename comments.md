@@ -1,7 +1,5 @@
 # Open 
 
-* README "add the additional flag `-nic user,hostfwd=tcp:8000-:8000`" (hostaddr column before hostport missing, cf. qemu(1))
-* README "this becomes `./start.sh -nic user,hostfwd=tcp:8000-:8000`" (hostaddr column before hostport missing, cf. qemu(1))
 * add a concrete way of installing the required versions of GHC and Cabal to the README along the following lines:
     ```
 	> # you might want to `export GHCUP_USE_XDG_DIRS=1` to use XDG-style directories
@@ -96,20 +94,6 @@
     * focusing is not complete: the code still contains monus(x0,μa0. -(n,1;a0);a0) which is not correctly focused. Actually, execution of monus(10,5) does not terminate with a value.
 * Make Core programs more readable
     Core programs would be much more readable if bound variables were renamed to be all different one from another. In this moment, it is exactly the opposite: the compiler tries to reuse the same variables over and over. However, this makes very difficult for an human being to read the generated code, since it is hard to match each variable occurrence with the corresponding binder.
-* Make easier to test the web-based demo
-    It was particularly difficult for me to test the web-based demo, since I fall in the category of people for whom adding
-    ```
-    -nic user,hostfwd=tcp:8000-:8000
-    ```
-    to ```start.sh`` makes it impossible to connect to the VM.
-    Unfortunately, also the approach of mounting the guest file system in the host was not completely trivial. I am using Ubuntu 24.04, and I had to change the permission of the host Linux kernel file with the command:
-    ```
-    chmod 644 /boot/vmlinuz-$(uname -r)
-    ```
-    before I was able to use the guestmount command.
-    Therefore I would suggest to:
-    * add hostfwd=tcp:8000-:8000 directly to the netdev option in the start.sh file (which should be included in the artifact anyway), since this should work in any system;
-    * suggest to run the web-based demo directly from the source code in the grokking-sc-AEC2.tar.gz archive, since it already contains a compiled version of the web GUI.
 * In examples/List.sc there is a weird implementation of multFast function, different from the one in examples/FastMultiplication.sc. It uses goto in a way not particularly interesting, since this goto only exits from the current execution frame, like a simple 0 expression would, and not from all the recursive calls of multFast as the implementation in examples/FastMultiplication.sc (and in the paper).
 
 # Done 
@@ -176,3 +160,20 @@
         fixed
 * fix the errors Invalid hexadecimal escape sequence and all_examples is not defined in index.html (the drop-down list "Select example..." is empty)
         fixed 
+* README "add the additional flag `-nic user,hostfwd=tcp:8000-:8000`" (hostaddr column before hostport missing, cf. qemu(1))
+    fixed by adding the flag to the start scripts
+* Make easier to test the web-based demo
+    It was particularly difficult for me to test the web-based demo, since I fall in the category of people for whom adding
+    ```
+    -nic user,hostfwd=tcp:8000-:8000
+    ```
+    to ```start.sh`` makes it impossible to connect to the VM.
+    Unfortunately, also the approach of mounting the guest file system in the host was not completely trivial. I am using Ubuntu 24.04, and I had to change the permission of the host Linux kernel file with the command:
+    ```
+    chmod 644 /boot/vmlinuz-$(uname -r)
+    ```
+    before I was able to use the guestmount command.
+    Therefore I would suggest to:
+    * add hostfwd=tcp:8000-:8000 directly to the netdev option in the start.sh file (which should be included in the artifact anyway), since this should work in any system;
+    * suggest to run the web-based demo directly from the source code in the grokking-sc-AEC2.tar.gz archive, since it already contains a compiled version of the web GUI.
+    implemented both suggestions

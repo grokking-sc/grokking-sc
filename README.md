@@ -141,15 +141,14 @@ Since the disk does not contain X nor a web-browser, running it from the VM is s
 
 In order to serve `index.html` using a simple http-server, follow the following steps
 
-1. Start the VM as normal, but add the additional flag `-nic user,hostfwd=tcp:8000-:8000`.
+1. Start the VM as normal using the included `start.sh` or `start.bat` scripts (see the README included with the disk image)
+    These scripts include port forwaring to the host system for port `8000`, which is not included in the base start scripts, so make sure to use the provided ones.
     This will enable host forwarding and allow you to access web demo from the host system.
-    For example, if using the ICFP provided `start.sh` script, the VM would usually be started with the `./start.sh` command on its own.
-    When enabling host forwarding, this becomes `./start.sh -nic user,hostfwd=tcp:8000-:8000`
 2. In the directory containing the artifact code (usually `~/grokking-sc`, run the following command
     ```
     python3 -m http.server --directory web-app/ 8000
     ```
-    Please make sure the web-app has been built before and inside the `web-app` directory both `all.js` and `examples.js` are present.
+    Please make sure the web-app has been built before and inside the `web-app` directory both `all.js` and `examples.js` are present (If they are not, run the `make build-web` target).
     The command will then host the web-demo locally and can be accessed in a browser from the host system
 3. In the host system, start a web browser and visit `127.0.0.1:8000`
     If everything worked, the web-demo should show up fully functional
@@ -157,28 +156,13 @@ In order to serve `index.html` using a simple http-server, follow the following 
 For some people, there might be issues with the first step, and after starting the VM, no SSH connection can be established to the guest system.
 In this case, we recommend the second method
 
-#### Method 2: Mounting the File System in the Host
+#### Method 2: Opening `index.html` directly on the host system 
 
-Instead of serving the web-demo using a http server, the guest system can also directly be mounted on the host system using `libguestfs`.
- 
-1. Install `libguestfs` on the host system
-    * Ubuntu/Debian `sudo apt install libguestfs-tools`
-    * Arch: `sudo pacman -S libguestfs`
-    * Fedora: `sudo yum install libguesfs-tools`
-    * Others; Download and build sources from [libguestfs.org](https://libguestfs.org/)
-2. Mount the disk image using `guestmount` 
-    Before running the mount command below, please ensure the web-demo was successfully built and both `examples.js` and `all.js` are available on the qemu disk
-    ```
-    guestmount -a $path_to_disk -m /dev/sda1 $path_to_mount 
-    ```
-    In this command, replace `$path_to_disk` by the (relative or absolute) path to the `disk.qcow` image and `$path_to_mount` by the directory into which you want to mount the file system
-    For example, within a bash shell in the same directory as `disk.qcow`, in order to mount the disk to `/mnt` run the command `guestmount -a disk.qcow -m /dev/sda1 /mnt`
-    Please make sure the user running this command has access to the directory in which the disk will be mounted.
-3. Open the mounted directory (for example `/mnt`) in the host system.
-    You should now see a root folder of a linux installation.
-4. Navigate to `/home/artifact/grokking-sc/web-app/` in the mounted disk and open `index.html` in a web browser in the host system.
-    Now the web demo should have opened in the browser
-5. Once finished, unmount the guest system using `guestunmount $path_to_mount` where `$path_to_mount` is the same directory as above
+By using the included source code in `grokking-sc-AEC2.tar.gz`, one can directly open the file `web-app/index.html` in a web browser, which will directly open the demo fully functional.
+As with the first method, this requires `web-app/examples.js` and `web-app/all.js` to be available to be loaded in `index.html`. 
+The zipped source code already includes those files, so it should work out of the box. 
+If they are not present, they have to be rebuilt with the `make build-web` target.
+However, since the disk image does not contain a web browser, this has to be done on the host system without the use of a VM, and thus all build requirements have to be manually installed.
 
 
 ## Paper Claims
