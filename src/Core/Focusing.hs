@@ -151,8 +151,8 @@ instance Focus Statement where
             Nothing -> Fun nm (focus <$> pargs) (focus <$> cargs)
             Just p1 -> do
                 let v = freshVar [s]
-                let newArgs = (\p -> if p == p1 then Var v else p1) <$> pargs
-                Cut (focus p1) (MuTilde v (Fun nm newArgs cargs))
+                let newArgs = (\p -> if p == p1 then Var v else p) <$> pargs
+                Cut (focus p1) (MuTilde v (focus (Fun nm newArgs cargs)))
     focus Done = Done
 
 instance Focus (Def a) where
