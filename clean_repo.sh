@@ -4,5 +4,5 @@
 #Do not run this outside of the VM disk image 
 #Otherwise the repo will have to be freshly cloned
 #This will remove all git files along with preparation scripts
-TO_DELETE="dist-newstyle .git* README_Zenodo.md create_tarball.sh clean_repo.sh build_diskball.sh"
+TO_DELETE="dist-newstyle .git* README_*.md create_disk_tar.sh create_source_tar.sh clean_repo.sh"
 rm -rf $TO_DELETE
