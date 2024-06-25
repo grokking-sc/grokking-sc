@@ -1,15 +1,6 @@
+# Open 
 
-* I could not find the username and password to use anywhere, so I had to guess them (username: artifact, password: password). 
-* Also, instructions on the README.md file are not completely reliable. They say to use "make run -filepath=FILENAME", but the command is actually "make run filepath=FILENAME" without the minus sign. 
-* examples FastMultiplication, Lists and Stream do not compile.
-* add a README to the Zenodo record (next to the two archives) that summarizes the contents of the record and of each of the two archives that it contains
-* remove the .git, .git.old, .github, .gitignore, grokking-src.zip and dist-newstyle directories and files from the source archive
-* fix the typo "simply run `cabal build sequent calculus`" in the README
-* fix the typo "in the `web-demo` directory" in the README
-* add instructions on how to serve the web demo from the virtual machine to the README
 * add a concrete example of the cabal run sequent-calculus FILENAME and make run filepath=FILENAME command lines to the README
-* remove the .git, .git.old, .github, .gitignore and \ (!) directories and files from the grokking-sc directory in the disk image
-* make sure that (both the binary and) the web demo are already built in the disk image (as suggested by @A4, including instructions on how to rebuild the binary and the web demo is helpful)
 * include the list of claims the paper claims to be supported by the artifact alongside instructions on how to verify each of them in the README, not only to help us review but also others navigate your artifact efficiently (the formatting of the section "Paper Claims" in the README can be improved)
 * fix the errors Invalid hexadecimal escape sequence and all_examples is not defined in index.html (the drop-down list "Select example..." is empty)
 * include the startup scripts start.sh and start.bat in the disk archive
@@ -68,9 +59,6 @@
 * superfluous label–goto in def multFast(x) := label a { case x of {Nil=>1, Cons(y, ys) => ifz(y,goto(0,a),y * multFast(ys))}}; in Lists.sc
 * Include a link to the Zenodo archive of the base image in the README. This will allow users to find the base image easily.
 * The disk image contains a file ''. I suggest removing this file. There are other superfluous files (e.g., .git) that can be removed.
-* The README suggested to run cabal build sequent calculus, however I had to run cabal build exe:sequent-calculus.
-* Since the disk image contains the compiled files, running cabal build exe:sequent-calculus or make build-exe initially does nothing. Please include instructions with README to delete all built files.
-* Include instructions on how to run the executable on one of the example files.
 *  It was not completely obvious what to do and what to install, but this was expected since I am not an expert of the Haskell ecosystem. At the end, however, I was able to compile everything from scratch.
 * Syntax of goto
     The first one is actually only a minor problem. While the syntax of goto in the paper is goto(t;a), the compiler needs a comma instead of the semicolon, otherwise compilation stops (with a quite misleading error message). For example, the program `def main := label a { 3 + goto(0;a) };`gives the error
@@ -140,3 +128,31 @@
 * In examples/LazyPair.sc: the swapLazy function has a typo. It should be def swapLazy(x) := cocase { fst=>x.snd, snd=>x.fst}; but it is missing .snd after x.
 * In examples/List.sc: there are two copies of the map function;
     there is a weird implementation of multFast function, different from the one in examples/FastMultiplication.sc. It uses goto in a way not particularly interesting, since this goto only exits from the current execution frame, like a simple 0 expression would, and not from all the recursive calls of multFast as the implementation in examples/FastMultiplication.sc (and in the paper).
+# Done 
+
+* I could not find the username and password to use anywhere, so I had to guess them (username: artifact, password: password). 
+        fixed, password is included in the README for the disk tarball (`README_artifact.md`)
+* Also, instructions on the README.md file are not completely reliable. They say to use "make run -filepath=FILENAME", but the command is actually "make run filepath=FILENAME" without the minus sign. 
+        fixed
+* examples FastMultiplication, Lists and Stream do not compile.
+        fixed
+* add a README to the Zenodo record (next to the two archives) that summarizes the contents of the record and of each of the two archives that it contains
+        done
+* remove the .git, .git.old, .github, .gitignore, grokking-src.zip and dist-newstyle directories and files from the source archive
+        fixed, all files are removed by the `clean_repo.sh` script
+* fix the typo "simply run `cabal build sequent calculus`" in the README
+        fixed, now says `cabal build exe:sequent-calculus`
+* fix the typo "in the `web-demo` directory" in the README
+        fixed, now all directory references use `web-app`
+* add instructions on how to serve the web demo from the virtual machine to the README
+        fixed, added instructions for serving using http server (with port tunneling) and mounting the disk archive (still different comment below though)
+* remove the .git, .git.old, .github, .gitignore and \ (!) directories and files from the grokking-sc directory in the disk image
+        fixed, same as above
+* make sure that (both the binary and) the web demo are already built in the disk image (as suggested by @A4, including instructions on how to rebuild the binary and the web demo is helpful)
+        fixed, added `clean` target to allow rebuilding
+* The README suggested to run cabal build sequent calculus, however I had to run cabal build exe:sequent-calculus.
+        fixed
+* Since the disk image contains the compiled files, running cabal build exe:sequent-calculus or make build-exe initially does nothing. Please include instructions with README to delete all built files.
+        fixed, added `clean` target
+* Include instructions on how to run the executable on one of the example files.
+        fixed, added more explanation to `make run`
