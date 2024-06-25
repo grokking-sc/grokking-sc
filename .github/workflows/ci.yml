@@ -17,4 +17,6 @@ jobs:
           ghc-version: ${{ matrix.ghc }}
           cabal-version: ${{ matrix.cabal }}
       - run: cabal build lib:sequent-calculus exe:sequent-calculus sequent-calculus:unit-tests
+      - name: Check examples
+        run: ./test_examples.sh
       - run: cabal test
