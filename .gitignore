@@ -2,3 +2,5 @@ dist-newstyle
 *.zip
 .git.artifact_update
 .git.grokking-sc
+web-app/all.js
+web-app/examples.js
