@@ -10,7 +10,7 @@ do
   FILENAME="${BASENAME%.*}"
 
   echo "const $FILENAME = \`" >> $OUTFILE
-  cat $INFILE >> $OUTFILE
+  cat $INFILE | sed 's/\\/\\\\/g' >> $OUTFILE
   echo "\`;" >> $OUTFILE
   echo "" >> $OUTFILE 
 
