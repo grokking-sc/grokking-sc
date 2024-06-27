@@ -114,7 +114,7 @@ compileDef (Fun.Def nm prodargs Nothing bd rt) = do
 compileDef (Fun.Def nm prodargs (Just cv) bd rt) = do
     let bd' = compile bd
     let cv' = freshCovar [MkFree bd', MkFree (Core.Covar cv)]
-    let newCut = Core.Cut bd' (Core.Covar cv)
+    let newCut = Core.Cut bd' (Core.Covar cv')
     Core.Def nm prodargs [(cv, rt), (cv', rt)] newCut
 
 {- | Compile a program of the surface language @Fun@ to a program of the intermediate
