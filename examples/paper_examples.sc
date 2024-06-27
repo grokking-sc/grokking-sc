@@ -44,7 +44,7 @@ def criticalPair := let x=label a { goto(1;a) } in x;
 //def main := ex211();
 //def main := ex212();
 //def main := ex22();
-//def main := ex23();q
+//def main := ex23();
 //def main := sum(Cons(1,Cons(1,Cons(1,Nil))));
 //def main := repeat(1);
 //def main := swap(Tup(1,2));

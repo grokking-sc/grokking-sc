@@ -107,63 +107,22 @@ The target `make build-web` automatically runs this script as well, so `examples
 
 In order to run the compiled binary, either use `cabal run sequent-calculus FILENAME` or the build target `make run filepath=FILENAME` where `FILENAME` is the path to the source file to be run.
 The file will then be parsed, typechecked, compiled, focused and evaluated, outputting the resulting `Core` program, before and after focusing, along with the trace of evaluating the `main` function.
-
-```console 
-> make run filepath=examples/Lists.sc
-cabal run sequent-calculus examples/Lists.sc
+```console
+make run filepath=examples/Stream.sc                                                                                                               ✔ 
+cabal run sequent-calculus examples/Stream.sc
 Program typechecks!
 ---------- Result of Compilation --------
-def map(f,l;a0) := 〈 μa0. 〈 l | case {Nil ⇒ 〈 Nil | a0 〉,Cons(x,xs;) ⇒ 〈 Cons(f,μa0. map(f,xs;a0);) | a0 〉} 〉 | a0 〉
-def map(f,l;a0) := 〈 μa0. 〈 l | case {Nil ⇒ 〈 Nil | a0 〉,Cons(x,xs;) ⇒ 〈 Cons(f,μa0. map(f,xs;a0);) | a0 〉} 〉 | a0 〉
-def multFast(x;a0) := 〈 μa. 〈 μa0. 〈 x | case {Nil ⇒ 〈 1 | a0 〉,Cons(y,ys;) ⇒ 〈 μa0. ifz(y;〈 μa0. 〈 0 | a 〉 | a0 〉,〈 μa0. *(y,μa0. multFast(ys;a0);a0) | a0 〉) | a0 〉} 〉 | a 〉 | a0 〉
-def mult(x;a0) := 〈 μa0. 〈 x | case {Nil ⇒ 〈 1 | a0 〉,Cons(y,ys;) ⇒ 〈 μa0. *(y,μa0. mult(ys;a0);a0) | a0 〉} 〉 | a0 〉
-def foldr(f,st,ls;a0) := 〈 μa0. 〈 ls | case {Nil ⇒ 〈 st | a0 〉,Cons(y,ys;) ⇒ 〈 μa0. foldr(f,μa0. 〈 μa0. 〈 f | ap(y;a0) 〉 | ap(st;a0) 〉,ys;a0) | a0 〉} 〉 | a0 〉
-def len(ls;a0) := 〈 μa0. 〈 ls | case {Nil ⇒ 〈 0 | a0 〉,Cons(y,ys;) ⇒ 〈 μa0. +(1,μa0. len(ys;a0);a0) | a0 〉} 〉 | a0 〉
-def sum(;a0) := 〈 cocase {ap(x;a0) ⇒ 〈 cocase {ap(y;a0) ⇒ 〈 μa0. +(x,y;a0) | a0 〉} | a0 〉} | a0 〉
-def main(;a0) := 〈 μa0. len(Cons(1,Cons(2,Cons(3,Cons(4,Nil;););););a0) | a0 〉
+def repeat(x;a0) := 〈 cocase {hd(;a0) ⇒ 〈 x | a0 〉,tl(;a0) ⇒ 〈 μa0. repeat(x;a0) | a0 〉} | a0 〉
+def const1(;a0) := 〈 cocase {hd(;a0) ⇒ 〈 1 | a0 〉,tl(;a0) ⇒ 〈 μa0. const1(;a0) | a0 〉} | a0 〉
+def main(;a0) := 〈 μa0. repeat(1;a0) | a0 〉
 ---------- Result of Focusing --------
-def map(f,l;a0) := 〈 μa0. 〈 l | case {Nil ⇒ 〈 Nil | a0 〉,Cons(x,xs;) ⇒ 〈 μa0. 〈 μa0. map(f,xs;a0) | ~μx0. 〈 Cons(f,x0;) | a0 〉 〉 | a0 〉} 〉 | a0 〉
-def map(f,l;a0) := 〈 μa0. 〈 l | case {Nil ⇒ 〈 Nil | a0 〉,Cons(x,xs;) ⇒ 〈 μa0. 〈 μa0. map(f,xs;a0) | ~μx0. 〈 Cons(f,x0;) | a0 〉 〉 | a0 〉} 〉 | a0 〉
-def multFast(x;a0) := 〈 μa. 〈 μa0. 〈 x | case {Nil ⇒ 〈 1 | a0 〉,Cons(y,ys;) ⇒ 〈 μa0. ifz(y;〈 μa0. 〈 0 | a 〉 | a0 〉,〈 μa0. 〈 μa0. multFast(ys;a0) | ~μx0. *(y,x0;a0) 〉 | a0 〉) | a0 〉} 〉 | a 〉 | a0 〉
-def mult(x;a0) := 〈 μa0. 〈 x | case {Nil ⇒ 〈 1 | a0 〉,Cons(y,ys;) ⇒ 〈 μa0. 〈 μa0. mult(ys;a0) | ~μx0. *(y,x0;a0) 〉 | a0 〉} 〉 | a0 〉
-def foldr(f,st,ls;a0) := 〈 μa0. 〈 ls | case {Nil ⇒ 〈 st | a0 〉,Cons(y,ys;) ⇒ 〈 μa0. 〈 μa0. 〈 μa0. 〈 f | ap(y;a0) 〉 | ap(st;a0) 〉 | ~μx0. foldr(μa0. 〈 μa0. 〈 f | ap(y;a0) 〉 | ap(st;a0) 〉,x0,μa0. 〈 μa0. 〈 f | ap(y;a0) 〉 | ap(st;a0) 〉;a0) 〉 | a0 〉} 〉 | a0 〉
-def len(ls;a0) := 〈 μa0. 〈 ls | case {Nil ⇒ 〈 0 | a0 〉,Cons(y,ys;) ⇒ 〈 μa0. 〈 μa0. len(ys;a0) | ~μx0. +(1,x0;a0) 〉 | a0 〉} 〉 | a0 〉
-def sum(;a0) := 〈 cocase {ap(x;a0) ⇒ 〈 cocase {ap(y;a0) ⇒ 〈 μa0. +(x,y;a0) | a0 〉} | a0 〉} | a0 〉
-def main(;a0) := 〈 μa0. len(Cons(1,Cons(2,Cons(3,Cons(4,Nil;););););a0) | a0 〉
+def repeat(x;a0) := 〈 cocase {hd(;a0) ⇒ 〈 x | a0 〉,tl(;a0) ⇒ 〈 μa0. repeat(x;a0) | a0 〉} | a0 〉
+def const1(;a0) := 〈 cocase {hd(;a0) ⇒ 〈 1 | a0 〉,tl(;a0) ⇒ 〈 μa0. const1(;a0) | a0 〉} | a0 〉
+def main(;a0) := 〈 μa0. repeat(1;a0) | a0 〉
 ---------- Result of Evaluation --------
-0: 〈 μa1. len(Cons(1,Cons(2,Cons(3,Cons(4,Nil;););););a1) | ★ 〉
-1: len(Cons(1,Cons(2,Cons(3,Cons(4,Nil;););););★)
-2: 〈 μa1. 〈 Cons(1,Cons(2,Cons(3,Cons(4,Nil;);););) | case {Nil ⇒ 〈 0 | a1 〉,Cons(x0,x2;) ⇒ 〈 μa1. 〈 μa1. len(x2;a1) | ~μx1. +(1,x1;a1) 〉 | a1 〉} 〉 | ★ 〉
-3: 〈 Cons(1,Cons(2,Cons(3,Cons(4,Nil;);););) | case {Nil ⇒ 〈 0 | ★ 〉,Cons(x0,x1;) ⇒ 〈 μa2. 〈 μa0. len(x1;a0) | ~μx1. +(1,x1;a2) 〉 | ★ 〉} 〉
-4: 〈 μa0. 〈 μa0. len(Cons(2,Cons(3,Cons(4,Nil;);););a0) | ~μx2. +(1,x2;a0) 〉 | ★ 〉
-5: 〈 μa1. len(Cons(2,Cons(3,Cons(4,Nil;);););a1) | ~μx0. +(1,x0;★) 〉
-6: len(Cons(2,Cons(3,Cons(4,Nil;);););~μx0. +(1,x0;★))
-7: 〈 μa1. 〈 Cons(2,Cons(3,Cons(4,Nil;););) | case {Nil ⇒ 〈 0 | a1 〉,Cons(x0,x2;) ⇒ 〈 μa1. 〈 μa1. len(x2;a1) | ~μx1. +(1,x1;a1) 〉 | a1 〉} 〉 | ~μx0. +(1,x0;★) 〉
-8: 〈 Cons(2,Cons(3,Cons(4,Nil;););) | case {Nil ⇒ 〈 0 | ~μx0. +(1,x0;★) 〉,Cons(x0,x1;) ⇒ 〈 μa2. 〈 μa0. len(x1;a0) | ~μx1. +(1,x1;a2) 〉 | ~μx0. +(1,x0;★) 〉} 〉
-9: 〈 μa0. 〈 μa0. len(Cons(3,Cons(4,Nil;););a0) | ~μx2. +(1,x2;a0) 〉 | ~μx2. +(1,x2;★) 〉
-10: 〈 μa1. len(Cons(3,Cons(4,Nil;););a1) | ~μx0. +(1,x0;~μx2. +(1,x2;★)) 〉
-11: len(Cons(3,Cons(4,Nil;););~μx0. +(1,x0;~μx2. +(1,x2;★)))
-12: 〈 μa1. 〈 Cons(3,Cons(4,Nil;);) | case {Nil ⇒ 〈 0 | a1 〉,Cons(x0,x2;) ⇒ 〈 μa1. 〈 μa1. len(x2;a1) | ~μx1. +(1,x1;a1) 〉 | a1 〉} 〉 | ~μx0. +(1,x0;~μx2. +(1,x2;★)) 〉
-13: 〈 Cons(3,Cons(4,Nil;);) | case {Nil ⇒ 〈 0 | ~μx0. +(1,x0;~μx2. +(1,x2;★)) 〉,Cons(x0,x1;) ⇒ 〈 μa2. 〈 μa0. len(x1;a0) | ~μx1. +(1,x1;a2) 〉 | ~μx0. +(1,x0;~μx2. +(1,x2;★)) 〉} 〉
-14: 〈 μa0. 〈 μa0. len(Cons(4,Nil;);a0) | ~μx2. +(1,x2;a0) 〉 | ~μx2. +(1,x2;~μx2. +(1,x2;★)) 〉
-15: 〈 μa1. len(Cons(4,Nil;);a1) | ~μx0. +(1,x0;~μx2. +(1,x2;~μx2. +(1,x2;★))) 〉
-16: len(Cons(4,Nil;);~μx0. +(1,x0;~μx2. +(1,x2;~μx2. +(1,x2;★))))
-17: 〈 μa1. 〈 Cons(4,Nil;) | case {Nil ⇒ 〈 0 | a1 〉,Cons(x0,x2;) ⇒ 〈 μa1. 〈 μa1. len(x2;a1) | ~μx1. +(1,x1;a1) 〉 | a1 〉} 〉 | ~μx0. +(1,x0;~μx2. +(1,x2;~μx2. +(1,x2;★))) 〉
-18: 〈 Cons(4,Nil;) | case {Nil ⇒ 〈 0 | ~μx0. +(1,x0;~μx2. +(1,x2;~μx2. +(1,x2;★))) 〉,Cons(x0,x1;) ⇒ 〈 μa2. 〈 μa0. len(x1;a0) | ~μx1. +(1,x1;a2) 〉 | ~μx0. +(1,x0;~μx2. +(1,x2;~μx2. +(1,x2;★))) 〉} 〉
-19: 〈 μa0. 〈 μa0. len(Nil;a0) | ~μx2. +(1,x2;a0) 〉 | ~μx2. +(1,x2;~μx2. +(1,x2;~μx2. +(1,x2;★))) 〉
-20: 〈 μa1. len(Nil;a1) | ~μx0. +(1,x0;~μx2. +(1,x2;~μx2. +(1,x2;~μx2. +(1,x2;★)))) 〉
-21: len(Nil;~μx0. +(1,x0;~μx2. +(1,x2;~μx2. +(1,x2;~μx2. +(1,x2;★)))))
-22: 〈 μa1. 〈 Nil | case {Nil ⇒ 〈 0 | a1 〉,Cons(x0,x2;) ⇒ 〈 μa1. 〈 μa1. len(x2;a1) | ~μx1. +(1,x1;a1) 〉 | a1 〉} 〉 | ~μx0. +(1,x0;~μx2. +(1,x2;~μx2. +(1,x2;~μx2. +(1,x2;★)))) 〉
-23: 〈 Nil | case {Nil ⇒ 〈 0 | ~μx0. +(1,x0;~μx2. +(1,x2;~μx2. +(1,x2;~μx2. +(1,x2;★)))) 〉,Cons(x0,x1;) ⇒ 〈 μa2. 〈 μa0. len(x1;a0) | ~μx1. +(1,x1;a2) 〉 | ~μx0. +(1,x0;~μx2. +(1,x2;~μx2. +(1,x2;~μx2. +(1,x2;★)))) 〉} 〉
-24: 〈 0 | ~μx1. +(1,x1;~μx0. +(1,x0;~μx0. +(1,x0;~μx0. +(1,x0;★)))) 〉
-25: +(1,0;~μx2. +(1,x2;~μx0. +(1,x0;~μx0. +(1,x0;★))))
-26: 〈 1 | ~μx2. +(1,x2;~μx0. +(1,x0;~μx0. +(1,x0;★))) 〉
-27: +(1,1;~μx1. +(1,x1;~μx0. +(1,x0;★)))
-28: 〈 2 | ~μx1. +(1,x1;~μx0. +(1,x0;★)) 〉
-29: +(1,2;~μx2. +(1,x2;★))
-30: 〈 3 | ~μx2. +(1,x2;★) 〉
-31: +(1,3;★)
-32: 〈 4 | ★ 〉
+0: 〈 μa1. repeat(1;a1) | ★ 〉
+1: repeat(1;★)
+2: 〈 cocase {hd(;a1) ⇒ 〈 1 | a1 〉,tl(;a1) ⇒ 〈 μa1. repeat(1;a1) | a1 〉} | ★ 〉
 ```
 
 ### Web Demo
@@ -256,7 +215,7 @@ def ex212(;a0) := 〈 μa0. ifz(2;〈 5 | a0 〉,〈 10 | a0 〉) | a0 〉
 ```
 Changing the definition of the `main` function in the example to `def main := ex211();` (also included as a comment) to evaluate the first example then gives the evaluation:
 ```
----------- Result of Evaluation -------- 
+---------- Result of Evaluation --------
 0: 〈 μa1. ex211(;a1) | ★ 〉
 1: ex211(;★)
 2: 〈 μa1. *(2,3;a1) | ★ 〉
@@ -397,7 +356,7 @@ Alternatively using `def main := repeat(1);` gives evaluation output
 
 ### Example 2.4 
 ```
-def swap(x) := case x of { Tup(y,z) => Tup(z,y) }; 
+def swap(x;a0) := 〈 μa0. 〈 x | case {Tup(y,z;) ⇒ 〈 Tup(z,y;) | a0 〉} 〉 | a0 〉
 ```
 This example similarly shows evaluation and compilation for data types with the following results (using `def main := swap(Tup(1,2));`):
 ```
@@ -478,14 +437,15 @@ The compilation and focusing output is as follows:
 ```
 ---------- Result of Compilation --------
 def mult(l;a0) := 〈 μa. 〈 μa0. mult2(l;a,a0) | a 〉 | a0 〉
-def mult2(l;a0,a) := 〈 μa0. 〈 l | case {Nil ⇒ 〈 1 | a0 〉,Cons(x,xs;) ⇒ 〈 μa0. ifz(x;〈 μa0. 〈 0 | a 〉 | a0 〉,〈 μa0. *(x,μa0. mult2(xs;a,a0);a0) | a0 〉) | a0 〉} 〉 | a 〉
+def mult2(l;a,a0) := 〈 μa0. 〈 l | case {Nil ⇒ 〈 1 | a0 〉,Cons(x,xs;) ⇒ 〈 μa0. ifz(x;〈 μa0. 〈 0 | a 〉 | a0 〉,〈 μa0. *(x,μa0. mult2(xs;a,a0);a0) | a0 〉) | a0 〉} 〉 | a 〉
 ```
 
 ```
 ---------- Result of Focusing --------
 def mult(l;a0) := 〈 μa. 〈 μa0. mult2(l;a,a0) | a 〉 | a0 〉
-def mult2(l;a0,a) := 〈 μa0. 〈 l | case {Nil ⇒ 〈 1 | a0 〉,Cons(x,xs;) ⇒ 〈 μa0. ifz(x;〈 μa0. 〈 0 | a 〉 | a0 〉,〈 μa0. 〈 μa0. mult2(xs;a,a0) | ~μx0. *(x,x0;a0) 〉 | a0 〉) | a0 〉} 〉 | a 〉
+def mult2(l;a,a0) := 〈 μa0. 〈 l | case {Nil ⇒ 〈 1 | a0 〉,Cons(x,xs;) ⇒ 〈 μa0. ifz(x;〈 μa0. 〈 0 | a 〉 | a0 〉,〈 μa0. 〈 μa0. mult2(xs;a,a0) | ~μx0. *(x,x0;a0) 〉 | a0 〉) | a0 〉} 〉 | a 〉
 ```
+
 When evaluating `mult` with the example list `[2,2,0,3]` using `def main := mult(Cons(2,Cons(2,Cons(0,Cons(3,Nil)))));` shows how evaluation directly stops once we reach the list element `0`
 
 ```
@@ -502,23 +462,19 @@ When evaluating `mult` with the example list `[2,2,0,3]` using `def main := mult
 9: 〈 μa1. 〈 μa1. mult2(Cons(2,Cons(0,Cons(3,Nil;);););★,a1) | ~μx1. *(2,x1;a1) 〉 | ★ 〉
 10: 〈 μa0. mult2(Cons(2,Cons(0,Cons(3,Nil;);););★,a0) | ~μx0. *(2,x0;★) 〉
 11: mult2(Cons(2,Cons(0,Cons(3,Nil;);););★,~μx0. *(2,x0;★))
-12: 〈 μa1. 〈 Cons(2,Cons(0,Cons(3,Nil;););) | case {Nil ⇒ 〈 1 | a1 〉,Cons(x2,x3;) ⇒ 〈 μa1. ifz(x2;〈 μa1. 〈 0 | ~μx0. *(2,x0;★) 〉 | a1 〉,〈 μa1. 〈 μa1. mult2(x3;~μx0. *(2,x0;★),a1) | ~μx1. *(x2,x1;a1) 〉 | a1 〉) | a1 〉} 〉 | ~μx0. *(2,x0;★) 〉
-13: 〈 Cons(2,Cons(0,Cons(3,Nil;););) | case {Nil ⇒ 〈 1 | ~μx0. *(2,x0;★) 〉,Cons(x0,x1;) ⇒ 〈 μa2. ifz(x0;〈 μa0. 〈 0 | ~μx1. *(2,x1;★) 〉 | a2 〉,〈 μa0. 〈 μa0. mult2(x1;~μx1. *(2,x1;★),a0) | ~μx2. *(x0,x2;a0) 〉 | a2 〉) | ~μx0. *(2,x0;★) 〉} 〉
-14: 〈 μa0. ifz(2;〈 μa0. 〈 0 | ~μx2. *(2,x2;★) 〉 | a0 〉,〈 μa0. 〈 μa0. mult2(Cons(0,Cons(3,Nil;););~μx2. *(2,x2;★),a0) | ~μx2. *(2,x2;a0) 〉 | a0 〉) | ~μx2. *(2,x2;★) 〉
-15: ifz(2;〈 μa1. 〈 0 | ~μx1. *(2,x1;★) 〉 | ~μx2. *(2,x2;★) 〉,〈 μa1. 〈 μa1. mult2(Cons(0,Cons(3,Nil;););~μx1. *(2,x1;★),a1) | ~μx1. *(2,x1;a1) 〉 | ~μx2. *(2,x2;★) 〉)
-16: 〈 μa1. 〈 μa1. mult2(Cons(0,Cons(3,Nil;););~μx1. *(2,x1;★),a1) | ~μx1. *(2,x1;a1) 〉 | ~μx2. *(2,x2;★) 〉
-17: 〈 μa0. mult2(Cons(0,Cons(3,Nil;););~μx1. *(2,x1;★),a0) | ~μx0. *(2,x0;~μx2. *(2,x2;★)) 〉
-18: mult2(Cons(0,Cons(3,Nil;););~μx0. *(2,x0;★),~μx0. *(2,x0;~μx2. *(2,x2;★)))
-19: 〈 μa1. 〈 Cons(0,Cons(3,Nil;);) | case {Nil ⇒ 〈 1 | a1 〉,Cons(x2,x3;) ⇒ 〈 μa1. ifz(x2;〈 μa1. 〈 0 | ~μx0. *(2,x0;~μx2. *(2,x2;★)) 〉 | a1 〉,〈 μa1. 〈 μa1. mult2(x3;~μx0. *(2,x0;~μx2. *(2,x2;★)),a1) | ~μx1. *(x2,x1;a1) 〉 | a1 〉) | a1 〉} 〉 | ~μx0. *(2,x0;~μx2. *(2,x2;★)) 〉
-20: 〈 Cons(0,Cons(3,Nil;);) | case {Nil ⇒ 〈 1 | ~μx0. *(2,x0;~μx2. *(2,x2;★)) 〉,Cons(x0,x1;) ⇒ 〈 μa2. ifz(x0;〈 μa0. 〈 0 | ~μx1. *(2,x1;~μx0. *(2,x0;★)) 〉 | a2 〉,〈 μa0. 〈 μa0. mult2(x1;~μx1. *(2,x1;~μx0. *(2,x0;★)),a0) | ~μx2. *(x0,x2;a0) 〉 | a2 〉) | ~μx0. *(2,x0;~μx2. *(2,x2;★)) 〉} 〉
-21: 〈 μa0. ifz(0;〈 μa0. 〈 0 | ~μx2. *(2,x2;~μx2. *(2,x2;★)) 〉 | a0 〉,〈 μa0. 〈 μa0. mult2(Cons(3,Nil;);~μx2. *(2,x2;~μx2. *(2,x2;★)),a0) | ~μx2. *(0,x2;a0) 〉 | a0 〉) | ~μx2. *(2,x2;~μx2. *(2,x2;★)) 〉
-22: ifz(0;〈 μa1. 〈 0 | ~μx1. *(2,x1;~μx0. *(2,x0;★)) 〉 | ~μx2. *(2,x2;~μx2. *(2,x2;★)) 〉,〈 μa1. 〈 μa1. mult2(Cons(3,Nil;);~μx1. *(2,x1;~μx0. *(2,x0;★)),a1) | ~μx1. *(0,x1;a1) 〉 | ~μx2. *(2,x2;~μx2. *(2,x2;★)) 〉)
-23: 〈 μa1. 〈 0 | ~μx1. *(2,x1;~μx0. *(2,x0;★)) 〉 | ~μx2. *(2,x2;~μx2. *(2,x2;★)) 〉
-24: 〈 0 | ~μx0. *(2,x0;~μx0. *(2,x0;★)) 〉
-25: *(2,0;~μx1. *(2,x1;★))
-26: 〈 0 | ~μx1. *(2,x1;★) 〉
-27: *(2,0;★)
-28: 〈 0 | ★ 〉
+12: 〈 μa1. 〈 Cons(2,Cons(0,Cons(3,Nil;););) | case {Nil ⇒ 〈 1 | a1 〉,Cons(x2,x3;) ⇒ 〈 μa1. ifz(x2;〈 μa1. 〈 0 | ★ 〉 | a1 〉,〈 μa1. 〈 μa1. mult2(x3;★,a1) | ~μx1. *(x2,x1;a1) 〉 | a1 〉) | a1 〉} 〉 | ★ 〉
+13: 〈 Cons(2,Cons(0,Cons(3,Nil;););) | case {Nil ⇒ 〈 1 | ★ 〉,Cons(x0,x1;) ⇒ 〈 μa2. ifz(x0;〈 μa0. 〈 0 | ★ 〉 | a2 〉,〈 μa0. 〈 μa0. mult2(x1;★,a0) | ~μx2. *(x0,x2;a0) 〉 | a2 〉) | ★ 〉} 〉
+14: 〈 μa0. ifz(2;〈 μa0. 〈 0 | ★ 〉 | a0 〉,〈 μa0. 〈 μa0. mult2(Cons(0,Cons(3,Nil;););★,a0) | ~μx2. *(2,x2;a0) 〉 | a0 〉) | ★ 〉
+15: ifz(2;〈 μa1. 〈 0 | ★ 〉 | ★ 〉,〈 μa1. 〈 μa1. mult2(Cons(0,Cons(3,Nil;););★,a1) | ~μx1. *(2,x1;a1) 〉 | ★ 〉)
+16: 〈 μa1. 〈 μa1. mult2(Cons(0,Cons(3,Nil;););★,a1) | ~μx1. *(2,x1;a1) 〉 | ★ 〉
+17: 〈 μa0. mult2(Cons(0,Cons(3,Nil;););★,a0) | ~μx0. *(2,x0;★) 〉
+18: mult2(Cons(0,Cons(3,Nil;););★,~μx0. *(2,x0;★))
+19: 〈 μa1. 〈 Cons(0,Cons(3,Nil;);) | case {Nil ⇒ 〈 1 | a1 〉,Cons(x2,x3;) ⇒ 〈 μa1. ifz(x2;〈 μa1. 〈 0 | ★ 〉 | a1 〉,〈 μa1. 〈 μa1. mult2(x3;★,a1) | ~μx1. *(x2,x1;a1) 〉 | a1 〉) | a1 〉} 〉 | ★ 〉
+20: 〈 Cons(0,Cons(3,Nil;);) | case {Nil ⇒ 〈 1 | ★ 〉,Cons(x0,x1;) ⇒ 〈 μa2. ifz(x0;〈 μa0. 〈 0 | ★ 〉 | a2 〉,〈 μa0. 〈 μa0. mult2(x1;★,a0) | ~μx2. *(x0,x2;a0) 〉 | a2 〉) | ★ 〉} 〉
+21: 〈 μa0. ifz(0;〈 μa0. 〈 0 | ★ 〉 | a0 〉,〈 μa0. 〈 μa0. mult2(Cons(3,Nil;);★,a0) | ~μx2. *(0,x2;a0) 〉 | a0 〉) | ★ 〉
+22: ifz(0;〈 μa1. 〈 0 | ★ 〉 | ★ 〉,〈 μa1. 〈 μa1. mult2(Cons(3,Nil;);★,a1) | ~μx1. *(0,x1;a1) 〉 | ★ 〉)
+23: 〈 μa1. 〈 0 | ★ 〉 | ★ 〉
+24: 〈 0 | ★ 〉
 ```
 
 ### Section 5.1
