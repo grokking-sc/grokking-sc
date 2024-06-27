@@ -48,7 +48,7 @@ compile (Fun.Fun v args Nothing) = do
     Core.Mu alpha (Core.Fun v args' [Core.Covar alpha])
 compile (Fun.Fun v args (Just cv)) = do
     let args' = compile <$> args
-    let alpha = freshCovar args'
+    let alpha = freshCovar [MkFree args', MkFree (Core.Covar cv)]
     Core.Mu alpha (Core.Fun v args' [Core.Covar cv, Core.Covar alpha])
 -- ⟦ K(t1,...,tn) ⟧ = K(⟦ t1 ⟧,...,⟦ tn ⟧)
 compile (Fun.Constructor ct ctargs) = do
@@ -92,7 +92,7 @@ compile (Fun.App t1 t2) = do
     let t2' = compile t2
     let alpha = freshCovar [t1', t2']
     Core.Mu alpha (Core.Cut t1' (Core.Destructor Fun.Ap [t2'] [Core.Covar alpha]))
--- ⟦ goto(t,ɑ) ⟧ = µβ. ⟨ ⟦ t ⟧ | ɑ ⟩ (β fresh)
+-- ⟦ goto(t;ɑ) ⟧ = µβ. ⟨ ⟦ t ⟧ | ɑ ⟩ (β fresh)
 compile (Fun.Goto t alpha) = do
     let t' = compile t
     let beta = freshCovar [MkFree t', MkFree (Core.Covar alpha)]
@@ -113,9 +113,9 @@ compileDef (Fun.Def nm prodargs Nothing bd rt) = do
     Core.Def nm prodargs [(cv, rt)] newCut
 compileDef (Fun.Def nm prodargs (Just cv) bd rt) = do
     let bd' = compile bd
-    let cv' = freshCovar [bd']
+    let cv' = freshCovar [MkFree bd', MkFree (Core.Covar cv)]
     let newCut = Core.Cut bd' (Core.Covar cv)
-    Core.Def nm prodargs [(cv', rt), (cv, rt)] newCut
+    Core.Def nm prodargs [(cv, rt), (cv', rt)] newCut
 
 {- | Compile a program of the surface language @Fun@ to a program of the intermediate
 language @Core@.
