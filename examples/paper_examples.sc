@@ -43,7 +43,8 @@ def casecase := case ( case Nil of { Nil => Nil, Cons(x,xs) => xs}) of {
 def tltltl := repeat(1).tl.tl.tl;
 
 //section 5.6
-def criticalPair := let x = label a { goto(1; a) } in x;
+def crtiticalEta1(; b) := let x = \y => goto(\z => 1; b) y in 3;
+def crtiticalEta2(; b) := let x = goto(\z => 1; b) in 3;
 
 //def main := ex211();
 //def main := ex212();
@@ -60,4 +61,5 @@ def criticalPair := let x = label a { goto(1; a) } in x;
 //def main := labelex();
 //def main := casecase();
 //def main := tltltl();
-def main := criticalPair();
+//def main := label b { criticalEta1(; b) };
+def main := label b { criticalEta2(; b) };
