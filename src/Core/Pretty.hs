@@ -10,7 +10,6 @@ expressions of the intermediate language Core.
 module Core.Pretty (render) where
 
 import Core.Syntax
-import Data.List (intersperse)
 import Fun.Syntax (BinOp (..), Ctor (..), Dtor (..))
 import Prettyprinter
 import Prettyprinter.Render.String
@@ -36,7 +35,7 @@ instance (Pretty a) => Pretty (Pattern a) where
     pretty MkPattern{xtor = nm, patv = vars, patcv = covars, patst = st} =
         pretty nm
             <> parens
-                (hcat (intersperse comma (pretty <$> vars)) <> semi <> hcat (intersperse comma (pretty <$> covars)))
+                (hsep (punctuate comma (pretty <$> vars)) <> semi <+> hsep (punctuate comma (pretty <$> covars)))
             <+> doublerightarrow
             <+> pretty st
 
@@ -48,37 +47,37 @@ instance Pretty Producer where
     pretty (Constructor ct pargs cargs) =
         pretty ct
             <> parens
-                (hcat (intersperse comma (pretty <$> pargs)) <> semi <> hcat (intersperse comma (pretty <$> cargs)))
-    pretty (Cocase patterns) = "cocase" <+> braces (hcat (intersperse comma (pretty <$> patterns)))
+                (hsep (punctuate comma (pretty <$> pargs)) <> semi <+> hsep (punctuate comma (pretty <$> cargs)))
+    pretty (Cocase patterns) = "cocase" <+> lbrace <+> hsep (punctuate comma (pretty <$> patterns)) <+> rbrace
 
 instance Pretty Consumer where
     pretty (Covar cv) = pretty cv
     pretty (MuTilde v st) = "~μ" <> pretty v <> dot <+> pretty st
-    pretty (Case patterns) = "case" <+> braces (hcat (intersperse comma (pretty <$> patterns)))
+    pretty (Case patterns) = "case" <+> lbrace <+> hsep (punctuate comma (pretty <$> patterns)) <+> rbrace
     pretty (Destructor dt pargs cargs) =
         pretty dt
             <> parens
-                ( hcat (intersperse comma (pretty <$> pargs)) <> semi <> hcat (intersperse comma (pretty <$> cargs))
+                ( hsep (punctuate comma (pretty <$> pargs)) <> semi <+> hsep (punctuate comma (pretty <$> cargs))
                 )
 
 instance Pretty Statement where
-    pretty (Cut p c) = "〈" <+> pretty p <+> "|" <+> pretty c <+> "〉"
-    pretty (Op p1 Prod p2 c) = "*" <> parens (pretty p1 <> comma <> pretty p2 <> semi <> pretty c)
-    pretty (Op p1 Sum p2 c) = "+" <> parens (pretty p1 <> comma <> pretty p2 <> semi <> pretty c)
-    pretty (Op p1 Sub p2 c) = "-" <> parens (pretty p1 <> comma <> pretty p2 <> semi <> pretty c)
-    pretty (IfZ p1 s1 s2) = "ifz" <> parens (pretty p1 <> semi <> pretty s1 <> comma <> pretty s2)
+    pretty (Cut p c) = "〈" <+> pretty p <+> "|" <+> pretty c <+> "〉"
+    pretty (Op p1 Prod p2 c) = "*" <> parens (pretty p1 <> comma <+> pretty p2 <> semi <+> pretty c)
+    pretty (Op p1 Sum p2 c) = "+" <> parens (pretty p1 <> comma <+> pretty p2 <> semi <+> pretty c)
+    pretty (Op p1 Sub p2 c) = "-" <> parens (pretty p1 <> comma <+> pretty p2 <> semi <+> pretty c)
+    pretty (IfZ p1 s1 s2) = "ifz" <> parens (pretty p1 <> semi <+> pretty s1 <> comma <+> pretty s2)
     pretty (Fun nm pargs cargs) =
         pretty nm
             <> parens
-                (hcat (intersperse comma (pretty <$> pargs)) <> semi <> hcat (intersperse comma (pretty <$> cargs)))
+                (hsep (punctuate comma (pretty <$> pargs)) <> semi <+> hsep (punctuate comma (pretty <$> cargs)))
     pretty Done = "Done"
 
 instance (Pretty a) => Pretty (Def a) where
     pretty (Def name pargs cargs body) =
         let args =
-                hcat (intersperse comma (pretty . fst <$> pargs))
+                hsep (punctuate comma (pretty . fst <$> pargs))
                     <> semi
-                    <> hcat (intersperse comma (pretty . fst <$> cargs))
+                    <+> hsep (punctuate comma (pretty . fst <$> cargs))
          in "def" <+> pretty name <> parens args <+> ":=" <+> pretty body
 
 instance (Pretty a) => Pretty (Program a) where
