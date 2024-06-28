@@ -37,7 +37,7 @@ If only using the binary, additionally, GHC>=9.4 is also required.
 
 ### Installing GHC and Cabal (using GHCUP)
 
-First, ensure GHCUP is correctly installed
+First, ensure GHCUP is correctly installed:
 
 ```
 > ghcup --version
@@ -712,23 +712,23 @@ Evaluating `def main := label b { criticalEta2(; b) };` again demonstrates how i
 
 ```
 ---------- Result of Evaluation --------
-0: 〈 μb. 〈 μa0. criticalEta2(;b,a0) | b 〉 | ★ 〉
+0: 〈 μa1. 〈 μa3. criticalEta2(;a1,a3) | a1 〉 | ★ 〉
 1: 〈 μa0. criticalEta2(;★,a0) | ★ 〉
 2: criticalEta2(;★,★)
-3: 〈 μa0. 〈 μa0. 〈 cocase {ap(z;a0) ⇒ 〈 1 | a0 〉} | ★ 〉 | ~μx. 〈 3 | a0 〉 〉 | ★ 〉
-4: 〈 μa0. 〈 cocase {ap(z;a0) ⇒ 〈 1 | a0 〉} | ★ 〉 | ~μx. 〈 3 | ★ 〉 〉
-5: 〈 cocase {ap(z;a0) ⇒ 〈 1 | a0 〉} | ★ 〉
+3: 〈 μa1. 〈 μa1. 〈 cocase {ap(x0;a1) ⇒ 〈 1 | a1 〉} | ★ 〉 | ~μx0. 〈 3 | a1 〉 〉 | ★ 〉
+4: 〈 μa0. 〈 cocase {ap(x0;a0) ⇒ 〈 1 | a0 〉} | ★ 〉 | ~μx0. 〈 3 | ★ 〉 〉
+5: 〈 cocase {ap(x0;a1) ⇒ 〈 1 | a1 〉} | ★ 〉
 ```
 
 Evaluating `def main := label b { criticalEta1(; b) };` gives a different result instead, since here the ~μ-abstraction is evaluated:
 
 ```
 ---------- Result of Evaluation --------
-0: 〈 μb. 〈 μa0. criticalEta1(;b,a0) | b 〉 | ★ 〉
+0: 〈 μa1. 〈 μa3. criticalEta1(;a1,a3) | a1 〉 | ★ 〉
 1: 〈 μa0. criticalEta1(;★,a0) | ★ 〉
 2: criticalEta1(;★,★)
-3: 〈 μa0. 〈 cocase {ap(y;a0) ⇒ 〈 μa0. 〈 μa0. 〈 cocase {ap(z;a0) ⇒ 〈 1 | a0 〉} | ★ 〉 | ap(y;a0) 〉 | a0 〉} | ~μx. 〈 3 | a0 〉 〉 | ★ 〉
-4: 〈 cocase {ap(y;a0) ⇒ 〈 μa0. 〈 μa0. 〈 cocase {ap(z;a0) ⇒ 〈 1 | a0 〉} | ★ 〉 | ap(y;a0) 〉 | a0 〉} | ~μx. 〈 3 | ★ 〉 〉
+3: 〈 μa1. 〈 cocase {ap(x1;a1) ⇒ 〈 μa1. 〈 μa1. 〈 cocase {ap(x0;a1) ⇒ 〈 1 | a1 〉} | ★ 〉 | ap(x1;a1) 〉 | a1 〉} | ~μx0. 〈 3 | a1 〉 〉 | ★ 〉
+4: 〈 cocase {ap(x0;a0) ⇒ 〈 μa0. 〈 μa0. 〈 cocase {ap(x0;a0) ⇒ 〈 1 | a0 〉} | ★ 〉 | ap(x0;a0) 〉 | a0 〉} | ~μx0. 〈 3 | ★ 〉 〉
 5: 〈 3 | ★ 〉
 ```
 
