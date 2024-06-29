@@ -14,7 +14,7 @@ type Var = Text
 -- | Covariables
 type Covar = Text
 
--- | Names of toplevel functions
+-- | Names of top-level functions
 type Name = Text
 
 -- | Constructors
@@ -51,8 +51,8 @@ data Term
     | -- Introduced in definition 2.4:
 
       -- | Toplevel function call applied to arguments
-      -- The optional covariable is the label to be propagated (if the definition uses goto/label)
-      Fun Name [Term] (Maybe Covar)
+      -- The list of covariables consists of labels abstracted by the label construct
+      Fun Name [Term] [Covar]
     | -- Introduced in definition 2.5:
 
       -- | Constructor applied to arguments
@@ -88,8 +88,8 @@ data Def ty = Def
     -- ^ The name of the function
     , args :: [(Var, ty)]
     -- ^ The arguments of the function; their types are inferred and annotated during type inference.
-    , cont :: Maybe Covar
-    -- ^ An optional covariable which allows to pass a label to a toplevel definition.
+    , cont :: [(Covar, ty)]
+    -- ^ The covariables which allow to pass labels to a top-level definition.
     , body :: Term
     -- ^ The function body
     , retTy :: ty
@@ -97,5 +97,5 @@ data Def ty = Def
     }
     deriving (Show, Eq)
 
--- | Programs are represented as a list of toplevel definitions
+-- | Programs are represented as a list of top-level definitions
 newtype Program ty = MkProg [Def ty] deriving (Show, Eq)

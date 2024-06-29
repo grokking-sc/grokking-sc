@@ -66,8 +66,8 @@ instance Zonk Ty where
     zonk m (FunTy t1 t2) = FunTy (zonk m t1) (zonk m t2)
 
 instance Zonk (Def Ty) where
-    zonk m (Def name args cv body ret) =
-        Def name ((\(x, t) -> (x, zonk m t)) <$> args) cv body (zonk m ret)
+    zonk m (Def name args cvs body ret) =
+        Def name ((\(x, t) -> (x, zonk m t)) <$> args) ((\(x, t) -> (x, zonk m t)) <$> cvs) body (zonk m ret)
 
 instance Zonk (Program Ty) where
     zonk m (MkProg defs) = MkProg (zonk m <$> defs)
@@ -86,7 +86,7 @@ type Error = String
 
 {- | The constraint generation environment
 maps locally bound variables and covariables to their types.
-It also contains an environment of typed toplevel definitions.
+It also contains an environment of typed top-level definitions.
 -}
 type GenReader = (M.Map Var Ty, M.Map Covar Ty, Program Ty)
 
@@ -108,8 +108,8 @@ addVarBindings :: [(Var, Ty)] -> GenReader -> GenReader
 addVarBindings xs (env, coenv, prog) = (M.union (M.fromList xs) env, coenv, prog)
 
 -- | Add covariable bindings to the typing context.
-addCovarBinding :: Covar -> Ty -> GenReader -> GenReader
-addCovarBinding v ty (env, coenv, prog) = (env, M.insert v ty coenv, prog)
+addCovarBindings :: [(Covar, Ty)] -> GenReader -> GenReader
+addCovarBindings xs (env, coenv, prog) = (env, M.union (M.fromList xs) coenv, prog)
 
 -- | Generate a fresh unification variable @ai@.
 freshVar :: GenM Ty
@@ -123,12 +123,12 @@ addConstraint :: Constraint -> GenM ()
 addConstraint c = modify (\(i, cs) -> (i, c : cs))
 
 -- |  Look up the type signature of a function declared in the program.
-lookupDefinition :: Name -> GenM ([Ty], Ty)
+lookupDefinition :: Name -> GenM ([Ty], [Ty], Ty)
 lookupDefinition nm = do
     (_, _, MkProg prog) <- ask
     case find (\(Def nm' _ _ _ _) -> nm == nm') prog of
-        Nothing -> throwError ("A toplevel function " <> T.unpack nm <> " is not contained in the program.")
-        Just (Def _ args _ _ ret) -> pure (snd <$> args, ret)
+        Nothing -> throwError ("A top-level function " <> T.unpack nm <> " is not contained in the program.")
+        Just (Def _ args cvs _ ret) -> pure (snd <$> args, snd <$> cvs, ret)
 
 -- | Generate constraints for a term and return its type.
 genConstraintsTm :: Term -> GenM Ty
@@ -180,45 +180,34 @@ genConstraintsTm (Let v t1 t2) = do
     ty1 <- genConstraintsTm t1
     local (addVarBindings [(v, ty1)]) $ genConstraintsTm t2
 --
---   f(x_i:τ_i;a:τ'):σ ∈ P  Γ⊢t_i:τ_i  Γ⊢a:τ'
--- ――――――――――――――――――――――――――――――――――――――――― Call
---              Γ ⊢ f(t_i) : σ
+--   f(x_i:τ_i;a_j:τ'_j):σ ∈ P  Γ⊢t_i:τ_i  Γ⊢a_j:τ'_j
+-- ――――――――――――――――――――----------――――――――――――――――――――― Call
+--              Γ ⊢ f(t_i;a_j) : σ
 --
---   The covariable a is optional
---
-genConstraintsTm (Fun nm args Nothing) = do
-    (argtys, retty) <- lookupDefinition nm
-    if length args /= length argtys
+genConstraintsTm (Fun nm args cvs) = do
+    (argtys, cvtys, retty) <- lookupDefinition nm
+    if length args /= length argtys || length cvs /= length cvtys
         then
             throwError
                 ( "Function "
                     <> T.unpack nm
                     <> " called with wrong number of arguments. Expected: "
                     <> show (length argtys)
+                    <> " + "
+                    <> show (length cvtys)
                     <> " Got: "
                     <> show (length args)
-                )
-        else do
-            tys <- forM args genConstraintsTm
-            forM_ (zip argtys tys) addConstraint
-            pure retty
-genConstraintsTm (Fun nm args (Just cv)) = do
-    (argtys, retty) <- lookupDefinition nm
-    if length args /= length argtys
-        then
-            throwError
-                ( "Function "
-                    <> T.unpack nm
-                    <> " called with wrong number of arguments. Expected: "
-                    <> show (length argtys)
-                    <> " Got: "
-                    <> show (length args)
+                    <> " + "
+                    <> show (length cvs)
                 )
         else do
             (_, coenv, _) <- ask
-            cvTy <- case M.lookup cv coenv of Nothing -> freshVar; Just ty -> pure ty
-            tys <- forM args (local (addCovarBinding cv cvTy) . genConstraintsTm)
-            forM_ (zip argtys tys) addConstraint
+            ptys <- forM args genConstraintsTm
+            forM_ (zip argtys ptys) addConstraint
+            ctys <- forM cvs (\cv -> case M.lookup cv coenv of
+                                       Nothing -> throwError ("Variable " <> show cv <> " not bound in environment.")
+                                       Just tau -> pure tau)
+            forM_ (zip cvtys ctys) addConstraint
             pure retty
 genConstraintsTm (Constructor Nil []) = do
     --
@@ -359,7 +348,7 @@ genConstraintsTm (App t1 t2) = do
     pure ret
 genConstraintsTm (Goto t v) = do
     --
-    --  Γ ⊢ t : τ     v : σ ∈ Γ
+    --  Γ ⊢ t : τ     v : τ ∈ Γ
     -- ―――――――――――――――――――――――――― Goto
     --     Γ ⊢ Goto(t,v) : σ
     --
@@ -378,21 +367,17 @@ genConstraintsTm (Label v t) = do
     --  Γ ⊢ Label(v,t) : τ
     --
     a <- freshVar
-    ty <- local (addCovarBinding v a) (genConstraintsTm t)
+    ty <- local (addCovarBindings [(v, a)]) (genConstraintsTm t)
     addConstraint (a, ty)
     pure ty
 
--- | Generate constraints for a toplevel definition.
+-- | Generate constraints for a top-level definition.
 genConstraintsDef :: Def Ty -> GenM ()
-genConstraintsDef (Def _ args Nothing body ret) = do
-    ty <- local (addVarBindings args) $ genConstraintsTm body
-    addConstraint (ty, ret)
-genConstraintsDef (Def _ args (Just covar) body ret) = do
-    ty <- freshVar
-    ty' <- local (addCovarBinding covar ty . addVarBindings args) $ (genConstraintsTm body)
+genConstraintsDef (Def _ args cvs body ret) = do
+    ty' <- local (addCovarBindings cvs . addVarBindings args) $ (genConstraintsTm body)
     addConstraint (ty', ret)
 
-{- | Annotate every toplevel definition with fresh unification variables @bi@
+{- | Annotate every top-level definition with fresh unification variables @bi@
 for argument and return types.
 -}
 annotateProgram :: Program () -> Program Ty
@@ -403,12 +388,16 @@ annotateProgram (MkProg defs) = MkProg (reverse defs')
 
     annotateDefs :: [Def ()] -> [Def Ty] -> [Ty] -> [Def Ty]
     annotateDefs [] acc _ = acc
-    annotateDefs (Def nm args cv body () : rest) acc fvs = do
+    annotateDefs (Def nm args cvs body () : rest) acc fvs = do
         let (args', fvs') = annotateArgs args fvs
-        annotateDefs rest (Def nm args' cv body (head fvs') : acc) (tail fvs')
+        let (cvs', fvs'') = annotateCvs cvs fvs'
+        annotateDefs rest (Def nm args' cvs' body (head fvs'') : acc) (tail fvs'')
 
     annotateArgs :: [(Var, ())] -> [Ty] -> ([(Var, Ty)], [Ty])
     annotateArgs args fvs = (zip (fst <$> args) fvs, drop (length args) fvs)
+
+    annotateCvs :: [(Var, ())] -> [Ty] -> ([(Covar, Ty)], [Ty])
+    annotateCvs cvs fvs = (zip (fst <$> cvs) fvs, drop (length cvs) fvs)
 
 -- | Generate constraints for a program.
 generateConstraints :: Program () -> Either String (Program Ty, [Constraint])
@@ -495,7 +484,7 @@ solveConstraint (StreamTy t1, StreamTy t2) = addConstraints [(t1, t2)]
 solveConstraint (LPairTy t1 t2, LPairTy t1' t2') = addConstraints [(t1, t1'), (t2, t2')]
 solveConstraint (FunTy t1 t2, FunTy t1' t2') = addConstraints [(t1, t1'), (t2, t2')]
 -- In any other case we cannot unify the two types and emit an error.
-solveConstraint (ty1, ty2) = throwError ("Cannot unify types: " <> show ty1 <> "and" <> show ty2)
+solveConstraint (ty1, ty2) = throwError ("Cannot unify types: " <> show ty1 <> " and " <> show ty2)
 
 -------------------------------------------------------------------------------
 -- Type Inference
@@ -504,7 +493,7 @@ solveConstraint (ty1, ty2) = throwError ("Cannot unify types: " <> show ty1 <> "
 -- | Infer the types of a program.
 inferTypes :: Program () -> Either Error (Program Ty)
 inferTypes prog = do
-    -- Generate the constraints and annotate the toplevel definitions
+    -- Generate the constraints and annotate the top-level definitions
     -- with unification variables.
     (prog', constraints) <- generateConstraints prog
     -- Solve the constraints and generate a unifier which maps type variables

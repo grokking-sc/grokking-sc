@@ -689,8 +689,8 @@ When evaluating this example (`def main := tltltl();`), we can see on line 5 how
 ### Section 5.6
 
 ```
-def crtiticalEta1(; b) := let x = \y => goto(\z => 1; b) y in 3;
-def crtiticalEta2(; b) := let x = goto(\z => 1; b) in 3;
+def crtiticalEta1(; b) := let x = \y => goto(\z => 1; b) y in \z => 3;
+def crtiticalEta2(; b) := let x = goto(\z => 1; b) in \z => 3;
 ```
 
 We use these examples to demonstrate the differences between call-by-name and call-by-value and their connection to the η-laws, as explained in section 5.6.
@@ -699,37 +699,37 @@ After compilation, `criticalEta2` contains a critical pair, i.e., a cut between 
 
 ```
 ---------- Result of Compilation --------
-def crtiticalEta1(;b,a0) := 〈 μa0. 〈 cocase {ap(y;a0) ⇒ 〈 μa0. 〈 μa0. 〈 cocase {ap(z;a0) ⇒ 〈 1 | a0 〉} | b 〉 | ap(y;a0) 〉 | a0 〉} | ~μx. 〈 3 | a0 〉 〉 | a0 〉
-def crtiticalEta2(;b,a0) := 〈 μa0. 〈 μa0. 〈 cocase {ap(z;a0) ⇒ 〈 1 | a0 〉} | b 〉 | ~μx. 〈 3 | a0 〉 〉 | a0 〉
+def criticalEta1(; b, a0) := 〈 μa0. 〈 cocase { ap(y; a0) ⇒ 〈 μa0. 〈 μa0. 〈 cocase { ap(z; a0) ⇒ 〈 1 | a0 〉 } | b 〉 | ap(y; a0) 〉 | a0 〉 } | ~μx. 〈 cocase { ap(z; a0) ⇒ 〈 3 | a0 〉 } | a0 〉 〉 | a0 〉
+def criticalEta2(; b, a0) := 〈 μa0. 〈 μa0. 〈 cocase { ap(z; a0) ⇒ 〈 1 | a0 〉 } | b 〉 | ~μx. 〈 cocase { ap(z; a0) ⇒ 〈 3 | a0 〉 } | a0 〉 〉 | a0 〉
 ```
 ```
 ---------- Result of Focusing --------
-def crtiticalEta1(;b,a0) := 〈 μa0. 〈 cocase {ap(y;a0) ⇒ 〈 μa0. 〈 μa0. 〈 cocase {ap(z;a0) ⇒ 〈 1 | a0 〉} | b 〉 | ap(y;a0) 〉 | a0 〉} | ~μx. 〈 3 | a0 〉 〉 | a0 〉
-def crtiticalEta2(;b,a0) := 〈 μa0. 〈 μa0. 〈 cocase {ap(z;a0) ⇒ 〈 1 | a0 〉} | b 〉 | ~μx. 〈 3 | a0 〉 〉 | a0 〉
+def criticalEta1(; b, a0) := 〈 μa0. 〈 cocase { ap(y; a0) ⇒ 〈 μa0. 〈 μa0. 〈 cocase { ap(z; a0) ⇒ 〈 1 | a0 〉 } | b 〉 | ap(y; a0) 〉 | a0 〉 } | ~μx. 〈 cocase { ap(z; a0) ⇒ 〈 3 | a0 〉 } | a0 〉 〉 | a0 〉
+def criticalEta2(; b, a0) := 〈 μa0. 〈 μa0. 〈 cocase { ap(z; a0) ⇒ 〈 1 | a0 〉 } | b 〉 | ~μx. 〈 cocase { ap(z; a0) ⇒ 〈 3 | a0 〉 } | a0 〉 〉 | a0 〉
 ```
 
 Evaluating `def main := label b { criticalEta2(; b) };` again demonstrates how in a call-by-value language, μ-abstractions are evaluated first:
 
 ```
 ---------- Result of Evaluation --------
-0: 〈 μa1. 〈 μa3. criticalEta2(;a1,a3) | a1 〉 | ★ 〉
-1: 〈 μa0. criticalEta2(;★,a0) | ★ 〉
-2: criticalEta2(;★,★)
-3: 〈 μa1. 〈 μa1. 〈 cocase {ap(x0;a1) ⇒ 〈 1 | a1 〉} | ★ 〉 | ~μx0. 〈 3 | a1 〉 〉 | ★ 〉
-4: 〈 μa0. 〈 cocase {ap(x0;a0) ⇒ 〈 1 | a0 〉} | ★ 〉 | ~μx0. 〈 3 | ★ 〉 〉
-5: 〈 cocase {ap(x0;a1) ⇒ 〈 1 | a1 〉} | ★ 〉
+0: 〈 μa1. 〈 μa3. criticalEta2(; a1, a3) | a1 〉 | ★ 〉
+1: 〈 μa0. criticalEta2(; ★, a0) | ★ 〉
+2: criticalEta2(; ★, ★)
+3: 〈 μa1. 〈 μa1. 〈 cocase { ap(x0; a1) ⇒ 〈 1 | a1 〉 } | ★ 〉 | ~μx0. 〈 cocase { ap(x0; a1) ⇒ 〈 3 | a1 〉 } | a1 〉 〉 | ★ 〉
+4: 〈 μa0. 〈 cocase { ap(x0; a0) ⇒ 〈 1 | a0 〉 } | ★ 〉 | ~μx0. 〈 cocase { ap(x0; a2) ⇒ 〈 3 | a2 〉 } | ★ 〉 〉
+5: 〈 cocase { ap(x0; a1) ⇒ 〈 1 | a1 〉 } | ★ 〉
 ```
 
 Evaluating `def main := label b { criticalEta1(; b) };` gives a different result instead, since here the ~μ-abstraction is evaluated:
 
 ```
 ---------- Result of Evaluation --------
-0: 〈 μa1. 〈 μa3. criticalEta1(;a1,a3) | a1 〉 | ★ 〉
-1: 〈 μa0. criticalEta1(;★,a0) | ★ 〉
-2: criticalEta1(;★,★)
-3: 〈 μa1. 〈 cocase {ap(x1;a1) ⇒ 〈 μa1. 〈 μa1. 〈 cocase {ap(x0;a1) ⇒ 〈 1 | a1 〉} | ★ 〉 | ap(x1;a1) 〉 | a1 〉} | ~μx0. 〈 3 | a1 〉 〉 | ★ 〉
-4: 〈 cocase {ap(x0;a0) ⇒ 〈 μa0. 〈 μa0. 〈 cocase {ap(x0;a0) ⇒ 〈 1 | a0 〉} | ★ 〉 | ap(x0;a0) 〉 | a0 〉} | ~μx0. 〈 3 | ★ 〉 〉
-5: 〈 3 | ★ 〉
+0: 〈 μa1. 〈 μa3. criticalEta1(; a1, a3) | a1 〉 | ★ 〉
+1: 〈 μa0. criticalEta1(; ★, a0) | ★ 〉
+2: criticalEta1(; ★, ★)
+3: 〈 μa1. 〈 cocase { ap(x1; a1) ⇒ 〈 μa1. 〈 μa1. 〈 cocase { ap(x0; a1) ⇒ 〈 1 | a1 〉 } | ★ 〉 | ap(x1; a1) 〉 | a1 〉 } | ~μx0. 〈 cocase { ap(x0; a1) ⇒ 〈 3 | a1 〉 } | a1 〉 〉 | ★ 〉
+4: 〈 cocase { ap(x0; a0) ⇒ 〈 μa0. 〈 μa0. 〈 cocase { ap(x0; a0) ⇒ 〈 1 | a0 〉 } | ★ 〉 | ap(x0; a0) 〉 | a0 〉 } | ~μx0. 〈 cocase { ap(x0; a2) ⇒ 〈 3 | a2 〉 } | ★ 〉 〉
+5: 〈 cocase { ap(x1; a0) ⇒ 〈 3 | a0 〉 } | ★ 〉
 ```
 
 The η-law for the codata type of functions hence does not hold in general with call-by-value.

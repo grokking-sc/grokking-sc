@@ -109,6 +109,6 @@ evalOnce _ _ = Nothing
 evalMain :: Program a -> Maybe [Statement]
 evalMain prg@(MkProg defs) = do
     main <- find (\def -> name def == T.pack "main") defs
-    -- ★ is the toplevel continuation
+    -- ★ is the top-level continuation
     let bd = substCovar (Covar (T.pack "★")) (fst . head . cargs $ main) (body main)
     pure (eval bd prg)

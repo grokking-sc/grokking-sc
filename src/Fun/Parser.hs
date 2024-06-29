@@ -28,7 +28,7 @@ type Parser = Parsec Void Text
 sc :: Parser ()
 sc = L.space space1 (L.skipLineComment "//") (L.skipBlockComment "/*" "*/")
 
--- | Reserved keywords that cannot be used as names for variables or toplevel functions.
+-- | Reserved keywords that cannot be used as names for variables or top-level functions.
 keywords :: [Text]
 keywords =
     [ "Nil"
@@ -150,24 +150,26 @@ letP = do
     tm' <- termP'
     pure (Let var tm tm')
 
--- | Parse a toplevel definition call @fun(t1,...,tn)@ or @fun(t1,...,tn;a)@
+-- | Parse a top-level definition call @fun(t1,...,tn)@ or @fun(t1,...,tn;a1,...,an)@
 funP :: Parser Term
 funP = do
     name <- identifierP
     args <- funArgsP
     pure $ uncurry (Fun name) args
 
--- | Parse the argument list @(t1,...,tn;cv)@ or @(t1,...,tn)@ of a toplevel call.
-funArgsP :: Parser ([Term], Maybe Covar)
+-- | Parse the argument list @(t1,...,tn;cv1,...,cvn)@ or @(t1,...,tn)@ of a top-level call.
+funArgsP :: Parser ([Term], [Covar])
 funArgsP = do
     _ <- symbol "("
     sc
     args <- sepEndBy termP' (symbol ",")
     sc
     -- Optionally parse the continuation covariable
-    cv <- optional (symbol ";" >> identifierP)
+    mcvs <- optional (symbol ";" >> sepEndBy identifierP (symbol ","))
     _ <- symbol ")"
-    pure (args, cv)
+    case mcvs of
+      Nothing -> pure (args, [])
+      Just cvs -> pure (args, cvs)
 
 -- | Parse a constructor applied to a list of arguments.
 conP :: Parser Term
@@ -301,33 +303,35 @@ termP' :: Parser Term
 termP' = try destructorChainP <|> try appP <|> try opP <|> termP
 
 -------------------------------------------------------------------------------
--- Parsing toplevel functions and programs
+-- Parsing top-level functions and programs
 -------------------------------------------------------------------------------
 
--- | Parse a single toplevel function definition.
+-- | Parse a single top-level function definition.
 defP :: Parser (Def ())
 defP = do
     _ <- symbol "def"
     name <- identifierP
-    (args, cv) <- option ([], Nothing) defArgsP
+    (args, cvs) <- option ([], []) defArgsP
     sc
     _ <- symbol ":="
     body <- termP'
     _ <- symbol ";"
-    pure (Def name ((\x -> (x, ())) <$> args) cv body ())
+    pure (Def name ((\x -> (x, ())) <$> args) ((\x -> (x, ())) <$> cvs) body ())
 
--- | Parse arguments @(v1,...,vn)@ or @(v1,...,vn;cv)@ of a toplevel definition.
-defArgsP :: Parser ([Var], Maybe Covar)
+-- | Parse arguments @(v1,...,vn)@ or @(v1,...,vn;cv)@ of a top-level definition.
+defArgsP :: Parser ([Var], [Covar])
 defArgsP = do
     _ <- symbol "("
     sc
     args <- sepEndBy identifierP (symbol ",")
     sc
-    cv <- optional (symbol ";" >> identifierP)
+    mcvs <- optional (symbol ";" >> sepEndBy identifierP (symbol ","))
     _ <- symbol ")"
-    pure (args, cv)
+    case mcvs of
+      Nothing -> pure (args, [])
+      Just cvs -> pure (args, cvs)
 
--- | Parse a program which consists of many toplevel function definitions.
+-- | Parse a program which consists of many top-level function definitions.
 programP :: Parser (Program ())
 programP = MkProg <$> many defP
 

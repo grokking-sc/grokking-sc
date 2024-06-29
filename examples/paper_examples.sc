@@ -44,8 +44,8 @@ def casecase := case (case Nil of { Nil => Nil, Cons(x, xs) => xs}) of {
 def tltltl := repeat(1).tl.tl.tl;
 
 //section 5.6
-def criticalEta1(; b) := let x = \y => goto(\z => 1; b) y in 3;
-def criticalEta2(; b) := let x = goto(\z => 1; b) in 3;
+def criticalEta1(; b) := let x = \y => goto(\z => 1; b) y in \z => 3;
+def criticalEta2(; b) := let x = goto(\z => 1; b) in \z => 3;
 
 //def main := ex211();
 //def main := ex212();

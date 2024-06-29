@@ -29,7 +29,7 @@ type Var = Text
 -- | Covariables
 type Covar = Text
 
--- | Names of toplevel functions
+-- | Names of top-level functions
 type Name = Text
 
 {- | Pattern
@@ -119,5 +119,5 @@ data Def a = Def
     -- ^ The body of the definition
     }
 
--- | Programs are represented as a list of toplevel definitions
+-- | Programs are represented as a list of top-level definitions
 newtype Program a = MkProg [Def a]

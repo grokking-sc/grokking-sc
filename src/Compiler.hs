@@ -42,14 +42,10 @@ compile (Fun.Let v t1 t2) = do
     let alpha = freshCovar [t1', t2']
     Core.Mu alpha (Core.Cut t1' (Core.MuTilde v (Core.Cut t2' (Core.Covar alpha))))
 -- ⟦ f(t1,...,tn;ɑ1,...,ɑn) ⟧ = µɑ. f(⟦ t1 ⟧,...,⟦ tn ⟧;ɑ1,...,ɑn,ɑ) (ɑ fresh)
-compile (Fun.Fun v args Nothing) = do
+compile (Fun.Fun v args cvs) = do
     let args' = compile <$> args
-    let alpha = freshCovar args'
-    Core.Mu alpha (Core.Fun v args' [Core.Covar alpha])
-compile (Fun.Fun v args (Just cv)) = do
-    let args' = compile <$> args
-    let alpha = freshCovar [MkFree args', MkFree (Core.Covar cv)]
-    Core.Mu alpha (Core.Fun v args' [Core.Covar cv, Core.Covar alpha])
+    let alpha = freshCovar [MkFree args', MkFree (Core.Covar <$> cvs)]
+    Core.Mu alpha (Core.Fun v args' ((Core.Covar <$> cvs) ++ [Core.Covar alpha]))
 -- ⟦ K(t1,...,tn) ⟧ = K(⟦ t1 ⟧,...,⟦ tn ⟧)
 compile (Fun.Constructor ct ctargs) = do
     Core.Constructor ct (compile <$> ctargs) []
@@ -106,16 +102,11 @@ compile (Fun.Label alpha t) = do
 ⟦ def f(x1,...xn;ɑ1,...,ɑm) := t ⟧ = def f(x1,...xn;ɑ1,...,ɑm,ɑ) := ⟨ ⟦ t ⟧ | ɑ ⟩ (ɑ fresh)
 -}
 compileDef :: Fun.Def a -> Core.Def a
-compileDef (Fun.Def nm prodargs Nothing bd rt) = do
+compileDef (Fun.Def nm prodargs cvs bd rt) = do
     let bd' = compile bd
-    let cv = freshCovar [bd']
-    let newCut = Core.Cut bd' (Core.Covar cv)
-    Core.Def nm prodargs [(cv, rt)] newCut
-compileDef (Fun.Def nm prodargs (Just cv) bd rt) = do
-    let bd' = compile bd
-    let cv' = freshCovar [MkFree bd', MkFree (Core.Covar cv)]
+    let cv' = freshCovar [MkFree bd', MkFree (Core.Covar . fst <$> cvs)]
     let newCut = Core.Cut bd' (Core.Covar cv')
-    Core.Def nm prodargs [(cv, rt), (cv', rt)] newCut
+    Core.Def nm prodargs (cvs ++ [(cv', rt)]) newCut
 
 {- | Compile a program of the surface language @Fun@ to a program of the intermediate
 language @Core@.
