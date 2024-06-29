@@ -85,15 +85,15 @@ subst10 = mkCovarTest input (Covar "a0") "a" expected
   where
     input =
         Cut
-          ( Mu
-              "a0"
-              (Cut (Var "x") (Case [MkPattern Nil [] [] (Cut (Mu "a0" (Cut (Lit 0) (Covar "a"))) (Covar "a0"))]))
-          )
-          (Covar "a")
+            ( Mu
+                "a0"
+                (Cut (Var "x") (Case [MkPattern Nil [] [] (Cut (Mu "a0" (Cut (Lit 0) (Covar "a"))) (Covar "a0"))]))
+            )
+            (Covar "a")
     expected =
         Cut
-          ( Mu
-              "a1"
-              (Cut (Var "x") (Case [MkPattern Nil [] [] (Cut (Mu "a1" (Cut (Lit 0) (Covar "a0"))) (Covar "a1"))]))
-          )
-          (Covar "a0")
+            ( Mu
+                "a1"
+                (Cut (Var "x") (Case [MkPattern Nil [] [] (Cut (Mu "a1" (Cut (Lit 0) (Covar "a0"))) (Covar "a1"))]))
+            )
+            (Covar "a0")
