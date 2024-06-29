@@ -33,6 +33,7 @@ parserTests =
         , testFuncall
         , testFuncallParens
         , testFuncCont
+        , testFuncMultipleParams
         , testHd
         , testTl
         , testTlTl
@@ -114,10 +115,10 @@ testLambda :: TestTree
 testLambda = mkTermTest "\\x => x" (Lam "x" (VarT "x"))
 
 testFuncall :: TestTree
-testFuncall = mkTermTest "fac(10)" (Fun "fac" [Lit 10] Nothing)
+testFuncall = mkTermTest "fac(10)" (Fun "fac" [Lit 10] [])
 
 testFuncallParens :: TestTree
-testFuncallParens = mkTermTest "(fac(10))" (Fun "fac" [Lit 10] Nothing)
+testFuncallParens = mkTermTest "(fac(10))" (Fun "fac" [Lit 10] [])
 
 testFuncCont :: TestTree
 testFuncCont =
@@ -126,7 +127,17 @@ testFuncCont =
         ( Fun
             "fmult"
             [Constructor Cons [Lit 1, Constructor Cons [Lit 0, Constructor Cons [Lit 2, Constructor Nil []]]]]
-            (Just "beta")
+            ["beta"]
+        )
+
+testFuncMultipleParams :: TestTree
+testFuncMultipleParams =
+    mkTermTest
+        "foo(3, 4, x; alpha, beta)"
+        ( Fun
+            "foo"
+            [Lit 3, Lit 4, VarT "x"]
+            ["alpha", "beta"]
         )
 
 testHd :: TestTree
@@ -165,34 +176,34 @@ testOpNested = mkTermTest "(2 * 3) + (4 - 1)" (Op (Op (Lit 2) Prod (Lit 3)) Sum 
 -- Program tests
 
 simpleProg1 :: TestTree
-simpleProg1 = mkProgTest "def foo := x;" (MkProg [Def "foo" [] Nothing (VarT "x") ()])
+simpleProg1 = mkProgTest "def foo := x;" (MkProg [Def "foo" [] [] (VarT "x") ()])
 
 simpleProg2 :: TestTree
-simpleProg2 = mkProgTest "def foo(x) := x;" (MkProg [Def "foo" [("x", ())] Nothing (VarT "x") ()])
+simpleProg2 = mkProgTest "def foo(x) := x;" (MkProg [Def "foo" [("x", ())] [] (VarT "x") ()])
 
 simpleProg3 :: TestTree
 simpleProg3 =
     mkProgTest
         "def foo(x) := x; def bar(y) := y;"
-        (MkProg [Def "foo" [("x", ())] Nothing (VarT "x") (), Def "bar" [("y", ())] Nothing (VarT "y") ()])
+        (MkProg [Def "foo" [("x", ())] [] (VarT "x") (), Def "bar" [("y", ())] [] (VarT "y") ()])
 
 simpleProg4 :: TestTree
 simpleProg4 =
     mkProgTest
         "def mult(l) := label a { mult2(l;a)}; def mult2(l;a) := case l of { Nil => 1,Cons(x,xs) => ifz(x,goto(0;a),x*mult2(xs;a))};"
         ( MkProg
-            [ Def "mult" [("l", ())] Nothing (Label "a" (Fun "mult2" [VarT "l"] (Just "a"))) ()
+            [ Def "mult" [("l", ())] [] (Label "a" (Fun "mult2" [VarT "l"] ["a"])) ()
             , Def
                 "mult2"
                 [("l", ())]
-                (Just "a")
+                [("a", ())]
                 ( Case
                     (VarT "l")
                     [ MkClause Nil [] (Lit 1)
                     , MkClause
                         Cons
                         ["x", "xs"]
-                        (IfZ (VarT "x") (Goto (Lit 0) "a") (Op (VarT "x") Prod (Fun "mult2" [VarT "xs"] (Just "a"))))
+                        (IfZ (VarT "x") (Goto (Lit 0) "a") (Op (VarT "x") Prod (Fun "mult2" [VarT "xs"] ["a"])))
                     ]
                 )
                 ()
