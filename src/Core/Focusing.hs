@@ -71,17 +71,17 @@ instance Focus Producer where
     --
     focus (Cocase cocases) = Cocase (focus <$> cocases)
     --
-    -- F(K(ps,p,ps'cs)) = μ a.⟨F(p) | μ~ x.⟨F(K(ps,x,ps',cs)) | a⟩
+    -- F(K(ps,p,ps'cs)) = μ a.⟨F(p) | μ~ x.⟨F(K(ps,x,ps';cs)) | a⟩
     -- where ps are all values and p is the first non-value argument
     --
     focus cont@(Constructor ct pargs cargs) =
         case find (not . isValue) pargs of
             Nothing -> Constructor ct (focus <$> pargs) (focus <$> cargs)
-            Just p1' -> do
+            Just p -> do
                 let v = freshVar [cont]
                 let cv = freshCovar [cont]
-                let newArgs = (\p -> if p == p1' then Var v else p) <$> pargs
-                Mu cv (Cut (focus p1') (MuTilde v (Cut (focus (Constructor ct newArgs cargs)) (Covar cv))))
+                let newArgs = (\p' -> if p' == p then Var v else p') <$> pargs
+                Mu cv (Cut (focus p) (MuTilde v (Cut (focus (Constructor ct newArgs cargs)) (Covar cv))))
 
 instance Focus Consumer where
     focus :: Consumer -> Consumer
@@ -98,16 +98,18 @@ instance Focus Consumer where
     --
     focus (Case cases) = Case (focus <$> cases)
     --
-    -- F(D(ps,p,ps';cs)) = μ~ x. ⟨F(p) | F(D(ps,x,ps';c)⟩
+    -- F(D(ps,p,ps';cs)) = μ~ y. ⟨F(p) | μ~ x.⟨y | F(D(ps,x,ps';cs))⟩⟩
     -- where ps are all values and p is the first non-value argument
     --
     focus dest@(Destructor dt pargs cargs) =
         case find (not . isValue) pargs of
             Nothing -> Destructor dt (focus <$> pargs) (focus <$> cargs)
-            Just p1' -> do
-                let v = freshVar [dest]
-                let newArgs = (\p -> if p == p1' then Var v else p) <$> pargs
-                MuTilde v (Cut (focus p1') (Destructor dt newArgs cargs))
+            Just p -> do
+                let freshList = freshVars [dest]
+                let v1 = head freshList
+                let v2 = head . tail $ freshList
+                let newArgs = (\p' -> if p' == p then Var v1 else p') <$> pargs
+                MuTilde v2 (Cut (focus p) (MuTilde v1 (Cut (Var v2) (Destructor dt newArgs cargs))))
 
 instance Focus Statement where
     focus :: Statement -> Statement

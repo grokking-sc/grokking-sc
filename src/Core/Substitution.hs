@@ -15,6 +15,7 @@ module Core.Substitution (
 
     -- * Fresh (Co-) Variables
     freshVar,
+    freshVars,
     freshCovar,
 
     -- * free (Co-) Variables
