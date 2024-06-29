@@ -67,7 +67,12 @@ instance Zonk Ty where
 
 instance Zonk (Def Ty) where
     zonk m (Def name args cvs body ret) =
-        Def name ((\(x, t) -> (x, zonk m t)) <$> args) ((\(x, t) -> (x, zonk m t)) <$> cvs) body (zonk m ret)
+        Def
+            name
+            ((\(x, t) -> (x, zonk m t)) <$> args)
+            ((\(x, t) -> (x, zonk m t)) <$> cvs)
+            body
+            (zonk m ret)
 
 instance Zonk (Program Ty) where
     zonk m (MkProg defs) = MkProg (zonk m <$> defs)
@@ -204,9 +209,13 @@ genConstraintsTm (Fun nm args cvs) = do
             (_, coenv, _) <- ask
             ptys <- forM args genConstraintsTm
             forM_ (zip argtys ptys) addConstraint
-            ctys <- forM cvs (\cv -> case M.lookup cv coenv of
-                                       Nothing -> throwError ("Variable " <> show cv <> " not bound in environment.")
-                                       Just tau -> pure tau)
+            ctys <-
+                forM
+                    cvs
+                    ( \cv -> case M.lookup cv coenv of
+                        Nothing -> throwError ("Variable " <> show cv <> " not bound in environment.")
+                        Just tau -> pure tau
+                    )
             forM_ (zip cvtys ctys) addConstraint
             pure retty
 genConstraintsTm (Constructor Nil []) = do

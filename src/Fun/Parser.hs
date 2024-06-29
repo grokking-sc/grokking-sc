@@ -168,8 +168,8 @@ funArgsP = do
     mcvs <- optional (symbol ";" >> sepEndBy identifierP (symbol ","))
     _ <- symbol ")"
     case mcvs of
-      Nothing -> pure (args, [])
-      Just cvs -> pure (args, cvs)
+        Nothing -> pure (args, [])
+        Just cvs -> pure (args, cvs)
 
 -- | Parse a constructor applied to a list of arguments.
 conP :: Parser Term
@@ -328,8 +328,8 @@ defArgsP = do
     mcvs <- optional (symbol ";" >> sepEndBy identifierP (symbol ","))
     _ <- symbol ")"
     case mcvs of
-      Nothing -> pure (args, [])
-      Just cvs -> pure (args, cvs)
+        Nothing -> pure (args, [])
+        Just cvs -> pure (args, cvs)
 
 -- | Parse a program which consists of many top-level function definitions.
 programP :: Parser (Program ())
