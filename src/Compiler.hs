@@ -100,8 +100,8 @@ compile (Fun.Lam x t) = do
     usedCovars <- get
     let alpha = freshCovarFrom [t'] usedCovars
     put (usedCovars `S.union` S.singleton alpha)
-    pure (
-        Core.Cocase
+    pure
+        ( Core.Cocase
             [Core.MkPattern Fun.Ap [x] [alpha] (Core.Cut t' (Core.Covar alpha))]
         )
 -- ⟦ t1 t2 ⟧ = µɑ. ⟨ ⟦ t1 ⟧ | ap(⟦ t2 ⟧;ɑ) ⟩ (ɑ fresh)
