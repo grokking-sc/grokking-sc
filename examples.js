@@ -18,6 +18,14 @@ def mult2(l; a) := case l of { Nil => 1,
 def main := fmult(Cons(2, Cons(0, Cons(3, Cons(3, Nil)))));
 `;
 
+const Lambdas = `
+def nonValueArguments := (\\x => \\y => y) (1 + 2) (3 + 4);
+
+def higherOrder := (\\x => \\y => x y) (\\z => 4 + z) (3 + 1);
+
+def main := higherOrder();
+`;
+
 const LazyPair = `
 // Swap the elements of a lazy pair.
 def swapLazy(x) := cocase { fst => x.snd, snd => x.fst };
@@ -40,7 +48,6 @@ def foldr(f, st, ls) := case ls of { Nil => st,
                                      Cons(y, ys) => foldr(f, f y st, ys)};
 def len(ls) := case ls of { Nil => 0,
                             Cons(y, ys) => 1 + len(ys)};
-def sum := \\x => \\y => x + y;
 
 def main := len(Cons(1, Cons(2, Cons(3, Cons(4, Nil)))));
 `;
@@ -119,7 +126,7 @@ def criticalEta2(; b) := let x = goto(\\z => 1; b) in \\z => 3;
 //def main := sum(Cons(1, Cons(1, Cons(1, Nil))));
 //def main := repeat(1);
 //def main := swap(Tup(1, 2));
-//def main := swaplazy(cocase { fst => 1, snd => 2 });
+//def main := swaplazy(cocase { fst => 1, snd => 2 }).fst;
 //def main := ex26();
 //def main := mult(Cons(2, Cons(2, Cons(0, Cons(3, Nil)))));
 //def main := sec51();
@@ -135,6 +142,7 @@ def main := label b { criticalEta2(; b) };
 const all_examples={
 'ArithmeticExpressions':ArithmeticExpressions,
 'FastMultiplication':FastMultiplication,
+'Lambdas':Lambdas,
 'LazyPair':LazyPair,
 'Lists':Lists,
 'Stream':Stream,
