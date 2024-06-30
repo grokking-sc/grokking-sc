@@ -443,17 +443,17 @@ def swaplazy(x; a4) := 〈 cocase { fst(; a1) ⇒ 〈 μa0. 〈 x | snd(; a0) �
 
 ```
 
-Using `def main := swaplazy(cocase { fst => 1, snd => 2 }).fst;` shows the difference in evaluation:
+Using `def main := swaplazy(cocase { fst => 1, snd => 2 }).snd;` shows the difference in evaluation:
 
 ```
 ---------- Result of Evaluation --------
-0: 〈 μa0. 〈 μa0. swaplazy(cocase { fst(; a0) ⇒ 〈 1 | a0 〉, snd(; a0) ⇒ 〈 2 | a0 〉 }; a0) | fst(; a0) 〉 | ★ 〉
-1: 〈 μa1. swaplazy(cocase { fst(; a1) ⇒ 〈 1 | a1 〉, snd(; a1) ⇒ 〈 2 | a1 〉 }; a1) | fst(; ★) 〉
-2: swaplazy(cocase { fst(; a0) ⇒ 〈 1 | a0 〉, snd(; a0) ⇒ 〈 2 | a0 〉 }; fst(; ★))
-3: 〈 cocase { fst(; a0) ⇒ 〈 μa0. 〈 cocase { fst(; a0) ⇒ 〈 1 | a0 〉, snd(; a0) ⇒ 〈 2 | a0 〉 } | snd(; a0) 〉 | a0 〉, snd(; a0) ⇒ 〈 μa0. 〈 cocase { fst(; a0) ⇒ 〈 1 | a0 〉, snd(; a0) ⇒ 〈 2 | a0 〉 } | fst(; a0) 〉 | a0 〉 } | fst(; ★) 〉
-4: 〈 μa1. 〈 cocase { fst(; a1) ⇒ 〈 1 | a1 〉, snd(; a1) ⇒ 〈 2 | a1 〉 } | snd(; a1) 〉 | ★ 〉
-5: 〈 cocase { fst(; a0) ⇒ 〈 1 | a0 〉, snd(; a0) ⇒ 〈 2 | a0 〉 } | snd(; ★) 〉
-6: 〈 2 | ★ 〉
+0: 〈 μa0. 〈 μa0. swaplazy(cocase { fst(; a0) ⇒ 〈 1 | a0 〉, snd(; a0) ⇒ 〈 2 | a0 〉 }; a0) | snd(; a0) 〉 | ★ 〉
+1: 〈 μa1. swaplazy(cocase { fst(; a1) ⇒ 〈 1 | a1 〉, snd(; a1) ⇒ 〈 2 | a1 〉 }; a1) | snd(; ★) 〉
+2: swaplazy(cocase { fst(; a0) ⇒ 〈 1 | a0 〉, snd(; a0) ⇒ 〈 2 | a0 〉 }; snd(; ★))
+3: 〈 cocase { fst(; a0) ⇒ 〈 μa0. 〈 cocase { fst(; a0) ⇒ 〈 1 | a0 〉, snd(; a0) ⇒ 〈 2 | a0 〉 } | snd(; a0) 〉 | a0 〉, snd(; a0) ⇒ 〈 μa0. 〈 cocase { fst(; a0) ⇒ 〈 1 | a0 〉, snd(; a0) ⇒ 〈 2 | a0 〉 } | fst(; a0) 〉 | a0 〉 } | snd(; ★) 〉
+4: 〈 μa1. 〈 cocase { fst(; a1) ⇒ 〈 1 | a1 〉, snd(; a1) ⇒ 〈 2 | a1 〉 } | fst(; a1) 〉 | ★ 〉
+5: 〈 cocase { fst(; a0) ⇒ 〈 1 | a0 〉, snd(; a0) ⇒ 〈 2 | a0 〉 } | fst(; ★) 〉
+6: 〈 1 | ★ 〉
 ```
 
 ### Example 2.6

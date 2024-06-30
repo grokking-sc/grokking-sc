@@ -54,7 +54,7 @@ def criticalEta2(; b) := let x = goto(\z => 1; b) in \z => 3;
 //def main := sum(Cons(1, Cons(1, Cons(1, Nil))));
 //def main := repeat(1);
 //def main := swap(Tup(1, 2));
-//def main := swaplazy(cocase { fst => 1, snd => 2 }).fst;
+//def main := swaplazy(cocase { fst => 1, snd => 2 }).snd;
 //def main := ex26();
 //def main := mult(Cons(2, Cons(2, Cons(0, Cons(3, Nil)))));
 //def main := sec51();
