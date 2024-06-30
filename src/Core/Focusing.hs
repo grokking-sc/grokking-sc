@@ -15,6 +15,7 @@ module Core.Focusing (
 import Core.Substitution
 import Core.Syntax
 import Data.List (find)
+import Data.Set qualified as S
 
 {- | Test if a producer is a value.
 The only non-values in CBV are mu-abstractions or
@@ -105,9 +106,8 @@ instance Focus Consumer where
         case find (not . isValue) pargs of
             Nothing -> Destructor dt (focus <$> pargs) (focus <$> cargs)
             Just p -> do
-                let freshList = freshVars [dest]
-                let v1 = head freshList
-                let v2 = head . tail $ freshList
+                let v1 = freshVar [dest]
+                let v2 = freshVarFrom [dest] (S.singleton v1)
                 let newArgs = (\p' -> if p' == p then Var v1 else p') <$> pargs
                 MuTilde v2 (Cut (focus p) (MuTilde v1 (Cut (Var v2) (Destructor dt newArgs cargs))))
 

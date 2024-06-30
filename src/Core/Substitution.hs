@@ -15,8 +15,9 @@ module Core.Substitution (
 
     -- * Fresh (Co-) Variables
     freshVar,
-    freshVars,
+    freshVarFrom,
     freshCovar,
+    freshCovarFrom,
 
     -- * free (Co-) Variables
     FreeV,
@@ -31,40 +32,68 @@ import Data.Set qualified as S
 import Data.Text qualified as T
 
 {-
+ >>> freshVarsFrom [] S.empty
+ ["x0","x1",...]
+ -}
+freshVarsFrom :: (FreeV a) => [a] -> S.Set Var -> [Var]
+freshVarsFrom xs s = filter (not . \x -> x `elem` fvs) [T.pack ("x" <> show i) | i <- [(0 :: Integer) ..]]
+  where
+    fvs = freeVars xs `S.union` s
+
+{-
  >>> freshVars []
  ["x0","x1",...]
  -}
 freshVars :: (FreeV a) => [a] -> [Var]
-freshVars xs = filter (not . \x -> x `elem` fvs) [T.pack ("x" <> show i) | i <- [(0 :: Integer) ..]]
-  where
-    fvs = freeVars xs
+freshVars xs = freshVarsFrom xs S.empty
+
+{-
+ >>> freshVarFrom Done S.empty
+ "x0"
+ >>> freshVarFrom [Var (T.pack "x0")] (S.singleton (T.pack "x1"))
+ "x2"
+-}
+freshVarFrom :: (FreeV a) => [a] -> S.Set Var -> Var
+freshVarFrom xs s = head $ freshVarsFrom xs s
 
 {-
  >>> freshVar Done
  "x0"
- >>> freshVar (Var "x0")
+ >>> freshVar [Var (T.pack "x0")]
  "x1"
 -}
 freshVar :: (FreeV a) => [a] -> Var
 freshVar = head . freshVars
 
 {-
+ >>> freshCovarsFrom [] S.empty
+ ["a0","a1",...]
+-}
+freshCovarsFrom :: (FreeV a) => [a] -> S.Set Covar -> [Covar]
+freshCovarsFrom xs s = filter (not . \x -> x `elem` fcvs) [T.pack ("a" <> show i) | i <- [(0 :: Integer) ..]]
+  where
+    fcvs = freeCovars xs `S.union` s
+
+{-
  >>> freshCovars []
  ["a0","a1",...]
 -}
 freshCovars :: (FreeV a) => [a] -> [Covar]
-freshCovars xs = filter (not . \x -> x `elem` fcvs) [T.pack ("a" <> show i) | i <- [(0 :: Integer) ..]]
-  where
-    fcvs = freeCovars xs
+freshCovars xs = freshCovarsFrom xs S.empty
 
-{- | generate a fresh covariable not occurring in the argument list
-the arguments need to have FreeV implemented
--}
+{-
+ >>> freshCovarFrom Done S.empty
+ "a0"
+ >>> freshCovarFrom [Covar (T.pack "a0")] (S.singleton (T.pack "a1"))
+ "a2"
+ -}
+freshCovarFrom :: (FreeV a) => [a] -> S.Set Covar -> Covar
+freshCovarFrom xs s = head $ freshCovarsFrom xs s
 
 {-
  >>> freshCovar Done
  "a0"
- >>> freshCovar (Covar "a0")
+ >>> freshCovar [Covar (T.pack "a0")]
  "a1"
  -}
 freshCovar :: (FreeV a) => [a] -> Covar

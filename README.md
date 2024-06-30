@@ -119,17 +119,17 @@ make run filepath=examples/Stream.sc
 cabal run sequent-calculus examples/Stream.sc
 Program typechecks!
 ---------- Result of Compilation --------
-def repeat(x;a0) := 〈 cocase {hd(;a0) ⇒ 〈 x | a0 〉,tl(;a0) ⇒ 〈 μa0. repeat(x;a0) | a0 〉} | a0 〉
-def const1(;a0) := 〈 cocase {hd(;a0) ⇒ 〈 1 | a0 〉,tl(;a0) ⇒ 〈 μa0. const1(;a0) | a0 〉} | a0 〉
-def main(;a0) := 〈 μa0. repeat(1;a0) | a0 〉
+def repeat(x; a3) := 〈 cocase { hd(; a0) ⇒ 〈 x | a0 〉, tl(; a2) ⇒ 〈 μa1. repeat(x; a1) | a2 〉 } | a3 〉
+def const1(; a3) := 〈 cocase { hd(; a0) ⇒ 〈 1 | a0 〉, tl(; a2) ⇒ 〈 μa1. const1(; a1) | a2 〉 } | a3 〉
+def main(; a1) := 〈 μa0. repeat(1; a0) | a1 〉
 ---------- Result of Focusing --------
-def repeat(x;a0) := 〈 cocase {hd(;a0) ⇒ 〈 x | a0 〉,tl(;a0) ⇒ 〈 μa0. repeat(x;a0) | a0 〉} | a0 〉
-def const1(;a0) := 〈 cocase {hd(;a0) ⇒ 〈 1 | a0 〉,tl(;a0) ⇒ 〈 μa0. const1(;a0) | a0 〉} | a0 〉
-def main(;a0) := 〈 μa0. repeat(1;a0) | a0 〉
+def repeat(x; a3) := 〈 cocase { hd(; a0) ⇒ 〈 x | a0 〉, tl(; a2) ⇒ 〈 μa1. repeat(x; a1) | a2 〉 } | a3 〉
+def const1(; a3) := 〈 cocase { hd(; a0) ⇒ 〈 1 | a0 〉, tl(; a2) ⇒ 〈 μa1. const1(; a1) | a2 〉 } | a3 〉
+def main(; a1) := 〈 μa0. repeat(1; a0) | a1 〉
 ---------- Result of Evaluation --------
-0: 〈 μa1. repeat(1;a1) | ★ 〉
-1: repeat(1;★)
-2: 〈 cocase {hd(;a1) ⇒ 〈 1 | a1 〉,tl(;a1) ⇒ 〈 μa1. repeat(1;a1) | a1 〉} | ★ 〉
+0: 〈 μa2. repeat(1; a2) | ★ 〉
+1: repeat(1; ★)
+2: 〈 cocase { hd(; a1) ⇒ 〈 1 | a1 〉, tl(; a0) ⇒ 〈 μa0. repeat(1; a0) | a0 〉 } | ★ 〉
 ```
 
 ### Web demo
@@ -215,8 +215,8 @@ When the brackets are omitted, this is interpreted as a variable and will not su
 ### Example 2.1
 
 ```
-def ex211 := 2*3;
-def ex212 := ifz(2,5,10);
+def ex211 := 2 * 3;
+def ex212 := ifz(2, 5, 10);
 ```
 
 These are the terms we introduce to show compilation of arithmetic expressions as well as their evaluation.
@@ -224,35 +224,35 @@ Running the `paper_examples.sc` file gives the following outputs for these examp
 
 ```
 ---------- Result of Compilation --------
-def ex211(;a0) := 〈 μa0. *(2,3;a0) | a0 〉
-def ex212(;a0) := 〈 μa0. ifz(2;〈 5 | a0 〉,〈 10 | a0 〉) | a0 〉
+def ex211(; a1) := 〈 μa0. *(2, 3; a0) | a1 〉
+def ex212(; a1) := 〈 μa0. ifz(2; 〈 5 | a0 〉, 〈 10 | a0 〉) | a1 〉
 ```
 ```
 ---------- Result of Focusing --------
-def ex211(;a0) := 〈 μa0. *(2,3;a0) | a0 〉
-def ex212(;a0) := 〈 μa0. ifz(2;〈 5 | a0 〉,〈 10 | a0 〉) | a0 〉
+def ex211(; a1) := 〈 μa0. *(2, 3; a0) | a1 〉
+def ex212(; a1) := 〈 μa0. ifz(2; 〈 5 | a0 〉, 〈 10 | a0 〉) | a1 〉
 ```
 
 Changing the definition of the `main` function in the example to `def main := ex211();` (also included as a comment) to evaluate the first example then gives the evaluation:
 
 ```
 ---------- Result of Evaluation --------
-0: 〈 μa1. ex211(;a1) | ★ 〉
-1: ex211(;★)
-2: 〈 μa1. *(2,3;a1) | ★ 〉
-3: *(2,3;★)
-4: 〈 6 | ★ 〉
+0: 〈 μa2. ex211(; a2) | ★ 〉
+1: ex211(; ★)
+2: 〈 μa2. *(2, 3; a2) | ★ 〉
+3: *(2, 3; ★)
+4: 〈 6 | ★ 〉
 ```
 
 Similarly, using `def main := ex212();` gives:
 
 ```
 ---------- Result of Evaluation --------
-0: 〈 μa1. ex212(;a1) | ★ 〉
-1: ex212(;★)
-2: 〈 μa1. ifz(2;〈 5 | a1 〉,〈 10 | a1 〉) | ★ 〉
-3: ifz(2;〈 5 | ★ 〉,〈 10 | ★ 〉)
-4: 〈 10 | ★ 〉
+0: 〈 μa2. ex212(; a2) | ★ 〉
+1: ex212(; ★)
+2: 〈 μa2. ifz(2; 〈 5 | a2 〉, 〈 10 | a2 〉) | ★ 〉
+3: ifz(2; 〈 5 | ★ 〉, 〈 10 | ★ 〉)
+4: 〈 10 | ★ 〉
 ```
 
 These results match the ones included in the paper.
@@ -260,7 +260,7 @@ These results match the ones included in the paper.
 ### Example 2.2
 
 ```
-def ex22 := let x = 2*2 in x*x;
+def ex22 := let x = 2 * 2 in x * x;
 ```
 
 Similar to the last example, this example is used in the paper to show compilation and evaluation of `let`-bindings.
@@ -268,32 +268,32 @@ Running this example gives the output:
 
 ```
 ---------- Result of Compilation --------
-def ex22(;a0) := 〈 μa0. 〈 μa0. *(2,2;a0) | ~μx. 〈 μa0. *(x,x;a0) | a0 〉 〉 | a0 〉
+def ex22(; a3) := 〈 μa2. 〈 μa0. *(2, 2; a0) | ~μx. 〈 μa1. *(x, x; a1) | a2 〉 〉 | a3 〉
 ```
 ```
 ---------- Result of Focusing --------
-def ex22(;a0) := 〈 μa0. 〈 μa0. *(2,2;a0) | ~μx. 〈 μa0. *(x,x;a0) | a0 〉 〉 | a0 〉
+def ex22(; a3) := 〈 μa2. 〈 μa0. *(2, 2; a0) | ~μx. 〈 μa1. *(x, x; a1) | a2 〉 〉 | a3 〉
 ```
 
 Then, evaluating this example using `def main := ex22();` gives:
 
 ```
 ---------- Result of Evaluation --------
-0: 〈 μa1. ex22(;a1) | ★ 〉
-1: ex22(;★)
-2: 〈 μa1. 〈 μa1. *(2,2;a1) | ~μx1. 〈 μa1. *(x1,x1;a1) | a1 〉 〉 | ★ 〉
-3: 〈 μa0. *(2,2;a0) | ~μx0. 〈 μa2. *(x0,x0;a2) | ★ 〉 〉
-4: *(2,2;~μx0. 〈 μa2. *(x0,x0;a2) | ★ 〉)
-5: 〈 4 | ~μx0. 〈 μa2. *(x0,x0;a2) | ★ 〉 〉
-6: 〈 μa0. *(4,4;a0) | ★ 〉
-7: *(4,4;★)
-8: 〈 16 | ★ 〉
+0: 〈 μa2. ex22(; a2) | ★ 〉
+1: ex22(; ★)
+2: 〈 μa0. 〈 μa0. *(2, 2; a0) | ~μx1. 〈 μa1. *(x1, x1; a1) | a0 〉 〉 | ★ 〉
+3: 〈 μa1. *(2, 2; a1) | ~μx0. 〈 μa1. *(x0, x0; a1) | ★ 〉 〉
+4: *(2, 2; ~μx0. 〈 μa1. *(x0, x0; a1) | ★ 〉)
+5: 〈 4 | ~μx0. 〈 μa1. *(x0, x0; a1) | ★ 〉 〉
+6: 〈 μa0. *(4, 4; a0) | ★ 〉
+7: *(4, 4; ★)
+8: 〈 16 | ★ 〉
 ```
 
 ### Example 2.3
 
 ```
-def fac(n) := ifz(n,1,n*fac(n-1));
+def fac(n) := ifz(n, 1, n * fac(n - 1));
 def ex23 := fac(1);
 ```
 
@@ -302,42 +302,43 @@ The output is:
 
 ```
 ---------- Result of Compilation --------
-def fac(n;a0) := 〈 μa0. ifz(n;〈 1 | a0 〉,〈 μa0. *(n,μa0. fac(μa0. -(n,1;a0);a0);a0) | a0 〉) | a0 〉
-def ex23(;a0) := 〈 μa0. fac(1;a0) | a0 〉
+def fac(n; a4) := 〈 μa3. ifz(n; 〈 1 | a3 〉, 〈 μa2. *(n, μa1. fac(μa0. -(n, 1; a0); a1); a2) | a3 〉) | a4 〉
+def ex23(; a1) := 〈 μa0. fac(1; a0) | a1 〉
 ```
 ```
 ---------- Result of Focusing --------
-def fac(n;a0) := 〈 μa0. ifz(n;〈 1 | a0 〉,〈 μa0. 〈 μa0. 〈 μa0. -(n,1;a0) | ~μx0. fac(x0;a0) 〉 | ~μx0. *(n,x0;a0) 〉 | a0 〉) | a0 〉
-def ex23(;a0) := 〈 μa0. fac(1;a0) | a0 〉
+def fac(n; a4) := 〈 μa3. ifz(n; 〈 1 | a3 〉, 〈 μa2. 〈 μa1. 〈 μa0. -(n, 1; a0) | ~μx0. fac(x0; a1) 〉 | ~μx0. *(n, x0; a2) 〉 | a3 〉) | a4 〉
+def ex23(; a1) := 〈 μa0. fac(1; a0) | a1 〉
 ```
 
 When evaluating `def main := ex23();`, we get:
 
 ```
 ---------- Result of Evaluation --------
-0: 〈 μa1. ex23(;a1) | ★ 〉
-1: ex23(;★)
-2: 〈 μa1. fac(1;a1) | ★ 〉
-3: fac(1;★)
-4: 〈 μa1. ifz(1;〈 1 | a1 〉,〈 μa1. 〈 μa1. 〈 μa1. -(1,1;a1) | ~μx0. fac(x0;a1) 〉 | ~μx0. *(1,x0;a1) 〉 | a1 〉) | ★ 〉
-5: ifz(1;〈 1 | ★ 〉,〈 μa0. 〈 μa0. 〈 μa0. -(1,1;a0) | ~μx0. fac(x0;a0) 〉 | ~μx0. *(1,x0;a0) 〉 | ★ 〉)
-6: 〈 μa0. 〈 μa0. 〈 μa0. -(1,1;a0) | ~μx0. fac(x0;a0) 〉 | ~μx0. *(1,x0;a0) 〉 | ★ 〉
-7: 〈 μa1. 〈 μa1. -(1,1;a1) | ~μx0. fac(x0;a1) 〉 | ~μx1. *(1,x1;★) 〉
-8: 〈 μa0. -(1,1;a0) | ~μx1. fac(x1;~μx1. *(1,x1;★)) 〉
-9: -(1,1;~μx1. fac(x1;~μx1. *(1,x1;★)))
-10: 〈 0 | ~μx1. fac(x1;~μx1. *(1,x1;★)) 〉
-11: fac(0;~μx0. *(1,x0;★))
-12: 〈 μa1. ifz(0;〈 1 | a1 〉,〈 μa1. 〈 μa1. 〈 μa1. -(0,1;a1) | ~μx0. fac(x0;a1) 〉 | ~μx0. *(0,x0;a1) 〉 | a1 〉) | ~μx0. *(1,x0;★) 〉
-13: ifz(0;〈 1 | ~μx0. *(1,x0;★) 〉,〈 μa0. 〈 μa0. 〈 μa0. -(0,1;a0) | ~μx0. fac(x0;a0) 〉 | ~μx0. *(0,x0;a0) 〉 | ~μx0. *(1,x0;★) 〉)
-14: 〈 1 | ~μx0. *(1,x0;★) 〉
-15: *(1,1;★)
-16: 〈 1 | ★ 〉
+0: 〈 μa2. ex23(; a2) | ★ 〉
+1: ex23(; ★)
+2: 〈 μa2. fac(1; a2) | ★ 〉
+3: fac(1; ★)
+4: 〈 μa0. ifz(1; 〈 1 | a0 〉, 〈 μa0. 〈 μa0. 〈 μa0. -(1, 1; a0) | ~μx0. fac(x0; a0) 〉 | ~μx0. *(1, x0; a0) 〉 | a0 〉) | ★ 〉
+5: ifz(1; 〈 1 | ★ 〉, 〈 μa1. 〈 μa1. 〈 μa1. -(1, 1; a1) | ~μx0. fac(x0; a1) 〉 | ~μx0. *(1, x0; a1) 〉 | ★ 〉)
+6: 〈 μa1. 〈 μa1. 〈 μa1. -(1, 1; a1) | ~μx0. fac(x0; a1) 〉 | ~μx0. *(1, x0; a1) 〉 | ★ 〉
+7: 〈 μa0. 〈 μa0. -(1, 1; a0) | ~μx0. fac(x0; a0) 〉 | ~μx1. *(1, x1; ★) 〉
+8: 〈 μa1. -(1, 1; a1) | ~μx1. fac(x1; ~μx1. *(1, x1; ★)) 〉
+9: -(1, 1; ~μx1. fac(x1; ~μx1. *(1, x1; ★)))
+10: 〈 0 | ~μx1. fac(x1; ~μx1. *(1, x1; ★)) 〉
+11: fac(0; ~μx0. *(1, x0; ★))
+12: 〈 μa0. ifz(0; 〈 1 | a0 〉, 〈 μa0. 〈 μa0. 〈 μa0. -(0, 1; a0) | ~μx0. fac(x0; a0) 〉 | ~μx0. *(0, x0; a0) 〉 | a0 〉) | ~μx0. *(1, x0; ★) 〉
+13: ifz(0; 〈 1 | ~μx0. *(1, x0; ★) 〉, 〈 μa1. 〈 μa1. 〈 μa1. -(0, 1; a1) | ~μx0. fac(x0; a1) 〉 | ~μx0. *(0, x0; a1) 〉 | ~μx0. *(1, x0; ★) 〉)
+14: 〈 1 | ~μx0. *(1, x0; ★) 〉
+15: *(1, 1; ★)
+16: 〈 1 | ★ 〉
 ```
 
 ### Section 2.4
 
 ```
-def sum(x) := case x of { Nil => 0, Cons(y,ys) => y + sum(ys) };
+def sum(x) := case x of { Nil => 0,
+                          Cons(y, ys) => y + sum(ys) };
 def repeat(x) := cocase { hd => x, tl => repeat(x) };
 ```
 
@@ -346,13 +347,13 @@ Compiling and focusing these shows the compilation of data and codata types as i
 
 ```
 ---------- Result of Compilation --------
-def sum(x;a0) := 〈 μa0. 〈 x | case {Nil ⇒ 〈 0 | a0 〉,Cons(y,ys;) ⇒ 〈 μa0. +(y,μa0. sum(ys;a0);a0) | a0 〉} 〉 | a0 〉
-def repeat(x;a0) := 〈 cocase {hd(;a0) ⇒ 〈 x | a0 〉,tl(;a0) ⇒ 〈 μa0. repeat(x;a0) | a0 〉} | a0 〉
+def sum(x; a3) := 〈 μa2. 〈 x | case { Nil ⇒ 〈 0 | a2 〉, Cons(y, ys; ) ⇒ 〈 μa1. +(y, μa0. sum(ys; a0); a1) | a2 〉 } 〉 | a3 〉
+def repeat(x; a3) := 〈 cocase { hd(; a0) ⇒ 〈 x | a0 〉, tl(; a2) ⇒ 〈 μa1. repeat(x; a1) | a2 〉 } | a3 〉
 ```
 ```
 ---------- Result of Focusing --------
-def sum(x;a0) := 〈 μa0. 〈 x | case {Nil ⇒ 〈 0 | a0 〉,Cons(y,ys;) ⇒ 〈 μa0. 〈 μa0. sum(ys;a0) | ~μx0. +(y,x0;a0) 〉 | a0 〉} 〉 | a0 〉
-def repeat(x;a0) := 〈 cocase {hd(;a0) ⇒ 〈 x | a0 〉,tl(;a0) ⇒ 〈 μa0. repeat(x;a0) | a0 〉} | a0 〉
+def sum(x; a3) := 〈 μa2. 〈 x | case { Nil ⇒ 〈 0 | a2 〉, Cons(y, ys; ) ⇒ 〈 μa1. 〈 μa0. sum(ys; a0) | ~μx0. +(y, x0; a1) 〉 | a2 〉 } 〉 | a3 〉
+def repeat(x; a3) := 〈 cocase { hd(; a0) ⇒ 〈 x | a0 〉, tl(; a2) ⇒ 〈 μa1. repeat(x; a1) | a2 〉 } | a3 〉
 ```
 
 These results also demonstrate the duality between data and codata types as explained in section 5.2.
@@ -362,66 +363,66 @@ Evaluating this for an example list `[1,1,1]` using `def main := sum(Cons(1,Cons
 
 ```
 ---------- Result of Evaluation --------
-0: 〈 μa1. sum(Cons(1,Cons(1,Cons(1,Nil;);););a1) | ★ 〉
-1: sum(Cons(1,Cons(1,Cons(1,Nil;);););★)
-2: 〈 μa1. 〈 Cons(1,Cons(1,Cons(1,Nil;););) | case {Nil ⇒ 〈 0 | a1 〉,Cons(x2,x3;) ⇒ 〈 μa1. 〈 μa1. sum(x3;a1) | ~μx1. +(x2,x1;a1) 〉 | a1 〉} 〉 | ★ 〉
-3: 〈 Cons(1,Cons(1,Cons(1,Nil;););) | case {Nil ⇒ 〈 0 | ★ 〉,Cons(x0,x1;) ⇒ 〈 μa2. 〈 μa0. sum(x1;a0) | ~μx2. +(x0,x2;a2) 〉 | ★ 〉} 〉
-4: 〈 μa0. 〈 μa0. sum(Cons(1,Cons(1,Nil;););a0) | ~μx2. +(1,x2;a0) 〉 | ★ 〉
-5: 〈 μa1. sum(Cons(1,Cons(1,Nil;););a1) | ~μx0. +(1,x0;★) 〉
-6: sum(Cons(1,Cons(1,Nil;););~μx0. +(1,x0;★))
-7: 〈 μa1. 〈 Cons(1,Cons(1,Nil;);) | case {Nil ⇒ 〈 0 | a1 〉,Cons(x2,x3;) ⇒ 〈 μa1. 〈 μa1. sum(x3;a1) | ~μx1. +(x2,x1;a1) 〉 | a1 〉} 〉 | ~μx0. +(1,x0;★) 〉
-8: 〈 Cons(1,Cons(1,Nil;);) | case {Nil ⇒ 〈 0 | ~μx0. +(1,x0;★) 〉,Cons(x0,x1;) ⇒ 〈 μa2. 〈 μa0. sum(x1;a0) | ~μx2. +(x0,x2;a2) 〉 | ~μx0. +(1,x0;★) 〉} 〉
-9: 〈 μa0. 〈 μa0. sum(Cons(1,Nil;);a0) | ~μx2. +(1,x2;a0) 〉 | ~μx2. +(1,x2;★) 〉
-10: 〈 μa1. sum(Cons(1,Nil;);a1) | ~μx0. +(1,x0;~μx2. +(1,x2;★)) 〉
-11: sum(Cons(1,Nil;);~μx0. +(1,x0;~μx2. +(1,x2;★)))
-12: 〈 μa1. 〈 Cons(1,Nil;) | case {Nil ⇒ 〈 0 | a1 〉,Cons(x2,x3;) ⇒ 〈 μa1. 〈 μa1. sum(x3;a1) | ~μx1. +(x2,x1;a1) 〉 | a1 〉} 〉 | ~μx0. +(1,x0;~μx2. +(1,x2;★)) 〉
-13: 〈 Cons(1,Nil;) | case {Nil ⇒ 〈 0 | ~μx0. +(1,x0;~μx2. +(1,x2;★)) 〉,Cons(x0,x1;) ⇒ 〈 μa2. 〈 μa0. sum(x1;a0) | ~μx2. +(x0,x2;a2) 〉 | ~μx0. +(1,x0;~μx2. +(1,x2;★)) 〉} 〉
-14: 〈 μa0. 〈 μa0. sum(Nil;a0) | ~μx2. +(1,x2;a0) 〉 | ~μx2. +(1,x2;~μx2. +(1,x2;★)) 〉
-15: 〈 μa1. sum(Nil;a1) | ~μx0. +(1,x0;~μx2. +(1,x2;~μx2. +(1,x2;★))) 〉
-16: sum(Nil;~μx0. +(1,x0;~μx2. +(1,x2;~μx2. +(1,x2;★))))
-17: 〈 μa1. 〈 Nil | case {Nil ⇒ 〈 0 | a1 〉,Cons(x2,x3;) ⇒ 〈 μa1. 〈 μa1. sum(x3;a1) | ~μx1. +(x2,x1;a1) 〉 | a1 〉} 〉 | ~μx0. +(1,x0;~μx2. +(1,x2;~μx2. +(1,x2;★))) 〉
-18: 〈 Nil | case {Nil ⇒ 〈 0 | ~μx0. +(1,x0;~μx2. +(1,x2;~μx2. +(1,x2;★))) 〉,Cons(x0,x1;) ⇒ 〈 μa2. 〈 μa0. sum(x1;a0) | ~μx2. +(x0,x2;a2) 〉 | ~μx0. +(1,x0;~μx2. +(1,x2;~μx2. +(1,x2;★))) 〉} 〉
-19: 〈 0 | ~μx1. +(1,x1;~μx0. +(1,x0;~μx0. +(1,x0;★))) 〉
-20: +(1,0;~μx2. +(1,x2;~μx0. +(1,x0;★)))
-21: 〈 1 | ~μx2. +(1,x2;~μx0. +(1,x0;★)) 〉
-22: +(1,1;~μx1. +(1,x1;★))
-23: 〈 2 | ~μx1. +(1,x1;★) 〉
-24: +(1,2;★)
-25: 〈 3 | ★ 〉
+0: 〈 μa2. sum(Cons(1, Cons(1, Cons(1, Nil; ); ); ); a2) | ★ 〉
+1: sum(Cons(1, Cons(1, Cons(1, Nil; ); ); ); ★)
+2: 〈 μa0. 〈 Cons(1, Cons(1, Cons(1, Nil; ); ); ) | case { Nil ⇒ 〈 0 | a0 〉, Cons(x2, x3; ) ⇒ 〈 μa1. 〈 μa0. sum(x3; a0) | ~μx1. +(x2, x1; a1) 〉 | a0 〉 } 〉 | ★ 〉
+3: 〈 Cons(1, Cons(1, Cons(1, Nil; ); ); ) | case { Nil ⇒ 〈 0 | ★ 〉, Cons(x0, x1; ) ⇒ 〈 μa1. 〈 μa1. sum(x1; a1) | ~μx2. +(x0, x2; a1) 〉 | ★ 〉 } 〉
+4: 〈 μa0. 〈 μa0. sum(Cons(1, Cons(1, Nil; ); ); a0) | ~μx2. +(1, x2; a0) 〉 | ★ 〉
+5: 〈 μa1. sum(Cons(1, Cons(1, Nil; ); ); a1) | ~μx0. +(1, x0; ★) 〉
+6: sum(Cons(1, Cons(1, Nil; ); ); ~μx0. +(1, x0; ★))
+7: 〈 μa0. 〈 Cons(1, Cons(1, Nil; ); ) | case { Nil ⇒ 〈 0 | a0 〉, Cons(x2, x3; ) ⇒ 〈 μa1. 〈 μa0. sum(x3; a0) | ~μx1. +(x2, x1; a1) 〉 | a0 〉 } 〉 | ~μx0. +(1, x0; ★) 〉
+8: 〈 Cons(1, Cons(1, Nil; ); ) | case { Nil ⇒ 〈 0 | ~μx0. +(1, x0; ★) 〉, Cons(x0, x1; ) ⇒ 〈 μa1. 〈 μa1. sum(x1; a1) | ~μx2. +(x0, x2; a1) 〉 | ~μx0. +(1, x0; ★) 〉 } 〉
+9: 〈 μa0. 〈 μa0. sum(Cons(1, Nil; ); a0) | ~μx2. +(1, x2; a0) 〉 | ~μx2. +(1, x2; ★) 〉
+10: 〈 μa1. sum(Cons(1, Nil; ); a1) | ~μx0. +(1, x0; ~μx2. +(1, x2; ★)) 〉
+11: sum(Cons(1, Nil; ); ~μx0. +(1, x0; ~μx2. +(1, x2; ★)))
+12: 〈 μa0. 〈 Cons(1, Nil; ) | case { Nil ⇒ 〈 0 | a0 〉, Cons(x2, x3; ) ⇒ 〈 μa1. 〈 μa0. sum(x3; a0) | ~μx1. +(x2, x1; a1) 〉 | a0 〉 } 〉 | ~μx0. +(1, x0; ~μx2. +(1, x2; ★)) 〉
+13: 〈 Cons(1, Nil; ) | case { Nil ⇒ 〈 0 | ~μx0. +(1, x0; ~μx2. +(1, x2; ★)) 〉, Cons(x0, x1; ) ⇒ 〈 μa1. 〈 μa1. sum(x1; a1) | ~μx2. +(x0, x2; a1) 〉 | ~μx0. +(1, x0; ~μx2. +(1, x2; ★)) 〉 } 〉
+14: 〈 μa0. 〈 μa0. sum(Nil; a0) | ~μx2. +(1, x2; a0) 〉 | ~μx2. +(1, x2; ~μx2. +(1, x2; ★)) 〉
+15: 〈 μa1. sum(Nil; a1) | ~μx0. +(1, x0; ~μx2. +(1, x2; ~μx2. +(1, x2; ★))) 〉
+16: sum(Nil; ~μx0. +(1, x0; ~μx2. +(1, x2; ~μx2. +(1, x2; ★))))
+17: 〈 μa0. 〈 Nil | case { Nil ⇒ 〈 0 | a0 〉, Cons(x2, x3; ) ⇒ 〈 μa1. 〈 μa0. sum(x3; a0) | ~μx1. +(x2, x1; a1) 〉 | a0 〉 } 〉 | ~μx0. +(1, x0; ~μx2. +(1, x2; ~μx2. +(1, x2; ★))) 〉
+18: 〈 Nil | case { Nil ⇒ 〈 0 | ~μx0. +(1, x0; ~μx2. +(1, x2; ~μx2. +(1, x2; ★))) 〉, Cons(x0, x1; ) ⇒ 〈 μa1. 〈 μa1. sum(x1; a1) | ~μx2. +(x0, x2; a1) 〉 | ~μx0. +(1, x0; ~μx2. +(1, x2; ~μx2. +(1, x2; ★))) 〉 } 〉
+19: 〈 0 | ~μx1. +(1, x1; ~μx0. +(1, x0; ~μx0. +(1, x0; ★))) 〉
+20: +(1, 0; ~μx2. +(1, x2; ~μx0. +(1, x0; ★)))
+21: 〈 1 | ~μx2. +(1, x2; ~μx0. +(1, x0; ★)) 〉
+22: +(1, 1; ~μx1. +(1, x1; ★))
+23: 〈 2 | ~μx1. +(1, x1; ★) 〉
+24: +(1, 2; ★)
+25: 〈 3 | ★ 〉
 ```
 
 Alternatively, using `def main := repeat(1);` gives evaluation output:
 
 ```
 ---------- Result of Evaluation --------
-0: 〈 μa1. repeat(1;a1) | ★ 〉
-1: repeat(1;★)
-2: 〈 cocase {hd(;a1) ⇒ 〈 1 | a1 〉,tl(;a1) ⇒ 〈 μa1. repeat(1;a1) | a1 〉} | ★ 〉
+0: 〈 μa2. repeat(1; a2) | ★ 〉
+1: repeat(1; ★)
+2: 〈 cocase { hd(; a1) ⇒ 〈 1 | a1 〉, tl(; a0) ⇒ 〈 μa0. repeat(1; a0) | a0 〉 } | ★ 〉
 ```
 
 ### Example 2.4
 
 ```
-def swap(x;a0) := 〈 μa0. 〈 x | case {Tup(y,z;) ⇒ 〈 Tup(z,y;) | a0 〉} 〉 | a0 〉
+def swap(x) := case x of { Tup(y, z) => Tup(z, y) };
 ```
 
 This example similarly shows evaluation and compilation for data types with the following results (using `def main := swap(Tup(1,2));`):
 
 ```
 ---------- Result of Compilation --------
-def swap(x;a0) := 〈 μa0. 〈 x | case {Tup(y,z;) ⇒ 〈 Tup(z,y;) | a0 〉} 〉 | a0 〉
+def swap(x; a1) := 〈 μa0. 〈 x | case { Tup(y, z; ) ⇒ 〈 Tup(z, y; ) | a0 〉 } 〉 | a1 〉
 ```
 ```
 ---------- Result of Focusing --------
-def swap(x;a0) := 〈 μa0. 〈 x | case {Tup(y,z;) ⇒ 〈 Tup(z,y;) | a0 〉} 〉 | a0 〉
+def swap(x; a1) := 〈 μa0. 〈 x | case { Tup(y, z; ) ⇒ 〈 Tup(z, y; ) | a0 〉 } 〉 | a1 〉
 ```
 ```
 ---------- Result of Evaluation --------
-0: 〈 μa1. swap(Tup(1,2;);a1) | ★ 〉
-1: swap(Tup(1,2;);★)
-2: 〈 μa1. 〈 Tup(1,2;) | case {Tup(x2,x3;) ⇒ 〈 Tup(x3,x2;) | a1 〉} 〉 | ★ 〉
-3: 〈 Tup(1,2;) | case {Tup(x0,x1;) ⇒ 〈 Tup(x1,x0;) | ★ 〉} 〉
-4: 〈 Tup(2,1;) | ★ 〉
+0: 〈 μa2. swap(Tup(1, 2; ); a2) | ★ 〉
+1: swap(Tup(1, 2; ); ★)
+2: 〈 μa2. 〈 Tup(1, 2; ) | case { Tup(x2, x3; ) ⇒ 〈 Tup(x3, x2; ) | a2 〉 } 〉 | ★ 〉
+3: 〈 Tup(1, 2; ) | case { Tup(x0, x1; ) ⇒ 〈 Tup(x1, x0; ) | ★ 〉 } 〉
+4: 〈 Tup(2, 1; ) | ★ 〉
 ```
 
 ### Example 2.5
@@ -434,27 +435,31 @@ This example shows the analogon of example 2.4 for codata types, as well as the 
 
 ```
 ---------- Result of Compilation --------
-def swaplazy(x;a0) := 〈 cocase {fst(;a0) ⇒ 〈 μa0. 〈 x | snd(;a0) 〉 | a0 〉,snd(;a0) ⇒ 〈 μa0. 〈 x | fst(;a0) 〉 | a0 〉} | a0 〉
+def swaplazy(x; a4) := 〈 cocase { fst(; a1) ⇒ 〈 μa0. 〈 x | snd(; a0) 〉 | a1 〉, snd(; a3) ⇒ 〈 μa2. 〈 x | fst(; a2) 〉 | a3 〉 } | a4 〉
 ```
 ```
 ---------- Result of Focusing --------
-def swaplazy(x;a0) := 〈 cocase {fst(;a0) ⇒ 〈 μa0. 〈 x | snd(;a0) 〉 | a0 〉,snd(;a0) ⇒ 〈 μa0. 〈 x | fst(;a0) 〉 | a0 〉} | a0 〉
+def swaplazy(x; a4) := 〈 cocase { fst(; a1) ⇒ 〈 μa0. 〈 x | snd(; a0) 〉 | a1 〉, snd(; a3) ⇒ 〈 μa2. 〈 x | fst(; a2) 〉 | a3 〉 } | a4 〉
 
 ```
 
-Using `def main := swaplazy(cocase { fst => 1, snd => 2 });` shows the difference in evaluation:
+Using `def main := swaplazy(cocase { fst => 1, snd => 2 }).fst;` shows the difference in evaluation:
 
 ```
 ---------- Result of Evaluation --------
-0: 〈 μa1. swaplazy(cocase {fst(;a1) ⇒ 〈 1 | a1 〉,snd(;a1) ⇒ 〈 2 | a1 〉};a1) | ★ 〉
-1: swaplazy(cocase {fst(;a0) ⇒ 〈 1 | a0 〉,snd(;a0) ⇒ 〈 2 | a0 〉};★)
-2: 〈 cocase {fst(;a1) ⇒ 〈 μa1. 〈 cocase {fst(;a0) ⇒ 〈 1 | a0 〉,snd(;a0) ⇒ 〈 2 | a0 〉} | snd(;a1) 〉 | a1 〉,snd(;a1) ⇒ 〈 μa1. 〈 cocase {fst(;a0) ⇒ 〈 1 | a0 〉,snd(;a0) ⇒ 〈 2 | a0 〉} | fst(;a1) 〉 | a1 〉} | ★ 〉
+0: 〈 μa0. 〈 μa0. swaplazy(cocase { fst(; a0) ⇒ 〈 1 | a0 〉, snd(; a0) ⇒ 〈 2 | a0 〉 }; a0) | fst(; a0) 〉 | ★ 〉
+1: 〈 μa1. swaplazy(cocase { fst(; a1) ⇒ 〈 1 | a1 〉, snd(; a1) ⇒ 〈 2 | a1 〉 }; a1) | fst(; ★) 〉
+2: swaplazy(cocase { fst(; a0) ⇒ 〈 1 | a0 〉, snd(; a0) ⇒ 〈 2 | a0 〉 }; fst(; ★))
+3: 〈 cocase { fst(; a0) ⇒ 〈 μa0. 〈 cocase { fst(; a0) ⇒ 〈 1 | a0 〉, snd(; a0) ⇒ 〈 2 | a0 〉 } | snd(; a0) 〉 | a0 〉, snd(; a0) ⇒ 〈 μa0. 〈 cocase { fst(; a0) ⇒ 〈 1 | a0 〉, snd(; a0) ⇒ 〈 2 | a0 〉 } | fst(; a0) 〉 | a0 〉 } | fst(; ★) 〉
+4: 〈 μa1. 〈 cocase { fst(; a1) ⇒ 〈 1 | a1 〉, snd(; a1) ⇒ 〈 2 | a1 〉 } | snd(; a1) 〉 | ★ 〉
+5: 〈 cocase { fst(; a0) ⇒ 〈 1 | a0 〉, snd(; a0) ⇒ 〈 2 | a0 〉 } | snd(; ★) 〉
+6: 〈 2 | ★ 〉
 ```
 
 ### Example 2.6
 
 ```
-def ex26 := (\x=>x*x) 2;
+def ex26 := (\x => x * x) 2;
 ```
 
 This example shows the compilation of lambda abstractions and function applications as well as how these two concepts are special cases of codata types (in particular, the codata type `Fun`).
@@ -462,31 +467,32 @@ We can see in the compilation and focusing output of this example:
 
 ```
 ---------- Result of Compilation --------
-def ex26(;a0) := 〈 μa0. 〈 cocase {ap(x;a0) ⇒ 〈 μa0. *(x,x;a0) | a0 〉} | ap(2;a0) 〉 | a0 〉
+def ex26(; a3) := 〈 μa2. 〈 cocase { ap(x; a1) ⇒ 〈 μa0. *(x, x; a0) | a1 〉 } | ap(2; a2) 〉 | a3 〉
 ```
 ```
 ---------- Result of Focusing --------
-def ex26(;a0) := 〈 μa0. 〈 cocase {ap(x;a0) ⇒ 〈 μa0. *(x,x;a0) | a0 〉} | ap(2;a0) 〉 | a0 〉
+def ex26(; a3) := 〈 μa2. 〈 cocase { ap(x; a1) ⇒ 〈 μa0. *(x, x; a0) | a1 〉 } | ap(2; a2) 〉 | a3 〉
 ```
 
 Evaluating this using `def main := ex26();` shows how the results are the same as directly evaluating the term using the rules of the `Fun` langauge:
 
 ```
 ---------- Result of Evaluation --------
-0: 〈 μa1. ex26(;a1) | ★ 〉
-1: ex26(;★)
-2: 〈 μa1. 〈 cocase {ap(x1;a1) ⇒ 〈 μa1. *(x1,x1;a1) | a1 〉} | ap(2;a1) 〉 | ★ 〉
-3: 〈 cocase {ap(x0;a0) ⇒ 〈 μa0. *(x0,x0;a0) | a0 〉} | ap(2;★) 〉
-4: 〈 μa1. *(2,2;a1) | ★ 〉
-5: *(2,2;★)
-6: 〈 4 | ★ 〉
+0: 〈 μa2. ex26(; a2) | ★ 〉
+1: ex26(; ★)
+2: 〈 μa0. 〈 cocase { ap(x1; a0) ⇒ 〈 μa0. *(x1, x1; a0) | a0 〉 } | ap(2; a0) 〉 | ★ 〉
+3: 〈 cocase { ap(x0; a1) ⇒ 〈 μa1. *(x0, x0; a1) | a1 〉 } | ap(2; ★) 〉
+4: 〈 μa0. *(2, 2; a0) | ★ 〉
+5: *(2, 2; ★)
+6: 〈 4 | ★ 〉
 ```
 
 ### Example 2.7
 
 ```
-def mult(l) := label a { mult2(l;a) };
-def mult2(l;a) := case l of { Nil => 1, Cons(x,xs) => ifz(x,goto(0,a),x*mult2(xs;a))};
+def mult(l) := label a { mult2(l; a) };
+def mult2(l; a) := case l of { Nil => 1,
+                               Cons(x, xs) => ifz(x, goto(0; a), x * mult2(xs; a))};
 ```
 
 This example is identical to the one found in `examples/FastMultiplication.sc` (which is also used in the introduction) and shows how `label` and `goto` terms work when compiled to `Core`, as well as how they can be used to add shortcuts to evaluation.
@@ -494,50 +500,50 @@ The compilation and focusing output is as follows:
 
 ```
 ---------- Result of Compilation --------
-def mult(l;a0) := 〈 μa. 〈 μa0. mult2(l;a,a0) | a 〉 | a0 〉
-def mult2(l;a,a0) := 〈 μa0. 〈 l | case {Nil ⇒ 〈 1 | a0 〉,Cons(x,xs;) ⇒ 〈 μa0. ifz(x;〈 μa0. 〈 0 | a 〉 | a0 〉,〈 μa0. *(x,μa0. mult2(xs;a,a0);a0) | a0 〉) | a0 〉} 〉 | a 〉
+def mult(l; a1) := 〈 μa. 〈 μa0. mult2(l; a, a0) | a 〉 | a1 〉
+def mult2(l; a, a5) := 〈 μa4. 〈 l | case { Nil ⇒ 〈 1 | a4 〉, Cons(x, xs; ) ⇒ 〈 μa3. ifz(x; 〈 μa0. 〈 0 | a 〉 | a3 〉, 〈 μa2. *(x, μa1. mult2(xs; a, a1); a2) | a3 〉) | a4 〉 } 〉 | a5 〉
 ```
 ```
 ---------- Result of Focusing --------
-def mult(l;a0) := 〈 μa. 〈 μa0. mult2(l;a,a0) | a 〉 | a0 〉
-def mult2(l;a,a0) := 〈 μa0. 〈 l | case {Nil ⇒ 〈 1 | a0 〉,Cons(x,xs;) ⇒ 〈 μa0. ifz(x;〈 μa0. 〈 0 | a 〉 | a0 〉,〈 μa0. 〈 μa0. mult2(xs;a,a0) | ~μx0. *(x,x0;a0) 〉 | a0 〉) | a0 〉} 〉 | a 〉
+def mult(l; a1) := 〈 μa. 〈 μa0. mult2(l; a, a0) | a 〉 | a1 〉
+def mult2(l; a, a5) := 〈 μa4. 〈 l | case { Nil ⇒ 〈 1 | a4 〉, Cons(x, xs; ) ⇒ 〈 μa3. ifz(x; 〈 μa0. 〈 0 | a 〉 | a3 〉, 〈 μa2. 〈 μa1. mult2(xs; a, a1) | ~μx0. *(x, x0; a2) 〉 | a3 〉) | a4 〉 } 〉 | a5 〉
 ```
 
 Evaluating `mult` with the example list `[2,2,0,3]` using `def main := mult(Cons(2,Cons(2,Cons(0,Cons(3,Nil)))));` shows how evaluation stops once we reach the list element `0`:
 
 ```
 ---------- Result of Evaluation --------
-0: 〈 μa1. mult(Cons(2,Cons(2,Cons(0,Cons(3,Nil;););););a1) | ★ 〉
-1: mult(Cons(2,Cons(2,Cons(0,Cons(3,Nil;););););★)
-2: 〈 μa1. 〈 μa3. mult2(Cons(2,Cons(2,Cons(0,Cons(3,Nil;););););a1,a3) | a1 〉 | ★ 〉
-3: 〈 μa0. mult2(Cons(2,Cons(2,Cons(0,Cons(3,Nil;););););★,a0) | ★ 〉
-4: mult2(Cons(2,Cons(2,Cons(0,Cons(3,Nil;););););★,★)
-5: 〈 μa1. 〈 Cons(2,Cons(2,Cons(0,Cons(3,Nil;);););) | case {Nil ⇒ 〈 1 | a1 〉,Cons(x2,x3;) ⇒ 〈 μa1. ifz(x2;〈 μa1. 〈 0 | ★ 〉 | a1 〉,〈 μa1. 〈 μa1. mult2(x3;★,a1) | ~μx1. *(x2,x1;a1) 〉 | a1 〉) | a1 〉} 〉 | ★ 〉
-6: 〈 Cons(2,Cons(2,Cons(0,Cons(3,Nil;);););) | case {Nil ⇒ 〈 1 | ★ 〉,Cons(x0,x1;) ⇒ 〈 μa2. ifz(x0;〈 μa0. 〈 0 | ★ 〉 | a2 〉,〈 μa0. 〈 μa0. mult2(x1;★,a0) | ~μx2. *(x0,x2;a0) 〉 | a2 〉) | ★ 〉} 〉
-7: 〈 μa0. ifz(2;〈 μa0. 〈 0 | ★ 〉 | a0 〉,〈 μa0. 〈 μa0. mult2(Cons(2,Cons(0,Cons(3,Nil;);););★,a0) | ~μx2. *(2,x2;a0) 〉 | a0 〉) | ★ 〉
-8: ifz(2;〈 μa1. 〈 0 | ★ 〉 | ★ 〉,〈 μa1. 〈 μa1. mult2(Cons(2,Cons(0,Cons(3,Nil;);););★,a1) | ~μx1. *(2,x1;a1) 〉 | ★ 〉)
-9: 〈 μa1. 〈 μa1. mult2(Cons(2,Cons(0,Cons(3,Nil;);););★,a1) | ~μx1. *(2,x1;a1) 〉 | ★ 〉
-10: 〈 μa0. mult2(Cons(2,Cons(0,Cons(3,Nil;);););★,a0) | ~μx0. *(2,x0;★) 〉
-11: mult2(Cons(2,Cons(0,Cons(3,Nil;);););★,~μx0. *(2,x0;★))
-12: 〈 μa1. 〈 Cons(2,Cons(0,Cons(3,Nil;););) | case {Nil ⇒ 〈 1 | a1 〉,Cons(x2,x3;) ⇒ 〈 μa1. ifz(x2;〈 μa1. 〈 0 | ★ 〉 | a1 〉,〈 μa1. 〈 μa1. mult2(x3;★,a1) | ~μx1. *(x2,x1;a1) 〉 | a1 〉) | a1 〉} 〉 | ★ 〉
-13: 〈 Cons(2,Cons(0,Cons(3,Nil;););) | case {Nil ⇒ 〈 1 | ★ 〉,Cons(x0,x1;) ⇒ 〈 μa2. ifz(x0;〈 μa0. 〈 0 | ★ 〉 | a2 〉,〈 μa0. 〈 μa0. mult2(x1;★,a0) | ~μx2. *(x0,x2;a0) 〉 | a2 〉) | ★ 〉} 〉
-14: 〈 μa0. ifz(2;〈 μa0. 〈 0 | ★ 〉 | a0 〉,〈 μa0. 〈 μa0. mult2(Cons(0,Cons(3,Nil;););★,a0) | ~μx2. *(2,x2;a0) 〉 | a0 〉) | ★ 〉
-15: ifz(2;〈 μa1. 〈 0 | ★ 〉 | ★ 〉,〈 μa1. 〈 μa1. mult2(Cons(0,Cons(3,Nil;););★,a1) | ~μx1. *(2,x1;a1) 〉 | ★ 〉)
-16: 〈 μa1. 〈 μa1. mult2(Cons(0,Cons(3,Nil;););★,a1) | ~μx1. *(2,x1;a1) 〉 | ★ 〉
-17: 〈 μa0. mult2(Cons(0,Cons(3,Nil;););★,a0) | ~μx0. *(2,x0;★) 〉
-18: mult2(Cons(0,Cons(3,Nil;););★,~μx0. *(2,x0;★))
-19: 〈 μa1. 〈 Cons(0,Cons(3,Nil;);) | case {Nil ⇒ 〈 1 | a1 〉,Cons(x2,x3;) ⇒ 〈 μa1. ifz(x2;〈 μa1. 〈 0 | ★ 〉 | a1 〉,〈 μa1. 〈 μa1. mult2(x3;★,a1) | ~μx1. *(x2,x1;a1) 〉 | a1 〉) | a1 〉} 〉 | ★ 〉
-20: 〈 Cons(0,Cons(3,Nil;);) | case {Nil ⇒ 〈 1 | ★ 〉,Cons(x0,x1;) ⇒ 〈 μa2. ifz(x0;〈 μa0. 〈 0 | ★ 〉 | a2 〉,〈 μa0. 〈 μa0. mult2(x1;★,a0) | ~μx2. *(x0,x2;a0) 〉 | a2 〉) | ★ 〉} 〉
-21: 〈 μa0. ifz(0;〈 μa0. 〈 0 | ★ 〉 | a0 〉,〈 μa0. 〈 μa0. mult2(Cons(3,Nil;);★,a0) | ~μx2. *(0,x2;a0) 〉 | a0 〉) | ★ 〉
-22: ifz(0;〈 μa1. 〈 0 | ★ 〉 | ★ 〉,〈 μa1. 〈 μa1. mult2(Cons(3,Nil;);★,a1) | ~μx1. *(0,x1;a1) 〉 | ★ 〉)
-23: 〈 μa1. 〈 0 | ★ 〉 | ★ 〉
-24: 〈 0 | ★ 〉
+0: 〈 μa2. mult(Cons(2, Cons(2, Cons(0, Cons(3, Nil; ); ); ); ); a2) | ★ 〉
+1: mult(Cons(2, Cons(2, Cons(0, Cons(3, Nil; ); ); ); ); ★)
+2: 〈 μa0. 〈 μa2. mult2(Cons(2, Cons(2, Cons(0, Cons(3, Nil; ); ); ); ); a0, a2) | a0 〉 | ★ 〉
+3: 〈 μa1. mult2(Cons(2, Cons(2, Cons(0, Cons(3, Nil; ); ); ); ); ★, a1) | ★ 〉
+4: mult2(Cons(2, Cons(2, Cons(0, Cons(3, Nil; ); ); ); ); ★, ★)
+5: 〈 μa0. 〈 Cons(2, Cons(2, Cons(0, Cons(3, Nil; ); ); ); ) | case { Nil ⇒ 〈 1 | a0 〉, Cons(x2, x3; ) ⇒ 〈 μa1. ifz(x2; 〈 μa0. 〈 0 | ★ 〉 | a1 〉, 〈 μa0. 〈 μa0. mult2(x3; ★, a0) | ~μx1. *(x2, x1; a0) 〉 | a1 〉) | a0 〉 } 〉 | ★ 〉
+6: 〈 Cons(2, Cons(2, Cons(0, Cons(3, Nil; ); ); ); ) | case { Nil ⇒ 〈 1 | ★ 〉, Cons(x0, x1; ) ⇒ 〈 μa1. ifz(x0; 〈 μa1. 〈 0 | ★ 〉 | a1 〉, 〈 μa1. 〈 μa1. mult2(x1; ★, a1) | ~μx2. *(x0, x2; a1) 〉 | a1 〉) | ★ 〉 } 〉
+7: 〈 μa0. ifz(2; 〈 μa0. 〈 0 | ★ 〉 | a0 〉, 〈 μa0. 〈 μa0. mult2(Cons(2, Cons(0, Cons(3, Nil; ); ); ); ★, a0) | ~μx2. *(2, x2; a0) 〉 | a0 〉) | ★ 〉
+8: ifz(2; 〈 μa1. 〈 0 | ★ 〉 | ★ 〉, 〈 μa1. 〈 μa1. mult2(Cons(2, Cons(0, Cons(3, Nil; ); ); ); ★, a1) | ~μx1. *(2, x1; a1) 〉 | ★ 〉)
+9: 〈 μa1. 〈 μa1. mult2(Cons(2, Cons(0, Cons(3, Nil; ); ); ); ★, a1) | ~μx1. *(2, x1; a1) 〉 | ★ 〉
+10: 〈 μa0. mult2(Cons(2, Cons(0, Cons(3, Nil; ); ); ); ★, a0) | ~μx0. *(2, x0; ★) 〉
+11: mult2(Cons(2, Cons(0, Cons(3, Nil; ); ); ); ★, ~μx0. *(2, x0; ★))
+12: 〈 μa0. 〈 Cons(2, Cons(0, Cons(3, Nil; ); ); ) | case { Nil ⇒ 〈 1 | a0 〉, Cons(x2, x3; ) ⇒ 〈 μa1. ifz(x2; 〈 μa0. 〈 0 | ★ 〉 | a1 〉, 〈 μa0. 〈 μa0. mult2(x3; ★, a0) | ~μx1. *(x2, x1; a0) 〉 | a1 〉) | a0 〉 } 〉 | ~μx0. *(2, x0; ★) 〉
+13: 〈 Cons(2, Cons(0, Cons(3, Nil; ); ); ) | case { Nil ⇒ 〈 1 | ~μx0. *(2, x0; ★) 〉, Cons(x0, x1; ) ⇒ 〈 μa1. ifz(x0; 〈 μa1. 〈 0 | ★ 〉 | a1 〉, 〈 μa1. 〈 μa1. mult2(x1; ★, a1) | ~μx2. *(x0, x2; a1) 〉 | a1 〉) | ~μx0. *(2, x0; ★) 〉 } 〉
+14: 〈 μa0. ifz(2; 〈 μa0. 〈 0 | ★ 〉 | a0 〉, 〈 μa0. 〈 μa0. mult2(Cons(0, Cons(3, Nil; ); ); ★, a0) | ~μx2. *(2, x2; a0) 〉 | a0 〉) | ~μx2. *(2, x2; ★) 〉
+15: ifz(2; 〈 μa1. 〈 0 | ★ 〉 | ~μx2. *(2, x2; ★) 〉, 〈 μa1. 〈 μa1. mult2(Cons(0, Cons(3, Nil; ); ); ★, a1) | ~μx1. *(2, x1; a1) 〉 | ~μx2. *(2, x2; ★) 〉)
+16: 〈 μa1. 〈 μa1. mult2(Cons(0, Cons(3, Nil; ); ); ★, a1) | ~μx1. *(2, x1; a1) 〉 | ~μx2. *(2, x2; ★) 〉
+17: 〈 μa0. mult2(Cons(0, Cons(3, Nil; ); ); ★, a0) | ~μx0. *(2, x0; ~μx2. *(2, x2; ★)) 〉
+18: mult2(Cons(0, Cons(3, Nil; ); ); ★, ~μx0. *(2, x0; ~μx2. *(2, x2; ★)))
+19: 〈 μa0. 〈 Cons(0, Cons(3, Nil; ); ) | case { Nil ⇒ 〈 1 | a0 〉, Cons(x2, x3; ) ⇒ 〈 μa1. ifz(x2; 〈 μa0. 〈 0 | ★ 〉 | a1 〉, 〈 μa0. 〈 μa0. mult2(x3; ★, a0) | ~μx1. *(x2, x1; a0) 〉 | a1 〉) | a0 〉 } 〉 | ~μx0. *(2, x0; ~μx2. *(2, x2; ★)) 〉
+20: 〈 Cons(0, Cons(3, Nil; ); ) | case { Nil ⇒ 〈 1 | ~μx0. *(2, x0; ~μx2. *(2, x2; ★)) 〉, Cons(x0, x1; ) ⇒ 〈 μa1. ifz(x0; 〈 μa1. 〈 0 | ★ 〉 | a1 〉, 〈 μa1. 〈 μa1. mult2(x1; ★, a1) | ~μx2. *(x0, x2; a1) 〉 | a1 〉) | ~μx0. *(2, x0; ~μx2. *(2, x2; ★)) 〉 } 〉
+21: 〈 μa0. ifz(0; 〈 μa0. 〈 0 | ★ 〉 | a0 〉, 〈 μa0. 〈 μa0. mult2(Cons(3, Nil; ); ★, a0) | ~μx2. *(0, x2; a0) 〉 | a0 〉) | ~μx2. *(2, x2; ~μx2. *(2, x2; ★)) 〉
+22: ifz(0; 〈 μa1. 〈 0 | ★ 〉 | ~μx2. *(2, x2; ~μx2. *(2, x2; ★)) 〉, 〈 μa1. 〈 μa1. mult2(Cons(3, Nil; ); ★, a1) | ~μx1. *(0, x1; a1) 〉 | ~μx2. *(2, x2; ~μx2. *(2, x2; ★)) 〉)
+23: 〈 μa1. 〈 0 | ★ 〉 | ~μx2. *(2, x2; ~μx2. *(2, x2; ★)) 〉
+24: 〈 0 | ★ 〉
 ```
 
 ### Section 5.1
 
 ```
-def sec51 := (2*3)*4;
+def sec51 := (2 * 3) * 4;
 ```
 
 This example, included in section 5.1, shows how evaluation contexts are first-class in the `Core` language.
@@ -545,11 +551,11 @@ When we compile and focus this, we get the following:
 
 ```
 ---------- Result of Compilation --------
-def sec51(;a0) := 〈 μa0. *(μa0. *(2,3;a0),4;a0) | a0 〉
+def sec51(; a2) := 〈 μa1. *(μa0. *(2, 3; a0), 4; a1) | a2 〉
 ```
 ```
 ---------- Result of Focusing --------
-def sec51(;a0) := 〈 μa0. 〈 μa0. *(2,3;a0) | ~μx0. *(x0,4;a0) 〉 | a0 〉
+def sec51(; a2) := 〈 μa1. 〈 μa0. *(2, 3; a0) | ~μx0. *(x0, 4; a1) 〉 | a2 〉
 ```
 
 After compilation we can see that covariables are introduced and act as continuations of the compilation.
@@ -557,14 +563,14 @@ This can be seen even more clearly when evaluating `def main := sec51();`:
 
 ```
 ---------- Result of Evaluation --------
-0: 〈 μa1. sec51(;a1) | ★ 〉
-1: sec51(;★)
-2: 〈 μa1. 〈 μa1. *(2,3;a1) | ~μx0. *(x0,4;a1) 〉 | ★ 〉
-3: 〈 μa0. *(2,3;a0) | ~μx1. *(x1,4;★) 〉
-4: *(2,3;~μx1. *(x1,4;★))
-5: 〈 6 | ~μx1. *(x1,4;★) 〉
-6: *(6,4;★)
-7: 〈 24 | ★ 〉
+0: 〈 μa2. sec51(; a2) | ★ 〉
+1: sec51(; ★)
+2: 〈 μa0. 〈 μa0. *(2, 3; a0) | ~μx0. *(x0, 4; a0) 〉 | ★ 〉
+3: 〈 μa1. *(2, 3; a1) | ~μx1. *(x1, 4; ★) 〉
+4: *(2, 3; ~μx1. *(x1, 4; ★))
+5: 〈 6 | ~μx1. *(x1, 4; ★) 〉
+6: *(6, 4; ★)
+7: 〈 24 | ★ 〉
 ```
 
 ### Section 5.3
@@ -573,48 +579,50 @@ This section considers `let/cc` and `call/cc` in the `Core` language.
 Since these are not implemented in `Fun`, we instead use the examples of `let` and `label` to demonstrate how let-bindings are dual to control operators:
 
 ```
-def letex := let x=2 in x*x;
-def labelex := label a { goto(0,a) };
+def letex := let x = 2 in x * x;
+def labelex := label a { goto(0; a) };
 ```
 
 Compiling these shows how `let` is translated to a ~μ-abstraction while `label` is translated to a μ-abstraction:
 
 ```
 ---------- Result of Compilation --------
-def letex(;a0) := 〈 μa0. 〈 2 | ~μx. 〈 μa0. *(x,x;a0) | a0 〉 〉 | a0 〉
-def labelex(;a0) := 〈 μa. 〈 μa0. 〈 0 | a 〉 | a 〉 | a0 〉
+def letex(; a2) := 〈 μa1. 〈 2 | ~μx. 〈 μa0. *(x, x; a0) | a1 〉 〉 | a2 〉
+def labelex(; a1) := 〈 μa. 〈 μa0. 〈 0 | a 〉 | a 〉 | a1 〉
 ```
 ```
 ---------- Result of Focusing --------
-def letex(;a0) := 〈 μa0. 〈 2 | ~μx. 〈 μa0. *(x,x;a0) | a0 〉 〉 | a0 〉
-def labelex(;a0) := 〈 μa. 〈 μa0. 〈 0 | a 〉 | a 〉 | a0 〉
+def letex(; a2) := 〈 μa1. 〈 2 | ~μx. 〈 μa0. *(x, x; a0) | a1 〉 〉 | a2 〉
+def labelex(; a1) := 〈 μa. 〈 μa0. 〈 0 | a 〉 | a 〉 | a1 〉
 ```
 
 Evaluating these two examples using `def main := letex();` and `def main := labelex();`, respectively, also shows the difference in evaluation between μ- and ~μ-bindings (when using call-by-value, as we are throughout the paper):
 
 ```
 ---------- Result of Evaluation --------
-0: 〈 μa1. letex(;a1) | ★ 〉
-1: letex(;★)
-2: 〈 μa1. 〈 2 | ~μx1. 〈 μa1. *(x1,x1;a1) | a1 〉 〉 | ★ 〉
-3: 〈 2 | ~μx0. 〈 μa2. *(x0,x0;a2) | ★ 〉 〉
-4: 〈 μa0. *(2,2;a0) | ★ 〉
-5: *(2,2;★)
-6: 〈 4 | ★ 〉
+0: 〈 μa2. letex(; a2) | ★ 〉
+1: letex(; ★)
+2: 〈 μa0. 〈 2 | ~μx1. 〈 μa1. *(x1, x1; a1) | a0 〉 〉 | ★ 〉
+3: 〈 2 | ~μx0. 〈 μa1. *(x0, x0; a1) | ★ 〉 〉
+4: 〈 μa0. *(2, 2; a0) | ★ 〉
+5: *(2, 2; ★)
+6: 〈 4 | ★ 〉
 ```
 ```
 ---------- Result of Evaluation --------
-0: 〈 μa1. labelex(;a1) | ★ 〉
-1: labelex(;★)
-2: 〈 μa1. 〈 μa2. 〈 0 | a1 〉 | a1 〉 | ★ 〉
-3: 〈 μa0. 〈 0 | ★ 〉 | ★ 〉
-4: 〈 0 | ★ 〉
+0: 〈 μa2. labelex(; a2) | ★ 〉
+1: labelex(; ★)
+2: 〈 μa0. 〈 μa2. 〈 0 | a0 〉 | a0 〉 | ★ 〉
+3: 〈 μa1. 〈 0 | ★ 〉 | ★ 〉
+4: 〈 0 | ★ 〉
 ```
 
 ### Section 5.4
 
 ```
-def casecase := case (case Nil of { Nil => Nil, Cons(x,xs) => xs}) of { Nil => Nil, Cons(y,ys) => ys };
+def casecase := case (case Nil of { Nil => Nil, Cons(x, xs) => xs}) of {
+                   Nil => Nil,
+                   Cons(y, ys) => ys };
 ```
 
 This example shows the case-of-case translation explained in section 5.4.
@@ -623,24 +631,24 @@ The translation is automatically done during compilation:
 
 ```
 ---------- Result of Compilation --------
-def casecase(;a0) := 〈 μa0. 〈 μa0. 〈 Nil | case {Nil ⇒ 〈 Nil | a0 〉,Cons(x,xs;) ⇒ 〈 xs | a0 〉} 〉 | case {Nil ⇒ 〈 Nil | a0 〉,Cons(y,ys;) ⇒ 〈 ys | a0 〉} 〉 | a0 〉
+def casecase(; a2) := 〈 μa1. 〈 μa0. 〈 Nil | case { Nil ⇒ 〈 Nil | a0 〉, Cons(x, xs; ) ⇒ 〈 xs | a0 〉 } 〉 | case { Nil ⇒ 〈 Nil | a1 〉, Cons(y, ys; ) ⇒ 〈 ys | a1 〉 } 〉 | a2 〉
 ```
 ```
 ---------- Result of Focusing --------
-def casecase(;a0) := 〈 μa0. 〈 μa0. 〈 Nil | case {Nil ⇒ 〈 Nil | a0 〉,Cons(x,xs;) ⇒ 〈 xs | a0 〉} 〉 | case {Nil ⇒ 〈 Nil | a0 〉,Cons(y,ys;) ⇒ 〈 ys | a0 〉} 〉 | a0 〉
+def casecase(; a2) := 〈 μa1. 〈 μa0. 〈 Nil | case { Nil ⇒ 〈 Nil | a0 〉, Cons(x, xs; ) ⇒ 〈 xs | a0 〉 } 〉 | case { Nil ⇒ 〈 Nil | a1 〉, Cons(y, ys; ) ⇒ 〈 ys | a1 〉 } 〉 | a2 〉
 ```
 
 From the compilation rules, one can also see how this generalizes to arbitrary data types (and `cocases` of codata types), and evaluating this example (`def main := casecase();`) shows how this translation does not change the result:
 
 ```
 ---------- Result of Evaluation --------
-0: 〈 μa1. casecase(;a1) | ★ 〉
-1: casecase(;★)
-2: 〈 μa1. 〈 μa1. 〈 Nil | case {Nil ⇒ 〈 Nil | a1 〉,Cons(x0,x2;) ⇒ 〈 x2 | a1 〉} 〉 | case {Nil ⇒ 〈 Nil | a1 〉,Cons(x0,x2;) ⇒ 〈 x2 | a1 〉} 〉 | ★ 〉
-3: 〈 μa0. 〈 Nil | case {Nil ⇒ 〈 Nil | a0 〉,Cons(x0,x2;) ⇒ 〈 x2 | a0 〉} 〉 | case {Nil ⇒ 〈 Nil | ★ 〉,Cons(x0,x1;) ⇒ 〈 x1 | ★ 〉} 〉
-4: 〈 Nil | case {Nil ⇒ 〈 Nil | case {Nil ⇒ 〈 Nil | ★ 〉,Cons(x0,x1;) ⇒ 〈 x1 | ★ 〉} 〉,Cons(x0,x1;) ⇒ 〈 x1 | case {Nil ⇒ 〈 Nil | ★ 〉,Cons(x0,x1;) ⇒ 〈 x1 | ★ 〉} 〉} 〉
-5: 〈 Nil | case {Nil ⇒ 〈 Nil | ★ 〉,Cons(x0,x2;) ⇒ 〈 x2 | ★ 〉} 〉
-6: 〈 Nil | ★ 〉
+0: 〈 μa2. casecase(; a2) | ★ 〉
+1: casecase(; ★)
+2: 〈 μa0. 〈 μa0. 〈 Nil | case { Nil ⇒ 〈 Nil | a0 〉, Cons(x0, x2; ) ⇒ 〈 x2 | a0 〉 } 〉 | case { Nil ⇒ 〈 Nil | a0 〉, Cons(x0, x2; ) ⇒ 〈 x2 | a0 〉 } 〉 | ★ 〉
+3: 〈 μa1. 〈 Nil | case { Nil ⇒ 〈 Nil | a1 〉, Cons(x0, x2; ) ⇒ 〈 x2 | a1 〉 } 〉 | case { Nil ⇒ 〈 Nil | ★ 〉, Cons(x0, x1; ) ⇒ 〈 x1 | ★ 〉 } 〉
+4: 〈 Nil | case { Nil ⇒ 〈 Nil | case { Nil ⇒ 〈 Nil | ★ 〉, Cons(x0, x1; ) ⇒ 〈 x1 | ★ 〉 } 〉, Cons(x0, x1; ) ⇒ 〈 x1 | case { Nil ⇒ 〈 Nil | ★ 〉, Cons(x0, x1; ) ⇒ 〈 x1 | ★ 〉 } 〉 } 〉
+5: 〈 Nil | case { Nil ⇒ 〈 Nil | ★ 〉, Cons(x0, x2; ) ⇒ 〈 x2 | ★ 〉 } 〉
+6: 〈 Nil | ★ 〉
 ```
 
 ### Section 5.5
@@ -656,41 +664,41 @@ When compiling this to `Core`, we still have the chained destructors as in the s
 
 ```
 ---------- Result of Compilation --------
-def tltltl(;a0) := 〈 μa0. 〈 μa0. 〈 μa0. 〈 μa0. repeat(1;a0) | tl(;a0) 〉 | tl(;a0) 〉 | tl(;a0) 〉 | a0 〉
+def tltltl(; a4) := 〈 μa3. 〈 μa2. 〈 μa1. 〈 μa0. repeat(1; a0) | tl(; a1) 〉 | tl(; a2) 〉 | tl(; a3) 〉 | a4 〉
 ```
 ```
 ---------- Result of Focusing --------
-def tltltl(;a0) := 〈 μa0. 〈 μa0. 〈 μa0. 〈 μa0. repeat(1;a0) | tl(;a0) 〉 | tl(;a0) 〉 | tl(;a0) 〉 | a0 〉
+def tltltl(; a4) := 〈 μa3. 〈 μa2. 〈 μa1. 〈 μa0. repeat(1; a0) | tl(; a1) 〉 | tl(; a2) 〉 | tl(; a3) 〉 | a4 〉
 ```
 
 When evaluating this example (`def main := tltltl();`), we can see on line 5 how the direct chaining of destructors is preserved (after simplification of the administrative μ-bindings):
 
 ```
 ---------- Result of Evaluation --------
-0: 〈 μa1. tltltl(;a1) | ★ 〉
-1: tltltl(;★)
-2: 〈 μa1. 〈 μa1. 〈 μa1. 〈 μa1. repeat(1;a1) | tl(;a1) 〉 | tl(;a1) 〉 | tl(;a1) 〉 | ★ 〉
-3: 〈 μa0. 〈 μa0. 〈 μa0. repeat(1;a0) | tl(;a0) 〉 | tl(;a0) 〉 | tl(;★) 〉
-4: 〈 μa1. 〈 μa1. repeat(1;a1) | tl(;a1) 〉 | tl(;tl(;★)) 〉
-5: 〈 μa0. repeat(1;a0) | tl(;tl(;tl(;★))) 〉
-6: repeat(1;tl(;tl(;tl(;★))))
-7: 〈 cocase {hd(;a1) ⇒ 〈 1 | a1 〉,tl(;a1) ⇒ 〈 μa1. repeat(1;a1) | a1 〉} | tl(;tl(;tl(;★))) 〉
-8: 〈 μa0. repeat(1;a0) | tl(;tl(;★)) 〉
-9: repeat(1;tl(;tl(;★)))
-10: 〈 cocase {hd(;a1) ⇒ 〈 1 | a1 〉,tl(;a1) ⇒ 〈 μa1. repeat(1;a1) | a1 〉} | tl(;tl(;★)) 〉
-11: 〈 μa0. repeat(1;a0) | tl(;★) 〉
-12: repeat(1;tl(;★))
-13: 〈 cocase {hd(;a1) ⇒ 〈 1 | a1 〉,tl(;a1) ⇒ 〈 μa1. repeat(1;a1) | a1 〉} | tl(;★) 〉
-14: 〈 μa0. repeat(1;a0) | ★ 〉
-15: repeat(1;★)
-16: 〈 cocase {hd(;a1) ⇒ 〈 1 | a1 〉,tl(;a1) ⇒ 〈 μa1. repeat(1;a1) | a1 〉} | ★ 〉
+0: 〈 μa2. tltltl(; a2) | ★ 〉
+1: tltltl(; ★)
+2: 〈 μa0. 〈 μa0. 〈 μa0. 〈 μa0. repeat(1; a0) | tl(; a0) 〉 | tl(; a0) 〉 | tl(; a0) 〉 | ★ 〉
+3: 〈 μa1. 〈 μa1. 〈 μa1. repeat(1; a1) | tl(; a1) 〉 | tl(; a1) 〉 | tl(; ★) 〉
+4: 〈 μa0. 〈 μa0. repeat(1; a0) | tl(; a0) 〉 | tl(; tl(; ★)) 〉
+5: 〈 μa1. repeat(1; a1) | tl(; tl(; tl(; ★))) 〉
+6: repeat(1; tl(; tl(; tl(; ★))))
+7: 〈 cocase { hd(; a1) ⇒ 〈 1 | a1 〉, tl(; a0) ⇒ 〈 μa0. repeat(1; a0) | a0 〉 } | tl(; tl(; tl(; ★))) 〉
+8: 〈 μa1. repeat(1; a1) | tl(; tl(; ★)) 〉
+9: repeat(1; tl(; tl(; ★)))
+10: 〈 cocase { hd(; a1) ⇒ 〈 1 | a1 〉, tl(; a0) ⇒ 〈 μa0. repeat(1; a0) | a0 〉 } | tl(; tl(; ★)) 〉
+11: 〈 μa1. repeat(1; a1) | tl(; ★) 〉
+12: repeat(1; tl(; ★))
+13: 〈 cocase { hd(; a1) ⇒ 〈 1 | a1 〉, tl(; a0) ⇒ 〈 μa0. repeat(1; a0) | a0 〉 } | tl(; ★) 〉
+14: 〈 μa1. repeat(1; a1) | ★ 〉
+15: repeat(1; ★)
+16: 〈 cocase { hd(; a1) ⇒ 〈 1 | a1 〉, tl(; a0) ⇒ 〈 μa0. repeat(1; a0) | a0 〉 } | ★ 〉
 ```
 
 ### Section 5.6
 
 ```
-def crtiticalEta1(; b) := let x = \y => goto(\z => 1; b) y in \z => 3;
-def crtiticalEta2(; b) := let x = goto(\z => 1; b) in \z => 3;
+def criticalEta1(; b) := let x = \y => goto(\z => 1; b) y in \z => 3;
+def criticalEta2(; b) := let x = goto(\z => 1; b) in \z => 3;
 ```
 
 We use these examples to demonstrate the differences between call-by-name and call-by-value and their connection to the η-laws, as explained in section 5.6.
@@ -699,36 +707,36 @@ After compilation, `criticalEta2` contains a critical pair, i.e., a cut between 
 
 ```
 ---------- Result of Compilation --------
-def criticalEta1(; b, a0) := 〈 μa0. 〈 cocase { ap(y; a0) ⇒ 〈 μa0. 〈 μa0. 〈 cocase { ap(z; a0) ⇒ 〈 1 | a0 〉 } | b 〉 | ap(y; a0) 〉 | a0 〉 } | ~μx. 〈 cocase { ap(z; a0) ⇒ 〈 3 | a0 〉 } | a0 〉 〉 | a0 〉
-def criticalEta2(; b, a0) := 〈 μa0. 〈 μa0. 〈 cocase { ap(z; a0) ⇒ 〈 1 | a0 〉 } | b 〉 | ~μx. 〈 cocase { ap(z; a0) ⇒ 〈 3 | a0 〉 } | a0 〉 〉 | a0 〉
+def criticalEta1(; b, a6) := 〈 μa5. 〈 cocase { ap(y; a3) ⇒ 〈 μa2. 〈 μa1. 〈 cocase { ap(z; a0) ⇒ 〈 1 | a0 〉 } | b 〉 | ap(y; a2) 〉 | a3 〉 } | ~μx. 〈 cocase { ap(z; a4) ⇒ 〈 3 | a4 〉 } | a5 〉 〉 | a6 〉
+def criticalEta2(; b, a4) := 〈 μa3. 〈 μa1. 〈 cocase { ap(z; a0) ⇒ 〈 1 | a0 〉 } | b 〉 | ~μx. 〈 cocase { ap(z; a2) ⇒ 〈 3 | a2 〉 } | a3 〉 〉 | a4 〉
 ```
 ```
 ---------- Result of Focusing --------
-def criticalEta1(; b, a0) := 〈 μa0. 〈 cocase { ap(y; a0) ⇒ 〈 μa0. 〈 μa0. 〈 cocase { ap(z; a0) ⇒ 〈 1 | a0 〉 } | b 〉 | ap(y; a0) 〉 | a0 〉 } | ~μx. 〈 cocase { ap(z; a0) ⇒ 〈 3 | a0 〉 } | a0 〉 〉 | a0 〉
-def criticalEta2(; b, a0) := 〈 μa0. 〈 μa0. 〈 cocase { ap(z; a0) ⇒ 〈 1 | a0 〉 } | b 〉 | ~μx. 〈 cocase { ap(z; a0) ⇒ 〈 3 | a0 〉 } | a0 〉 〉 | a0 〉
+def criticalEta1(; b, a6) := 〈 μa5. 〈 cocase { ap(y; a3) ⇒ 〈 μa2. 〈 μa1. 〈 cocase { ap(z; a0) ⇒ 〈 1 | a0 〉 } | b 〉 | ap(y; a2) 〉 | a3 〉 } | ~μx. 〈 cocase { ap(z; a4) ⇒ 〈 3 | a4 〉 } | a5 〉 〉 | a6 〉
+def criticalEta2(; b, a4) := 〈 μa3. 〈 μa1. 〈 cocase { ap(z; a0) ⇒ 〈 1 | a0 〉 } | b 〉 | ~μx. 〈 cocase { ap(z; a2) ⇒ 〈 3 | a2 〉 } | a3 〉 〉 | a4 〉
 ```
 
 Evaluating `def main := label b { criticalEta2(; b) };` again demonstrates how in a call-by-value language, μ-abstractions are evaluated first:
 
 ```
 ---------- Result of Evaluation --------
-0: 〈 μa1. 〈 μa3. criticalEta2(; a1, a3) | a1 〉 | ★ 〉
-1: 〈 μa0. criticalEta2(; ★, a0) | ★ 〉
+0: 〈 μa0. 〈 μa2. criticalEta2(; a0, a2) | a0 〉 | ★ 〉
+1: 〈 μa1. criticalEta2(; ★, a1) | ★ 〉
 2: criticalEta2(; ★, ★)
-3: 〈 μa1. 〈 μa1. 〈 cocase { ap(x0; a1) ⇒ 〈 1 | a1 〉 } | ★ 〉 | ~μx0. 〈 cocase { ap(x0; a1) ⇒ 〈 3 | a1 〉 } | a1 〉 〉 | ★ 〉
-4: 〈 μa0. 〈 cocase { ap(x0; a0) ⇒ 〈 1 | a0 〉 } | ★ 〉 | ~μx0. 〈 cocase { ap(x0; a2) ⇒ 〈 3 | a2 〉 } | ★ 〉 〉
-5: 〈 cocase { ap(x0; a1) ⇒ 〈 1 | a1 〉 } | ★ 〉
+3: 〈 μa0. 〈 μa0. 〈 cocase { ap(x0; a0) ⇒ 〈 1 | a0 〉 } | ★ 〉 | ~μx0. 〈 cocase { ap(x0; a1) ⇒ 〈 3 | a1 〉 } | a0 〉 〉 | ★ 〉
+4: 〈 μa1. 〈 cocase { ap(x0; a1) ⇒ 〈 1 | a1 〉 } | ★ 〉 | ~μx0. 〈 cocase { ap(x0; a1) ⇒ 〈 3 | a1 〉 } | ★ 〉 〉
+5: 〈 cocase { ap(x0; a0) ⇒ 〈 1 | a0 〉 } | ★ 〉
 ```
 
 Evaluating `def main := label b { criticalEta1(; b) };` gives a different result instead, since here the ~μ-abstraction is evaluated:
 
 ```
 ---------- Result of Evaluation --------
-0: 〈 μa1. 〈 μa3. criticalEta1(; a1, a3) | a1 〉 | ★ 〉
-1: 〈 μa0. criticalEta1(; ★, a0) | ★ 〉
+0: 〈 μa0. 〈 μa2. criticalEta1(; a0, a2) | a0 〉 | ★ 〉
+1: 〈 μa1. criticalEta1(; ★, a1) | ★ 〉
 2: criticalEta1(; ★, ★)
-3: 〈 μa1. 〈 cocase { ap(x1; a1) ⇒ 〈 μa1. 〈 μa1. 〈 cocase { ap(x0; a1) ⇒ 〈 1 | a1 〉 } | ★ 〉 | ap(x1; a1) 〉 | a1 〉 } | ~μx0. 〈 cocase { ap(x0; a1) ⇒ 〈 3 | a1 〉 } | a1 〉 〉 | ★ 〉
-4: 〈 cocase { ap(x0; a0) ⇒ 〈 μa0. 〈 μa0. 〈 cocase { ap(x0; a0) ⇒ 〈 1 | a0 〉 } | ★ 〉 | ap(x0; a0) 〉 | a0 〉 } | ~μx0. 〈 cocase { ap(x0; a2) ⇒ 〈 3 | a2 〉 } | ★ 〉 〉
+3: 〈 μa0. 〈 cocase { ap(x1; a0) ⇒ 〈 μa0. 〈 μa0. 〈 cocase { ap(x0; a0) ⇒ 〈 1 | a0 〉 } | ★ 〉 | ap(x1; a0) 〉 | a0 〉 } | ~μx0. 〈 cocase { ap(x0; a1) ⇒ 〈 3 | a1 〉 } | a0 〉 〉 | ★ 〉
+4: 〈 cocase { ap(x0; a1) ⇒ 〈 μa1. 〈 μa1. 〈 cocase { ap(x0; a1) ⇒ 〈 1 | a1 〉 } | ★ 〉 | ap(x0; a1) 〉 | a1 〉 } | ~μx0. 〈 cocase { ap(x0; a1) ⇒ 〈 3 | a1 〉 } | ★ 〉 〉
 5: 〈 cocase { ap(x1; a0) ⇒ 〈 3 | a0 〉 } | ★ 〉
 ```
 
