@@ -41,9 +41,9 @@ setErrorpane s = withCString s setErrorpaneInternal
 
 -- "id=types"
 foreign import javascript "((arr,offset) => document.getElementById('types').value = h$decodeUtf8z(arr,offset))"
-  setTypesArea :: CString -> IO ()
+    setTypesArea :: CString -> IO ()
 
-setTypes :: String -> IO () 
+setTypes :: String -> IO ()
 setTypes s = withCString s setTypesArea
 
 -- "id=compiled"

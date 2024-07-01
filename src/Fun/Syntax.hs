@@ -98,5 +98,4 @@ data Def ty = Def
     deriving (Show, Eq)
 
 -- | Programs are represented as a list of top-level definitions
-newtype Program ty = MkProg [Def ty] deriving (Show,Eq)
-
+newtype Program ty = MkProg [Def ty] deriving (Show, Eq)

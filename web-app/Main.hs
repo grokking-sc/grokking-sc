@@ -40,11 +40,11 @@ compiler val = do
             setErrorpane err
         Right prog -> do
             let inferred = inferTypes prog
-            case inferred of 
-              Left err -> do
-                setInputInvalid
-                setErrorpane err
-              Right prog' -> setTypes (showTypedProg prog')
+            case inferred of
+                Left err -> do
+                    setInputInvalid
+                    setErrorpane err
+                Right prog' -> setTypes (showTypedProg prog')
 
             setInputValid
             let compiled = C.compileProgram prog

@@ -7,15 +7,15 @@ This module implements a simple type inference algorithm for the surface
 language Fun. The type inference algorithm follows the standard Hindley-Milner
 approach, but we do not implement let-generalization.
 -}
-module Fun.Types (inferTypes,showTypedProg) where
+module Fun.Types (inferTypes, showTypedProg) where
 
 import Control.Monad
 import Control.Monad.Except
 import Control.Monad.RWS
-import Data.List (find,intercalate)
+import Data.List (find, intercalate)
 import Data.Map qualified as M
 import Data.Set qualified as S
-import Data.Text (Text,unpack)
+import Data.Text (Text, unpack)
 import Data.Text qualified as T
 import Fun.Syntax
 
@@ -39,14 +39,15 @@ data Ty
     | -- | The function type
       FunTy Ty Ty
     deriving (Eq)
+
 instance Show Ty where
-  show (TyVar var) = unpack var 
-  show IntTy = "Int"
-  show (ListTy ty) = "List(" <> show ty <> ")"
-  show (StreamTy ty) = "Stream(" <> show ty <> ")"
-  show (PairTy ty1 ty2) = "Pair(" <> show ty1  <> ", " <> show ty2 <> ")"
-  show (LPairTy ty1 ty2) = "LPair(" <> show ty1 <> ", " <> show ty2 <> ")"
-  show (FunTy ty1 ty2) = show ty1 <> " -> " <> show ty2
+    show (TyVar var) = unpack var
+    show IntTy = "Int"
+    show (ListTy ty) = "List(" <> show ty <> ")"
+    show (StreamTy ty) = "Stream(" <> show ty <> ")"
+    show (PairTy ty1 ty2) = "Pair(" <> show ty1 <> ", " <> show ty2 <> ")"
+    show (LPairTy ty1 ty2) = "LPair(" <> show ty1 <> ", " <> show ty2 <> ")"
+    show (FunTy ty1 ty2) = show ty1 <> " -> " <> show ty2
 
 -- | Compute the set of free type variables of a type.
 freeTyVars :: Ty -> S.Set TyVar
@@ -524,15 +525,16 @@ showTypedProg (MkProg defs) = intercalate "\n" (showTypedDef <$> defs)
 
 showTypedDef :: Def Ty -> String
 showTypedDef (Def nm args cont _ retty) = unpack nm <> showArgs args cont <> " :: " <> show retty
-  where 
-    showArgs :: [(Var,Ty)] -> [(Covar,Ty)] -> String
+  where
+    showArgs :: [(Var, Ty)] -> [(Covar, Ty)] -> String
     showArgs [] [] = ""
     showArgs args' [] = "(" <> intercalate ", " (showVar <$> args') <> ")"
     showArgs [] coargs = "(" <> intercalate ", " (showCovar <$> coargs) <> ")"
-    showArgs args' coargs = "(" <> intercalate ", " (showVar <$> args') <> ";" <> intercalate ", " (showCovar <$> coargs) <> ")"
+    showArgs args' coargs =
+        "(" <> intercalate ", " (showVar <$> args') <> ";" <> intercalate ", " (showCovar <$> coargs) <> ")"
 
-    showVar :: (Var,Ty) -> String 
-    showVar (v,ty) = unpack v <> "::" <> show ty
+    showVar :: (Var, Ty) -> String
+    showVar (v, ty) = unpack v <> "::" <> show ty
 
-    showCovar :: (Covar,Ty) -> String
-    showCovar (cov,ty) = unpack cov <> "::" <> show ty
+    showCovar :: (Covar, Ty) -> String
+    showCovar (cov, ty) = unpack cov <> "::" <> show ty

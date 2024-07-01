@@ -3,8 +3,8 @@ module Main (main) where
 import Compiler qualified as C
 import Core.Eval
 import Core.Focusing
-import Core.Simplify
 import Core.Pretty (render)
+import Core.Simplify
 import Core.Syntax qualified as Core
 import Data.Text.IO qualified as T
 import Fun.Parser
@@ -31,8 +31,8 @@ dispatch [fp] = do
     case inferTypes prog of
         Left err -> putStrLn err >> exitFailure
         Right prog' -> do
-          putStrLn $ colorTarget <> "---------- Result of Type Checking --------" <> colorDefault
-          putStrLn (showTypedProg prog')
+            putStrLn $ colorTarget <> "---------- Result of Type Checking --------" <> colorDefault
+            putStrLn (showTypedProg prog')
 
     let compiled = C.compileProgram prog
     putStrLn $ colorTarget <> "---------- Result of Compilation --------" <> colorDefault
@@ -46,7 +46,7 @@ dispatch [fp] = do
     putStrLn $ colorTarget <> "---------- Result of Simplification --------" <> colorDefault
     putStrLn (render simplified)
 
-    let result = evalMain simplified 
+    let result = evalMain simplified
     case result of
         Nothing -> do
             putStrLn "Main not found"
