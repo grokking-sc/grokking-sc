@@ -43,7 +43,7 @@ dispatch [fp] = do
     putStrLn (render focused)
 
     let simplified = simplify focused
-    putStrLn $ colorTarget <> "---------- Result of Simlpification --------" <> colorDefault
+    putStrLn $ colorTarget <> "---------- Result of Simplification --------" <> colorDefault
     putStrLn (render simplified)
 
     let result = evalMain simplified 
