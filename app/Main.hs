@@ -30,7 +30,9 @@ dispatch [fp] = do
 
     case inferTypes prog of
         Left err -> putStrLn err >> exitFailure
-        Right _ -> putStrLn "Program typechecks!"
+        Right prog' -> do
+          putStrLn $ colorTarget <> "---------- Result of Type Checking --------" <> colorDefault
+          putStrLn (showTypedProg prog')
 
     let compiled = C.compileProgram prog
     putStrLn $ colorTarget <> "---------- Result of Compilation --------" <> colorDefault
