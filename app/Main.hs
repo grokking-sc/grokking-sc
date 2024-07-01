@@ -3,6 +3,7 @@ module Main (main) where
 import Compiler qualified as C
 import Core.Eval
 import Core.Focusing
+import Core.Simplify
 import Core.Pretty (render)
 import Core.Syntax qualified as Core
 import Data.Text.IO qualified as T
@@ -39,7 +40,11 @@ dispatch [fp] = do
     putStrLn $ colorTarget <> "---------- Result of Focusing --------" <> colorDefault
     putStrLn (render focused)
 
-    let result = evalMain focused
+    let simplified = simplify focused
+    putStrLn $ colorTarget <> "---------- Result of Simlpification --------" <> colorDefault
+    putStrLn (render simplified)
+
+    let result = evalMain simplified 
     case result of
         Nothing -> do
             putStrLn "Main not found"
