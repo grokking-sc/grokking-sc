@@ -8,6 +8,7 @@ import Core.Simplify
 import Core.Syntax qualified as Core
 import Data.Text qualified as T
 import Fun.Parser
+import Fun.Types
 import GHC.JS.Foreign.Callback
 import GHC.JS.Prim
 import JSBits
@@ -38,6 +39,13 @@ compiler val = do
             setInputInvalid
             setErrorpane err
         Right prog -> do
+            let inferred = inferTypes prog
+            case inferred of 
+              Left err -> do
+                setInputInvalid
+                setErrorpane err
+              Right prog' -> setTypes (showTypedProg prog')
+
             setInputValid
             let compiled = C.compileProgram prog
             setCompiled (render compiled)
