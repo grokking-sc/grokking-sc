@@ -12,6 +12,7 @@ module Core.Simplify (
 
 import Core.Substitution
 import Core.Syntax
+
 -- import Data.List
 -- import Fun.Syntax (BinOp (..))
 
