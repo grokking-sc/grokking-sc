@@ -736,7 +736,7 @@ To see how the definitions and formulas in the paper are implemented in Haskell,
     The output of focusing can be seen under the `---------- Result of Focusing --------` heading when running the binary, and under `Core Representation > Focused` in the web demo.
 * Simplification is implemented in `src/Core/Simplify.hs`.
     The results of simplification are included when running the binary under the `---------- Result of Evaluation --------` heding, and in the web demo under `Core Representation > Simplified`.
-    We only simplify administrative redexes introduced during compilation and focusing
+    We only simplify administrative redexes introduced during compilation and focusing.
 * Evaluation rules for Core (introduced in section 2) are implemented in `src/Core/Eval.hs`.
     The output of evaluation can be seen under the `---------- Result of Evaluation --------` heading when running the binary, and under `Evaluation` in the web demo.
     Evaluation is only run for the `main` definition in a program, so any program without such a function will not have any evaluation results (neither in the binary nor the web demo).
