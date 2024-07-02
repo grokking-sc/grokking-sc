@@ -12,8 +12,8 @@ module Core.Simplify (
 
 import Core.Substitution
 import Core.Syntax
-import Data.List
-import Fun.Syntax (BinOp (..))
+--import Data.List
+--import Fun.Syntax (BinOp (..))
 
 -- | Type class for simplifying expressions in the core language
 class Simplify a where
@@ -34,6 +34,7 @@ instance Simplify Statement where
      Cut (Lit 1) (Covar "b")
      -}
     simplify (Cut (Mu cv1 s) c) = simplify (substCovar c cv1 s)
+    --simplify (Cut (MuDyn cv1 s) c) = simplify (substCovar c cv1 s)
     -- as with a mu abstration, a mu-tilde abstraction can be simplified by substituting the producer
     -- <p | mu v.st> -> st[p/v]
     {-
@@ -41,6 +42,7 @@ instance Simplify Statement where
      Cut (Var "x") (Covar "a")
      -}
     simplify (Cut p (MuTilde v2 s)) = simplify (substVar p v2 s)
+    --simplify (Cut p (MuTildeDyn v2 s)) = simplify (substVar p v2 s)
     -- a cut between constructor and case can be replaced by the corresponding right-hand side of the pattern
     -- <ctor(args) | case { ... ctor(vars) => st ...} -> st[args/vars]
     {-
@@ -50,9 +52,9 @@ instance Simplify Statement where
      >>> simplify (Cut (Constructor Nil [] []) (Case []))
      Cut (Constructor Nil [] []) (Case [])
      -}
-    simplify (Cut (Constructor ct args coargs) (Case pts)) = case find (\pat -> xtor pat == ct) pts of
-        Nothing -> Cut (Constructor ct (simplify <$> args) (simplify <$> coargs)) (Case (simplify <$> pts))
-        Just MkPattern{xtor = _, patv = vars, patcv = covars, patst = st} -> substSim (zip args vars) (zip coargs covars) st
+    --simplify (Cut (Constructor ct args coargs) (Case pts)) = case find (\pat -> xtor pat == ct) pts of
+    --    Nothing -> Cut (Constructor ct (simplify <$> args) (simplify <$> coargs)) (Case (simplify <$> pts))
+    --    Just MkPattern{xtor = _, patv = vars, patcv = covars, patst = st} -> substSim (zip args vars) (zip coargs covars) st
     -- as with a constructor and case, a cocase and destructor can similarly be simplified
     {-
      >>> simplify (Cut (Cocase [MkPattern Fst [] ["a"] (Cut (Lit 1) (Covar "a")), MkPattern Snd [] ["b"] (Cut (Lit 2) (Covar "b"))]) (Destructor Fst [] [Covar "c"]))
@@ -61,9 +63,9 @@ instance Simplify Statement where
      >>> simplify (Cut (Cocase []) (Destructor Fst [] [Covar "a"])
      Cut (Cocase []) (Destructor Fst [] (Covar "a"))
      -}
-    simplify (Cut (Cocase pts) (Destructor dt args coargs)) = case find (\pat -> xtor pat == dt) pts of
-        Nothing -> Cut (Cocase (simplify <$> pts)) (Destructor dt (simplify <$> args) (simplify <$> coargs))
-        Just MkPattern{xtor = _, patv = vars, patcv = covars, patst = st} -> substSim (zip args vars) (zip coargs covars) st
+    --simplify (Cut (Cocase pts) (Destructor dt args coargs)) = case find (\pat -> xtor pat == dt) pts of
+    --    Nothing -> Cut (Cocase (simplify <$> pts)) (Destructor dt (simplify <$> args) (simplify <$> coargs))
+    --    Just MkPattern{xtor = _, patv = vars, patcv = covars, patst = st} -> substSim (zip args vars) (zip coargs covars) st
     -- otherwise simplifiy the producer and consumer in the cut
     {-
      >>> simplify (Cut (Lit 1) (Covar "a"))
@@ -75,17 +77,17 @@ instance Simplify Statement where
      >>> simplify (Op (Lit 2) Prod (Lit 2) (Covar "a"))
      Cut (Lit 4) (Covar "a")
      -}
-    simplify (Op (Lit n) Prod (Lit m) c) = Cut (Lit (n * m)) c
+    --simplify (Op (Lit n) Prod (Lit m) c) = Cut (Lit (n * m)) c
     {-
      >>> simplify (Op (Lit 1) Sum (Lit 1) (Covar "a"))
      Cut (Lit 2) (Covar "a")
     -}
-    simplify (Op (Lit n) Sum (Lit m) c) = Cut (Lit (n + m)) c
+    --simplify (Op (Lit n) Sum (Lit m) c) = Cut (Lit (n + m)) c
     {-
      >>> simplify (Op (Lit 3) Sub (Lit 1) (Covar "a"))
      Cut (Lit 2) (Covar "a")
     -}
-    simplify (Op (Lit n) Sub (Lit m) c) = Cut (Lit (n - m)) c
+    --simplify (Op (Lit n) Sub (Lit m) c) = Cut (Lit (n - m)) c
     -- otherwise simplify the arguments
     {-
      >>> simplify (Op (Mu "x" Done) Sum (Mu "x" Done) (Covar "a"))
@@ -97,13 +99,13 @@ instance Simplify Statement where
      >>> simplify (IfZ (Lit 0) Done (Cut (Lit 1) (Covar "a") (Covar "b")))
      Done
     -}
-    simplify (IfZ (Lit 0) s1 _) = simplify s1
-    -- ifzero n /= 0 can be simplified to the second statemetn
+    --simplify (IfZ (Lit 0) s1 _) = simplify s1
+    -- ifzero n /= 0 can be simplified to the second statement
     {-
      >>> simplify (IfZ (Lit 1) Done (Cut (Lit 1) (Covar "a") (Covar "b")))
      (Cut (Lit 1) (Covar "a'))
     -}
-    simplify (IfZ (Lit _) _ s2) = simplify s2
+    --simplify (IfZ (Lit _) _ s2) = simplify s2
     -- otherwise simplify all arguments
     {-
      >>> simplify (IfZ (Mu "x" (Cut (Lit 1) (Var "x"))) Done Done)
@@ -120,11 +122,13 @@ instance Simplify Producer where
     simplify (Var v) = Var v
     simplify (Lit n) = Lit n
     simplify (Mu cv st) = Mu cv (simplify st)
+    simplify (MuDyn cv st) = MuDyn cv (simplify st)
     simplify (Constructor ct args coargs) = Constructor ct (simplify <$> args) (simplify <$> coargs)
     simplify (Cocase pts) = Cocase (simplify <$> pts)
 
 instance Simplify Consumer where
     simplify (Covar cv) = Covar cv
     simplify (MuTilde v st) = MuTilde v (simplify st)
+    simplify (MuTildeDyn v st) = MuTildeDyn v (simplify st)
     simplify (Case pts) = Case (simplify <$> pts)
     simplify (Destructor dt args coargs) = Destructor dt (simplify <$> args) (simplify <$> coargs)

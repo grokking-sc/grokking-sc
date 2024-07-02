@@ -48,7 +48,7 @@ compile (Fun.Let v t1 t2) = do
     usedCovars <- get
     let alpha = freshCovarFrom [t1', t2'] usedCovars
     put (usedCovars `S.union` S.singleton alpha)
-    pure (Core.Mu alpha (Core.Cut t1' (Core.MuTilde v (Core.Cut t2' (Core.Covar alpha)))))
+    pure (Core.Mu alpha (Core.Cut t1' (Core.MuTildeDyn v (Core.Cut t2' (Core.Covar alpha)))))
 -- ⟦ f(t1,...,tn;ɑ1,...,ɑn) ⟧ = µɑ. f(⟦ t1 ⟧,...,⟦ tn ⟧;ɑ1,...,ɑn,ɑ) (ɑ fresh)
 compile (Fun.Fun v args cvs) = do
     args' <- mapM compile args
@@ -118,13 +118,13 @@ compile (Fun.Goto t alpha) = do
     usedCovars <- get
     let beta = freshCovarFrom [MkFree t'] (usedCovars `S.union` S.singleton alpha)
     put (usedCovars `S.union` S.singleton beta)
-    pure (Core.Mu beta (Core.Cut t' (Core.Covar alpha)))
+    pure (Core.MuDyn beta (Core.Cut t' (Core.Covar alpha)))
 -- ⟦ label ɑ { t } ⟧ = µɑ. ⟨ ⟦ t ⟧ | ɑ ⟩
 compile (Fun.Label alpha t) = do
     usedCovars <- get
     put (usedCovars `S.union` S.singleton alpha)
     t' <- compile t
-    pure (Core.Mu alpha (Core.Cut t' (Core.Covar alpha)))
+    pure (Core.MuDyn alpha (Core.Cut t' (Core.Covar alpha)))
 
 {- | Compile a single definition of the surface language @Fun@ to the intermediate language @Core@.
 ⟦ def f(x1,...xn;ɑ1,...,ɑm) := t ⟧ = def f(x1,...xn;ɑ1,...,ɑm,ɑ) := ⟨ ⟦ t ⟧ | ɑ ⟩ (ɑ fresh)

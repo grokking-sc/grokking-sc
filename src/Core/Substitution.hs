@@ -126,24 +126,28 @@ instance FreeV Producer where
     freeVars (Lit _) = S.empty
     -- mu binds a covariable, so this can be ignored
     freeVars (Mu _ s) = freeVars s
+    freeVars (MuDyn _ s) = freeVars s
     freeVars (Constructor _ pArgs cArgs) = S.union (freeVars pArgs) (freeVars cArgs)
     freeVars (Cocase pts) = freeVars pts
 
     freeCovars (Var _) = S.empty
     freeCovars (Lit _) = S.empty
     freeCovars (Mu cv st) = S.delete cv (freeCovars st)
+    freeCovars (MuDyn cv st) = S.delete cv (freeCovars st)
     freeCovars (Constructor _ pArgs cArgs) = S.union (freeCovars pArgs) (freeCovars cArgs)
     freeCovars (Cocase pts) = freeCovars pts
 
 instance FreeV Consumer where
     freeVars (Covar _) = S.empty
     freeVars (MuTilde v st) = S.delete v (freeVars st)
+    freeVars (MuTildeDyn v st) = S.delete v (freeVars st)
     freeVars (Case pts) = freeVars pts
     freeVars (Destructor _ pArgs cArgs) = S.union (freeVars pArgs) (freeVars cArgs)
 
     freeCovars (Covar cv) = S.singleton cv
     -- mutilde binds a variable, so this variable can be ignored
     freeCovars (MuTilde _ st) = freeCovars st
+    freeCovars (MuTildeDyn _ st) = freeCovars st
     freeCovars (Case pts) = freeCovars pts
     freeCovars (Destructor _ pArgs cArgs) = S.union (freeCovars pArgs) (freeCovars cArgs)
 
@@ -227,6 +231,12 @@ instance Subst Producer where
                     (MkFree st : (MkFree . Covar . snd <$> cs) ++ (MkFree . fst <$> cs) ++ (MkFree . fst <$> ps))
         let st' = substCovar (Covar cv') cv st
         Mu cv' (substSim ps cs st')
+    substSim ps cs (MuDyn cv st) = do
+        let cv' =
+                freshCovar
+                    (MkFree st : (MkFree . Covar . snd <$> cs) ++ (MkFree . fst <$> cs) ++ (MkFree . fst <$> ps))
+        let st' = substCovar (Covar cv') cv st
+        MuDyn cv' (substSim ps cs st')
     {-
      >>> substSim [] [] (Constructor Nil [] [])
      Constructor Nil [] []
@@ -258,6 +268,11 @@ instance Subst Consumer where
                 freshVar (MkFree st : (MkFree . Var . snd <$> ps) ++ (MkFree . fst <$> ps) ++ (MkFree . fst <$> cs))
         let st' = substVar (Var v') v st
         MuTilde v' (substSim ps cs st')
+    substSim ps cs (MuTildeDyn v st) = do
+        let v' =
+                freshVar (MkFree st : (MkFree . Var . snd <$> ps) ++ (MkFree . fst <$> ps) ++ (MkFree . fst <$> cs))
+        let st' = substVar (Var v') v st
+        MuTildeDyn v' (substSim ps cs st')
     {-
      >>> substSym [] [] (Case (MkPattern Nil [] []))
      Case (MkPattern Nil [] [])

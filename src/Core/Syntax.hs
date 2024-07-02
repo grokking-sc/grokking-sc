@@ -59,7 +59,9 @@ data Producer
       Lit Int
     | -- | Mu abstractions
       -- Definition 2.1
+      -- We distinguish Mu which is reduced by simplification of administrative redexes and MuDyn which is not.
       Mu Covar Statement
+    | MuDyn Covar Statement
     | -- | Constructors
       -- Definition 2.5
       Constructor Ctor [Producer] [Consumer]
@@ -77,7 +79,9 @@ data Consumer
       Covar Covar
     | -- | MuTilde abstractions
       -- Definition 2.3
+      -- We distinguish MuTilde which is reduced by simplification of administrative redexes and MuTildeDyn which is not.
       MuTilde Var Statement
+    | MuTildeDyn Var Statement
     | -- | Case expressions
       -- Definition 2.5
       Case [Pattern Ctor]
@@ -105,7 +109,7 @@ data Statement
       Done
     deriving (Show, Eq)
 
-{- | Toplevel Definitions
+{- | Top-level Definitions
 Definition 2.4
 -}
 data Def a = Def

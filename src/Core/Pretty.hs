@@ -43,6 +43,7 @@ instance Pretty Producer where
     pretty (Var v) = pretty v
     pretty (Lit n) = pretty n
     pretty (Mu cv st) = "μ" <> pretty cv <> dot <+> pretty st
+    pretty (MuDyn cv st) = "μ" <> pretty cv <> dot <+> pretty st
     pretty (Constructor ct [] []) = pretty ct
     pretty (Constructor ct pargs cargs) =
         pretty ct
@@ -53,6 +54,7 @@ instance Pretty Producer where
 instance Pretty Consumer where
     pretty (Covar cv) = pretty cv
     pretty (MuTilde v st) = "~μ" <> pretty v <> dot <+> pretty st
+    pretty (MuTildeDyn v st) = "~μ" <> pretty v <> dot <+> pretty st
     pretty (Case patterns) = "case" <+> lbrace <+> hsep (punctuate comma (pretty <$> patterns)) <+> rbrace
     pretty (Destructor dt pargs cargs) =
         pretty dt

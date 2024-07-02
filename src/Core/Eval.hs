@@ -34,6 +34,7 @@ evalOnce :: Statement -> Program a -> Maybe Statement
 (Cut (Lit 1) (Covar "b"))
 -}
 evalOnce (Cut (Mu cv st) c) _ = Just (substCovar c cv st)
+evalOnce (Cut (MuDyn cv st) c) _ = Just (substCovar c cv st)
 --
 -- ⟨p | μ~ x.st⟩ ▹ st[p/x]
 --
@@ -42,6 +43,7 @@ evalOnce (Cut (Mu cv st) c) _ = Just (substCovar c cv st)
 BinOp (Lit 1) Sum (Lit 1) (Covar "a")
 -}
 evalOnce (Cut p (MuTilde v st)) _ = Just (substVar p v st)
+evalOnce (Cut p (MuTildeDyn v st)) _ = Just (substVar p v st)
 --
 -- ⟨ctor(pargs;cargs) | case { ... ctor(vars;covars) ⇒ st }⟩ ▹ st[pargs/vars,cargs/covars]
 --

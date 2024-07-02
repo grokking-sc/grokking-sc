@@ -37,6 +37,7 @@ isValue (Constructor _ prds _) = all isValue prds
 False
  -}
 isValue (Mu _ _) = False
+isValue (MuDyn _ _) = False
 
 {- | Type class for focusing
 Definition 3.2
@@ -67,6 +68,7 @@ instance Focus Producer where
     -- F(μ a.s) = μ a.F(s)
     --
     focus (Mu x s) = Mu x (focus s)
+    focus (MuDyn x s) = MuDyn x (focus s)
     --
     -- F(cocase { D(xs;as) ⇒ s,... } = cocase { D(xs;as) ⇒ F(x), ...}
     --
@@ -94,6 +96,7 @@ instance Focus Consumer where
     -- F(μ~ x.s) = μ~ x.F(s)
     --
     focus (MuTilde x s) = MuTilde x (focus s)
+    focus (MuTildeDyn x s) = MuTildeDyn x (focus s)
     --
     -- F(case { K(xs;as) ⇒ s, ... }) = case { K(xs;as) ⇒ F(s), ...}
     --
