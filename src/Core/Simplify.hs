@@ -28,7 +28,7 @@ instance Simplify (Def a) where
     simplify Def{name = nm, pargs = args, cargs = coargs, body = st} = Def{name = nm, pargs = args, cargs = coargs, body = simplify st}
 
 instance Simplify Statement where
-    -- a mu abstraction in a cut can immediately be removed by substituting the consumer
+    -- an administrative mu abstraction in a cut can immediately be removed by substituting the consumer
     -- <mu cv1.st | c> -> st [c/cv1]
     {-
      >>> simplify (Cut (Mu "a" (Cut (Lit 1) (Covar "a")) (Covar "b"))
@@ -36,12 +36,13 @@ instance Simplify Statement where
      -}
     simplify (Cut (Mu cv1 s) c) = simplify (substCovar c cv1 s)
     -- simplify (Cut (MuDyn cv1 s) c) = simplify (substCovar c cv1 s)
-    -- as with a mu abstration, a mu-tilde abstraction can be simplified by substituting the producer
-    -- <p | mu v.st> -> st[p/v]
+    -- as with a mu abstration, an administrative mu-tilde abstraction can be simplified by substituting the producer, unless it is a non-administrative mu
+    -- <p | ~mu v.st> -> st[p/v]
     {-
      >>> simplify (Cut (Var "x") (MuTilde "y" (Cut (Var "y") (Covar "a")))
      Cut (Var "x") (Covar "a")
      -}
+    simplify (Cut (MuDyn cv1 s1) (MuTilde v2 s2)) = Cut (MuDyn cv1 (simplify s1)) (MuTilde v2 (simplify s2))
     simplify (Cut p (MuTilde v2 s)) = simplify (substVar p v2 s)
     -- simplify (Cut p (MuTildeDyn v2 s)) = simplify (substVar p v2 s)
     -- a cut between constructor and case can be replaced by the corresponding right-hand side of the pattern
