@@ -719,20 +719,22 @@ To see how the definitions and formulas in the paper are implemented in Haskell,
 
 * `Core` syntax (introduced in section 2) is implemented in `src/Core/Syntax.hs`.
 * `Fun` syntax (introduced in section 2) is implemented in `src/Fun/Syntax.hs`.
-* Compilation rules (introduced in section 2) are implemented in `src/Compiler/hs`.
-    The output of compilation can be see under the `---------- Result of Compilation --------` heading when running the binary, and under `Core Representation > Compiled` in the web demo.
 * A parser for `Fun` is implemented in `src/Fun/Parser.hs`.
-* Static Focusing (introduced in section 3.2, definition 3.2) is implemented in `src/Core/Focusing.hs`.
-    The output of focusing can be seen under the `---------- Result of Focusing --------` heading when running the binary, and under `Core Representation > Focused` in the web demo.
-* Evaluation rules for Core (introduced in section 2) are implemented in `src/Core/Eval.hs`.
-    The output of evaluation can be seen under the `---------- Result of Evaluation --------` heading when running the binary, and under `Evaluation` in the web demo.
-    Evaluation is only run for the `main` definition in a program, so any program without such a function will not have any evaluation results (neither in the binary nor the web demo)
-    Furthermore, evaluation is only implemented for `Core` and not for `Fun`, since we treat `Fun` as a surface language compiled to `Core` only after which it is evaluated.
-* Simplification is implemented in `src/Core/Simplify.hs`.
-    The results of simplification are included when running the binary under the `---------- Result of Evaluation --------` heding, and in the web demo under `Core Representation > Simplified`.
-* Fresh covariables and variables that are generated during both compilation (denoted in section 2 by `fresh`) are implemented in `src/Core/Substitution.hs`.
-    This uses a type class `FreeV` to make sure no shadowing can occur when generating a variable.
-* Substitution during evaluation (for example for μ- and ~μ-bindings) is implemented in `src/Core/Substitution.hs`.
 * Typing rules for `Fun` (introduced in section 4.1 and appendix B) are implemented in `src/Fun/Types.hs`.
+    The type inference algorithm follows the standard Hindley-Milner approach, but for simplicity does not implement let-generalization.
     Since types are preserved under translation, by theorem 4.6, we have not provided type inference for `Core`.
     We can be sure that if a term can be typed in `Fun`, it can also be typed in `Core` with the same type.
+* Compilation rules (introduced in section 2) are implemented in `src/Compiler/hs`.
+    The output of compilation can be seen under the `---------- Result of Compilation --------` heading when running the binary, and under `Core Representation > Compiled` in the web demo.
+* Static Focusing (introduced in section 3.2, definition 3.2) is implemented in `src/Core/Focusing.hs`.
+    The output of focusing can be seen under the `---------- Result of Focusing --------` heading when running the binary, and under `Core Representation > Focused` in the web demo.
+* Simplification is implemented in `src/Core/Simplify.hs`.
+    The results of simplification are included when running the binary under the `---------- Result of Evaluation --------` heding, and in the web demo under `Core Representation > Simplified`.
+* Evaluation rules for Core (introduced in section 2) are implemented in `src/Core/Eval.hs`.
+    The output of evaluation can be seen under the `---------- Result of Evaluation --------` heading when running the binary, and under `Evaluation` in the web demo.
+    Evaluation is only run for the `main` definition in a program, so any program without such a function will not have any evaluation results (neither in the binary nor the web demo).
+    Furthermore, evaluation is only implemented for `Core` and not for `Fun`, since we treat `Fun` as a surface language compiled to `Core` only after which it is evaluated.
+* Substitution during evaluation is implemented in `src/Core/Substitution.hs`.
+    For simplicity, we α-rename all bindings using fresh names with respect to the performed substitution.
+* Fresh covariables and variables that are generated during compilation (denoted in section 2 by `fresh`), focusing and substitution are implemented in `src/Core/Substitution.hs`.
+    This uses a type class `FreeV` to make sure no shadowing can occur when generating a variable.
