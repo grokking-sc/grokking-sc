@@ -1,4 +1,4 @@
-#ctional Pearl: Grokking the Sequent Calculus
+# Functional Pearl: Grokking the Sequent Calculus
 
 This is the artifact for the functional pearl "Grokking the Sequent Calculus", available as an artifact on [Zenodo](https://zenodo.org/doi/10.5281/zenodo.11491667).
 The paper introduces sequent-calculus-based intermediate languages by compiling the functional surface language `Fun` to the sequent-calculus-based intermediate language `Core`.
