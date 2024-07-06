@@ -112,7 +112,7 @@ instance Focus Consumer where
                 let v1 = freshVar [dest]
                 let v2 = freshVarFrom [dest] (S.singleton v1)
                 let newArgs = (\p' -> if p' == p then Var v1 else p') <$> pargs
-                MuTilde v2 (Cut (focus p) (MuTilde v1 (Cut (Var v2) (Destructor dt newArgs cargs))))
+                MuTilde v2 (Cut (focus p) (MuTilde v1 (Cut (Var v2) (focus (Destructor dt newArgs cargs)))))
 
 instance Focus Statement where
     focus :: Statement -> Statement
