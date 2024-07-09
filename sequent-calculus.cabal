@@ -2,12 +2,13 @@ cabal-version:      3.0
 name:               sequent-calculus
 version:            0.1.0.0
 synopsis:           Compiling to the sequent calculus
--- description:
+description:        An implementation of the paper "Grokking the Sequent Calculus (Functional Pearl)"
+                    which was published at ICFP 2024.
 license:            BSD-3-Clause
 license-file:       LICENSE
-author:             Anonymous
-maintainer:         anonymous
--- copyright:
+author:             David Binder, Marius Müller, Marco Tzschentke
+maintainer:         David Binder, Marius Müller, Marco Tzschentke
+copyright:          (c) 2024 David Binder, Marius Müller, Marco Tzschentke
 category:           Development
 build-type:         Simple
 extra-doc-files:    README.md
