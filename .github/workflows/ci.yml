@@ -5,7 +5,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        ghc: ['9.4.8', '9.6.5', '9.8.2']
+        ghc: ['9.4.8', '9.6.5', '9.8.2', '9.10.1']
         cabal: ['3.10']
         os: [ubuntu-latest, macOS-latest, windows-latest]
     name: Haskell GHC ${{ matrix.ghc }}
